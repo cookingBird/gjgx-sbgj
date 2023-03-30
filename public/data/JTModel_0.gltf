@@ -1,0 +1,268 @@
+{
+    "accessors": {
+        "accessor_10": {
+            "bufferView": "bufferView_14",
+            "byteOffset": 0,
+            "byteStride": 2,
+            "componentType": 5123,
+            "count": 72,
+            "max": [
+                13.0
+            ],
+            "min": [
+                0.0
+            ],
+            "type": "SCALAR"
+        },
+        "accessor_12": {
+            "bufferView": "bufferView_15",
+            "byteOffset": 0,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 14,
+            "max": [
+                183.85501098632813,
+                41.06629943847656,
+                10.0
+            ],
+            "min": [
+                -173.74301147460938,
+                -40.9297981262207,
+                0.0
+            ],
+            "type": "VEC3"
+        }
+    },
+    "animations": {},
+    "asset": {
+        "generator": "collada2gltf@GITDIR-NOTFOUND",
+        "premultipliedAlpha": true,
+        "profile": {
+            "api": "WebGL",
+            "version": "1.0.2"
+        },
+        "version": "1.0.1"
+    },
+    "bufferViews": {
+        "bufferView_14": {
+            "buffer": "JTModel_0",
+            "byteLength": 144,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        "bufferView_15": {
+            "buffer": "JTModel_0",
+            "byteLength": 168,
+            "byteOffset": 144,
+            "target": 34962
+        }
+    },
+    "buffers": {
+        "JTModel_0": {
+            "byteLength": 312,
+            "type": "arraybuffer",
+            "uri": "data:application/octet-stream;base64,AAABAAIAAAACAAMAAQAEAAUAAQAFAAIABAAGAAcABAAHAAUABgAIAAkABgAJAAcACAAKAAsACAALAAkACgAMAA0ACgANAAsADAAAAAMADAADAA0ABgAKAAgAAQAGAAQAAQAKAAYAAAAKAAEAAAAMAAoABwAJAAsAAgAFAAcAAgAHAAsAAwACAAsAAwALAA0Av38tw4j0XsEAAAAA9+QjQpaQWcEAAAAA9+QjQpaQWcEAACBBv38tw4j0XsEAACBB9+QkQh24I8IAAAAA9+QkQh24I8IAACBB4to3Q61tij4AAAAA4to3Q61tij4AACBB7N4hQuRDJEIAAAAA7N4hQuRDJEIAACBB6+IiQpi7W0EAAAAA6+IiQpi7W0EAACBBNr4tw0VHVkEAAAAANr4tw0VHVkEAACBB"
+        }
+    },
+    "materials": {
+        "material_effect": {
+            "name": "material",
+            "technique": "technique0",
+            "values": {
+                "ambient": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0
+                ],
+                "diffuse": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0
+                ],
+                "emission": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "shininess": 12.800000190734864,
+                "specular": [
+                    0.8980389833450317,
+                    0.8980389833450317,
+                    0.8980389833450317,
+                    1.0
+                ]
+            }
+        }
+    },
+    "meshes": {
+        "geometry": {
+            "name": "geometry",
+            "primitives": [
+                {
+                    "attributes": {
+                        "POSITION": "accessor_12"
+                    },
+                    "indices": "accessor_10",
+                    "material": "material_effect",
+                    "mode": 4
+                }
+            ]
+        }
+    },
+    "nodes": {
+        "LOD": {
+            "children": [
+                "matrixTransform"
+            ],
+            "name": "LOD"
+        },
+        "group": {
+            "children": [
+                "LOD"
+            ],
+            "name": "group"
+        },
+        "matrixTransform": {
+            "children": [
+                "matrixTransform_1"
+            ],
+            "name": "matrixTransform"
+        },
+        "matrixTransform_1": {
+            "children": [],
+            "matrix": [
+                1.0,
+                -0.00004048140181112103,
+                0.00006359370308928192,
+                0.0,
+                -0.00006359370308928192,
+                -1.5991699342521316e-7,
+                1.0,
+                0.0,
+                -0.00004048140181112103,
+                -1.0,
+                -1.624910055397777e-7,
+                0.0,
+                -5.057149887084961,
+                5.001800060272217,
+                1.9619299173355103,
+                1.0
+            ],
+            "meshes": [
+                "geometry"
+            ],
+            "name": "matrixTransform_1"
+        },
+        "node_5": {
+            "children": [
+                "sceneRoot"
+            ],
+            "matrix": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                -1.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "Y_UP_Transform"
+        },
+        "sceneRoot": {
+            "children": [
+                "group"
+            ],
+            "name": "sceneRoot"
+        }
+    },
+    "programs": {
+        "program_0": {
+            "attributes": [
+                "a_position"
+            ],
+            "fragmentShader": "JTModel_00FS",
+            "vertexShader": "JTModel_00VS"
+        }
+    },
+    "scene": "defaultScene",
+    "scenes": {
+        "defaultScene": {
+            "nodes": [
+                "node_5"
+            ]
+        }
+    },
+    "shaders": {
+        "JTModel_00FS": {
+            "type": 35632,
+            "uri": "data:text/plain;base64,cHJlY2lzaW9uIGhpZ2hwIGZsb2F0Owp1bmlmb3JtIHZlYzQgdV9kaWZmdXNlOwp1bmlmb3JtIHZlYzQgdV9lbWlzc2lvbjsKdW5pZm9ybSBmbG9hdCB1X3NoaW5pbmVzczsKdm9pZCBtYWluKHZvaWQpIHsKdmVjNCBjb2xvciA9IHZlYzQoMC4sIDAuLCAwLiwgMC4pOwp2ZWM0IGRpZmZ1c2UgPSB2ZWM0KDAuLCAwLiwgMC4sIDEuKTsKdmVjNCBlbWlzc2lvbjsKZGlmZnVzZSA9IHVfZGlmZnVzZTsKZW1pc3Npb24gPSB1X2VtaXNzaW9uOwpjb2xvci54eXogKz0gZGlmZnVzZS54eXo7CmNvbG9yLnh5eiArPSBlbWlzc2lvbi54eXo7CmNvbG9yID0gdmVjNChjb2xvci5yZ2IgKiBkaWZmdXNlLmEsIGRpZmZ1c2UuYSk7CmdsX0ZyYWdDb2xvciA9IGNvbG9yOwp9Cg=="
+        },
+        "JTModel_00VS": {
+            "type": 35633,
+            "uri": "data:text/plain;base64,cHJlY2lzaW9uIGhpZ2hwIGZsb2F0OwphdHRyaWJ1dGUgdmVjMyBhX3Bvc2l0aW9uOwp1bmlmb3JtIG1hdDQgdV9tb2RlbFZpZXdNYXRyaXg7CnVuaWZvcm0gbWF0NCB1X3Byb2plY3Rpb25NYXRyaXg7CnZvaWQgbWFpbih2b2lkKSB7CnZlYzQgcG9zID0gdV9tb2RlbFZpZXdNYXRyaXggKiB2ZWM0KGFfcG9zaXRpb24sMS4wKTsKZ2xfUG9zaXRpb24gPSB1X3Byb2plY3Rpb25NYXRyaXggKiBwb3M7Cn0K"
+        }
+    },
+    "skins": {},
+    "techniques": {
+        "technique0": {
+            "attributes": {
+                "a_position": "position"
+            },
+            "parameters": {
+                "ambient": {
+                    "type": 35666
+                },
+                "diffuse": {
+                    "type": 35666
+                },
+                "emission": {
+                    "type": 35666
+                },
+                "modelViewMatrix": {
+                    "semantic": "MODELVIEW",
+                    "type": 35676
+                },
+                "position": {
+                    "semantic": "POSITION",
+                    "type": 35665
+                },
+                "projectionMatrix": {
+                    "semantic": "PROJECTION",
+                    "type": 35676
+                },
+                "shininess": {
+                    "type": 5126
+                },
+                "specular": {
+                    "type": 35666
+                }
+            },
+            "program": "program_0",
+            "states": {
+                "enable": [
+                    2929,
+                    2884
+                ]
+            },
+            "uniforms": {
+                "u_diffuse": "diffuse",
+                "u_emission": "emission",
+                "u_modelViewMatrix": "modelViewMatrix",
+                "u_projectionMatrix": "projectionMatrix",
+                "u_shininess": "shininess"
+            }
+        }
+    }
+}

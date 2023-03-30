@@ -1,0 +1,75 @@
+<template>
+  <main>
+    <div class="step-wrapper shadow-content">
+      <el-steps :active="stepActive" align-center>
+        <el-step title="管道选择"></el-step>
+        <el-step title="管道分段"></el-step>
+        <el-step title="地区等级划分"></el-step>
+        <el-step title="高后果区识别"></el-step>
+      </el-steps>
+    </div>
+    <div class="page-content m-t-10">
+      <router-view></router-view>
+    </div>
+  </main>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+
+    }
+  },
+  computed: {
+    stepActive() {
+      return this.$route.meta.step - 1;
+    }
+  },
+  methods: {}
+}
+</script>
+
+<style lang="scss" scoped>
+main {
+  width: 100%;
+  height: 100%;
+  ::v-deep .step-wrapper {
+    padding: 8px 0px;
+
+    .el-step__icon {
+      width: 30px;
+      height: 30px;
+    }
+
+    .el-step__title {
+      font-weight: normal;
+      color: #333;
+    }
+
+    .el-step__icon {
+      border-color: #949494;
+
+      .el-step__icon-inner {
+        color: #949494;
+      }
+    }
+
+    .is-process {
+      .el-step__icon {
+        border-color: #3B9CF6;
+        background-color: #3B9CF6;
+
+        .el-step__icon-inner {
+          color: #fff;
+        }
+      }
+    }
+  }
+
+  .page-content {
+    height: calc(100% - 90px);
+    width: 100%;
+  }
+}
+</style>

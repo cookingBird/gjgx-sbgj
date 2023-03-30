@@ -1,0 +1,112 @@
+.shadow-content {
+  background-color: #fff;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 3px 3px 5px rgba(127, 127, 127, 0.35);
+
+  & + .shadow-content {
+    margin-top: 10px;
+  }
+}
+
+.content-title,
+.content-title-small {
+  position: relative;
+  padding-left: 1.2rem;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 3;
+  border-bottom: 1.6px solid;
+  color: $--cas-text2;
+  border-color: $--cas-table-border;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 1.8rem;
+    background-color: $--cas-color2;
+    border-radius: 2px;
+  }
+}
+
+.content-title-small {
+  &::before {
+    width: 5px;
+    border-radius: 0px;
+  }
+}
+
+.cas_search_content {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  & > div {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.cas_page_padding {
+  padding: 8px;
+}
+
+.cas_detail_dialog {
+  .el-dialog__header {
+    color: $--cas-color10;
+    background-color: $--cas-color1;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 10px 20px;
+    position: relative;
+  }
+  .el-dialog__headerbtn {
+    top: 50%;
+    transform: translateY(-50%);
+    .el-dialog__close {
+      color: $--cas-color10;
+      font-size: 30px;
+    }
+  }
+  .el-dialog__body {
+    height: calc(100% - 50px);
+    padding: 0;
+  }
+  .dialog_content {
+    padding: 10px 20px;
+    .dialog_hint {
+      color: red;
+      font-size: 14px;
+    }
+    .dialog_function {
+      display: flex;
+      align-items: center;
+      margin: 20px 0 30px;
+      position: relative;
+      .el-upload-list {
+        position: absolute;
+        left: 0;
+      }
+      .download {
+        display: flex;
+        align-items: center;
+        height: 35px;
+        color:  $--cas-color1;
+        border-bottom: 3px solid $--cas-color1;
+      }
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: center;
+      .el-button + .el-button {
+        margin-left: 25px;
+      }
+    }
+  }
+}

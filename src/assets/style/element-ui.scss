@@ -1,0 +1,15 @@
+//Base
+$--border-color-base: #aeaeae;
+$--color-primary: #063770;
+
+// Table
+$--table-header-background-color: #063770;
+$--table-header-font-color: #ffffff;
+$--table-border-color: #e5edf6;
+
+//Button
+$--button-default-background-color: #306fcf;
+$--button-default-font-color: #ffffff;
+
+
+@import "~element-ui/packages/theme-chalk/src/index.scss";

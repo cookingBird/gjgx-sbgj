@@ -1,0 +1,33 @@
+.my-btn-group {
+	--bgc: #306fcf;
+	--f: #ffffff;
+}
+
+.my-btn-group> :not([hidden])+:not([hidden]) {
+	margin-left: 0;
+	border-left: none;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.my-btn-group> :not([hidden]):not(:last-child) {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.my-btn-group>.my-btn-group-item {
+	border-color: var(--bgc);
+	font-weight: var(--h-f-w);
+	background-color: var(--f) ;
+	color: var(--bgc) ;
+}
+
+.my-btn-group>.my-btn-group-item:hover {
+	border-color: var(--bgc);
+	border-width: 1px;
+}
+
+.my-btn-group>.my-btn-group-item.selected {
+	background-color: var(--bgc) ;
+	color: var(--f) ;
+}

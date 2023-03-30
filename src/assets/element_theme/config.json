@@ -1,0 +1,18 @@
+{
+  "global": {},
+  "local": {
+    "$--table-border-color": "#E5EDF6",
+    "$--table-header-font-color": "#FFFFFF",
+    "$--table-header-background-color": "#063770",
+    "$--pagination-background-color": "$--color-white",
+    "$--pagination-font-color": "#333333",
+    "$--pagination-button-color": "#063770",
+    "$--pagination-hover-color": "$--color-white",
+    "$--pagination-font-size": "14px",
+    "$--button-default-background-color": "$--color-white",
+    "$--button-primary-border-color": "#0B79DF",
+    "$--button-default-border-color": "#0B79DF",
+    "$--button-primary-background-color": "#0B79DF",
+    "$--button-primary-font-color": "#FFFFFF"
+  }
+}

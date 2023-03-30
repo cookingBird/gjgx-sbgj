@@ -1,0 +1,24 @@
+.my-el-table-ctx {
+  --h-h: 60;
+  height: 100%;
+}
+
+.my-el-table-ctx .el-table__header {
+  height: calc(var(--h-h) * 1px);
+}
+
+.my-el-table-ctx .el-table__header .cell {
+  font-weight: var(--h-f-w);
+}
+
+.my-el-table-ctx .el-table__row .cell {
+  font-weight: var(--r-f-w);
+}
+
+.my-el-button-none.el-button,
+.my-el-button-none.el-button:hover {
+  background-color: transparent ;
+  border: none;
+  font-weight: var(--h-f-w);
+  color: var(--h-bgc) ;
+}
