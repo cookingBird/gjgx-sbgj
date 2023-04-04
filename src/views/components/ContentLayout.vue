@@ -1,14 +1,15 @@
 <template>
 	<section class="gjgx-discern-container">
-		<header class="shadow-content">
+		<header class="shadow-content gjgx-discern-container-item">
 			<slot name="header"> This is Header </slot>
 		</header>
-		<main class="shadow-content">
+		<main class="shadow-content gjgx-discern-container-item">
 			<slot name="main"> This is Main </slot>
 		</main>
-		<footer class="shadow-content">
+		<footer class="shadow-content gjgx-discern-container-item">
 			<slot name="footer"> This is Footer </slot>
 		</footer>
+		<slot></slot>
 	</section>
 </template>
 
@@ -41,7 +42,7 @@
 	margin-top: 10px;
 }
 
-.gjgx-discern-container> :not([hidden]) {
+.gjgx-discern-container> .gjgx-discern-container-item {
 	background-color: #ffffff;
 }
 </style>

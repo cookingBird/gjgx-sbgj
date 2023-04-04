@@ -51,7 +51,6 @@ export default {
                 //todo 查找当前应用的权限配置
                 const travel = treeTravels(state.menuData)
                 const { pathname } = state.mainLocation
-                console.log(pathname)
                 travel({
                   every (node) {
                     if (node.route === pathname) {

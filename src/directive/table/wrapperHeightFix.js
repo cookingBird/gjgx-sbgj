@@ -1,8 +1,9 @@
 const fixTableBodyWrapper = (function () {
   let timer
   return function fixTableBodyWrapper (el) {
-    timer && cancelAnimationFrame(timer)
-    timer = requestAnimationFrame(() => {
+    console.log('fixTableBodyWrapper----------', el)
+    timer && clearTimeout(timer)
+    timer = setTimeout(() => {
       const tableHeight = el.getBoundingClientRect().height
       const tableHeaderHeight = el
         .querySelector('.el-table__header-wrapper')
@@ -11,7 +12,7 @@ const fixTableBodyWrapper = (function () {
       el.querySelector('.el-table__body-wrapper').style.height =
         bodyHeight + 'px'
       timer = void 0
-    })
+    },300)
   }
 })()
 

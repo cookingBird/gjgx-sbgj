@@ -1,69 +1,70 @@
-const kindOf = (function (cache) {
-  const toString = Object.prototype.toString
-  // eslint-disable-next-line func-names
-  return function (thing) {
-    const str = toString.call(thing)
-    return cache[str] || (cache[str] = str.slice(8, -1).toLowerCase())
-  }
-})(Object.create(null))
-
-function kindOfTest (type) {
-  type = type.toLowerCase()
-  return function isKindOf (thing) {
-    return kindOf(thing) === type
-  }
-}
-
-function deepMerge (...targets) {
-  function merge (source, target, isFirst = true) {
-    const keys = Object.keys(source).concat(Object.keys(target))
-    for (const key of keys) {
-      if (
-        Object.hasOwnProperty.call(target, key) &&
-        Object.hasOwnProperty.call(source, key)
-      ) {
-        if (!kindOfTest(kindOf(source[key]))(target[key])) {
-          console.warn(`deepMerge target ${key} type not satisfy with source `)
-        } else {
-          if (kindOfTest('array')(source[key])) {
-            source[key].forEach((n, index) => {
-              deepMerge(n, target[key][index], false)
-            })
-          }
-          if (kindOfTest('object')(source[key])) {
-            deepMerge(source[key], target[key], false)
-          }
-          source[key] = target[key]
-        }
-      } else {
-        source[key] = source[key] || target[key]
+const xhr = new XMLHttpRequest()
+export function sendXhr (usrConfig) {
+  const config = getConfig(usrConfig)
+  let {
+    timeout,
+    headers,
+    withCredentials,
+    transformRequest,
+    transformResponse,
+    method,
+    baseUrl,
+    baseURL,
+    url,
+    data
+  } = config
+  return new Promise((resolve, reject) => {
+    xhr.onload = () => {
+      const response = {
+        data: transformResponse.reduce(
+          (pre, cur) => cur(pre, config),
+          xhr.response
+        ),
+        config: config,
+        headers: headers,
+        status: xhr.status,
+        statusText: xhr.statusText
       }
+      resolve(response)
     }
-    if (isFirst) {
-      return source
+    xhr.ontimeout = reject
+
+    if (typeof method === 'string' && method.toLowerCase() === 'post') {
+      xhr.open(method.toUpperCase(), combineURLs(baseUrl || baseURL, url), true)
+      data = transformRequest.reduce((pre, cur) => cur(pre, headers), data)
+    } else if (typeof method === 'string' && method.toLowerCase() === 'get') {
+      xhr.open(method.toUpperCase(), buildGetUrl(config), true)
+    } else {
+      throw Error(`xmlRequest method not support ${method}`)
     }
-  }
-  return targets.slice(1).reduce((pre, cur) => merge(pre, cur), targets[0])
+    if (!data) {
+      data = null
+    }
+    setHeader(xhr, headers)
+    xhr.timeout = timeout
+    //* 跨站点请求认证
+    xhr.withCredentials = withCredentials
+    xhr.send(data)
+  })
 }
 
-function encode (val) {
-  return encodeURIComponent(val)
-    .replace(/%3A/gi, ':')
-    .replace(/%24/g, '$')
-    .replace(/%2C/gi, ',')
-    .replace(/%20/g, '+')
-    .replace(/%5B/gi, '[')
-    .replace(/%5D/gi, ']')
+export function createXHR (initConfig) {
+  return {
+    send: config => sendXhr(deepMerge(initConfig, config)),
+    get: config => sendXhr(deepMerge(initConfig, config, { method: 'GET' })),
+    post: config => sendXhr(deepMerge(initConfig, config, { method: 'POST' }))
+  }
 }
 
 function getConfig (config) {
   const defaultConfig = {
+    baseUrl: '',
     timeout: 3000,
     withCredentials: false,
     serializer: function (params) {
       const parts = []
 
-      Object.entries(params).forEach(function serialize (key, val) {
+      Object.entries(params).forEach(function serialize ([key, val]) {
         if (val === null || typeof val === 'undefined') {
           return
         }
@@ -129,17 +130,87 @@ function getConfig (config) {
   return deepMerge(defaultConfig, config)
 }
 
-function setHeader (xml, header = {}) {
+const kindOf = (function (cache) {
+  const toString = Object.prototype.toString
+  // eslint-disable-next-line func-names
+  return function (thing) {
+    const str = toString.call(thing)
+    return cache[str] || (cache[str] = str.slice(8, -1).toLowerCase())
+  }
+})(Object.create(null))
+
+function kindOfTest (type) {
+  type = type.toLowerCase()
+  return function isKindOf (thing) {
+    return kindOf(thing) === type
+  }
+}
+
+function removeRepeat (array) {
+  const res = {}
+  array.forEach(f => (res[f] = void 0))
+  return Object.keys(res)
+}
+function deepMerge (...targets) {
+  function merge (source, target, isFirst = true) {
+    const keys = removeRepeat(Object.keys(source).concat(Object.keys(target)))
+    for (const key of keys) {
+      if (
+        Object.hasOwnProperty.call(target, key) &&
+        Object.hasOwnProperty.call(source, key)
+      ) {
+        if (!kindOfTest(kindOf(source[key]))(target[key])) {
+          console.warn(`deepMerge target ${key} type not satisfy with source `)
+        } else {
+          if (kindOfTest('array')(source[key])) {
+            source[key].forEach((n, index) => {
+              merge(n, target[key][index], false)
+            })
+          } else if (kindOfTest('object')(source[key])) {
+            merge(source[key], target[key], false)
+          } else {
+            source[key] = target[key]
+          }
+        }
+      } else {
+        source[key] = source[key] || target[key] || null
+      }
+    }
+    if (isFirst) {
+      return source
+    }
+  }
+  return targets.slice(1).reduce((pre, cur) => merge(pre, cur), targets[0])
+}
+
+function encode (val) {
+  return encodeURIComponent(val)
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%20/g, '+')
+    .replace(/%5B/gi, '[')
+    .replace(/%5D/gi, ']')
+}
+
+function setHeader (xhr, header = {}) {
   for (const key in header) {
     if (Object.hasOwnProperty.call(header, key)) {
-      xml.setRequestHeader(key, header[key])
+      xhr.setRequestHeader(
+        key,
+        kindOfTest('function')(header[key]) ? header[key]() : header[key]
+      )
     }
   }
 }
 function combineURLs (baseURL, relativeURL) {
   return relativeURL
-    ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
-    : baseURL
+    ? relativeURL.startsWith('http')
+      ? relativeURL
+      : baseURL
+      ? baseURL.replace(/\/+$/, '') + '/' + relativeURL.replace(/^\/+/, '')
+      : relativeURL
+    : Error('relativeURL do not exist')
 }
 function buildGetUrl (config) {
   function buildURL (url, params, paramsSerializer) {
@@ -162,61 +233,8 @@ function buildGetUrl (config) {
     return url
   }
   return buildURL(
-    combineURLs(config.baseURL, config.url),
+    combineURLs(config.baseUrl || config.baseURL, config.url),
     config.params,
     config.serializer
   )
-}
-const xml = new XMLHttpRequest()
-export function sendXhr (config) {
-  config = getConfig(config)
-  let {
-    timeout,
-    headers,
-    withCredentials,
-    transformRequest,
-    transformResponse,
-    data
-  } = config
-  return new Promise((resolve, reject) => {
-    xml.onload = () => {
-      const response = {
-        data: transformResponse.reduce(
-          (pre, cur) => cur(pre, config),
-          xml.response
-        ),
-        config: config,
-        headers: headers,
-        status: xml.status,
-        statusText: xml.statusText,
-        request: xml
-      }
-      resolve(response)
-    }
-    xml.ontimeout = reject
-    //* 跨站点请求认证
-    xhr.withCredentials = withCredentials
-    xml.timeout = timeout
-    setHeader(xml, headers)
-    if (typeof method === 'string' && method.toLowerCase() === 'post') {
-      xml.open(method.toUpperCase(), combineURLs(baseUrl, url), true)
-      data = transformRequest.reduce((pre, cur) => cur(pre, headers), data)
-    } else if (typeof method === 'string' && method.toLowerCase() === 'get') {
-      xml.open(method.toUpperCase(), buildGetUrl(config), true)
-    } else {
-      throw Error(`xmlRequest method not support ${method}`)
-    }
-    if (!data) {
-      data = null
-    }
-    xml.send(data)
-  })
-}
-
-export function createXHR (initConfig) {
-  return {
-    send: config => sendXhr(deepMerge(config, initConfig)),
-    get: config => sendXhr(deepMerge(config, initConfig, { method: 'GET' })),
-    post: config => sendXhr(deepMerge(config, initConfig, { method: 'POST' }))
-  }
 }

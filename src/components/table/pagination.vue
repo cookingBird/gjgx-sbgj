@@ -3,9 +3,9 @@
     :background="configCom.background"
     :small="configCom.small"
     :total="total"
-    :page-size="pageParams.pageSize"
+    :page-size.sync="pageParams.pageSize"
     :pager-count="configCom.pagerCount"
-    :current-page="pageParams.pageNum"
+    :current-page.sync="pageParams.pageNo"
     :page-sizes="configCom.pageSizes"
     :prev-text="configCom.prevText"
     :next-text="configCom.nextText"
@@ -37,7 +37,6 @@
         }
       }
     },
-    methods: {},
     computed: {
       configCom () {
         const config = this.config ?? {};
@@ -50,7 +49,6 @@
         };
       }
     },
-    emits: ['sizeChange','currentChange']
   };
 </script>
 

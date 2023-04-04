@@ -1,9 +1,7 @@
 
 .mapboxgl-popup-content{
-           padding:0px;
- }
- .mapboxgl-popup-tip{
-  	border:none;
+	background: #fff;
+	padding: 4px 8px;
  }
  .measure-result {
    background-color: white;

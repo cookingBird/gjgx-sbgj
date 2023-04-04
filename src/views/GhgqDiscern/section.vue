@@ -4,180 +4,275 @@
     <div class="section-content">
       <div class="section-content-left shadow-content bg-fff">
         <el-scrollbar>
-          <pipe-selector :data="pipeList" :defaultOpen="true"
-            :optionsKey="{ title: 'name', key: 'id', children: 'children' }"></pipe-selector>
+          <pipe-selector
+            :data="pipeList"
+            :defaultOpen="true"
+            :optionsKey="{ title: 'name', key: 'id', children: 'children' }"
+          ></pipe-selector>
         </el-scrollbar>
       </div>
       <div class="section-content-right">
         <div class="right-content">
-          <mix-table :columns="tableColumns" :api="tableRequestAPI" :config="tableConfig">
+          <mix-table
+            ref="table"
+            :columns="tableColumns"
+            :config="tableConfig"
+            reqMethods="GET"
+            url="/highconsarea/nextOperate"
+            :query="{ taskId:taskId,nodeId: 1,flag: ''}"
+            :pageParams="{ pageNo:1,pageSize:-1 }"
+          >
             <template #operate="{ row }">
-              <el-button type="text">编辑分段</el-button>
+              <el-button
+                type="text"
+                @click="onEditSegment(row)"
+              >编辑分段</el-button>
             </template>
           </mix-table>
         </div>
         <div class="right-footer bg-fff shadow-content m-t-10">
           <div>
             <el-button @click="$router.go(-1)">上一步</el-button>
-            <el-button type="primary" @click="handleDiscern">一键识别</el-button>
-            <el-button type="primary" @click="handleNext">下一步</el-button>
+            <el-button
+              type="primary"
+              @click="handleDiscern"
+            >一键识别</el-button>
+            <el-button
+              type="primary"
+              @click="handleNext"
+            >下一步</el-button>
           </div>
         </div>
       </div>
     </div>
+    <el-dialog
+      v-if="dialogVisible"
+      title="编辑"
+      :visible.sync="dialogVisible"
+      width="30%"
+    >
+      <el-form
+        :model="formData"
+        ref="addForm"
+        label-width="110px"
+        :rules="rules"
+      >
+        <el-form-item
+          label="起始里程："
+          prop="startMileage"
+        >
+          <el-input
+            placeholder="请输入"
+            v-model="formData.startMileage"
+          ></el-input>
+        </el-form-item>
+        <el-form-item
+          v-show="actionType"
+          label="拆分里程："
+          prop="splitMileage"
+        >
+          <el-input
+            placeholder="请输入"
+            v-model="formData.splitMileage"
+          ></el-input>
+        </el-form-item>
+        <el-form-item
+          label="终止里程："
+          prop="endMileage"
+        >
+          <el-input
+            placeholder="请输入"
+            v-model="formData.endMileage"
+          ></el-input>
+        </el-form-item>
+        <div class="flex justify-center">
+          <el-button
+            type="primary"
+            @click="dialogVisible = false"
+          >取消</el-button>
+          <el-button
+            type="primary"
+            @click="actionType = !actionType"
+          >
+            {{ actionType !== true ? '拆分' : '取消拆分' }}
+          </el-button>
+          <el-button
+            type="primary"
+            @click="onSubmit"
+          >确定</el-button>
+        </div>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import MixTable from '@/components/mixTable';
-import PipeSelector from '@/components/pipeSelector';
+  import MixTable from '@/components/mixTable';
+  import PipeSelector from '@/components/pipeSelector';
+  import * as Helper from './Helper';
+  const CURRENT_NODE_STEP = 2;
 
-export default {
-  components: {
-    MixTable,
-    PipeSelector
-  },
-  data() {
-    return {
-      pipeList: [{
-        name: '全部管道',
-        id: 1,
-        children: [{
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道4',
-          id: 5
-        }, {
-          name: '管道1',
-          id: 2,
-        }, {
-          name: '管道2',
-          id: 3
-        }, {
-          name: '管道3',
-          id: 4
-        }, {
-          name: '管道4',
-          id: 5
-        }]
-      }],
-      tableConfig: {
-        isPagination: false,
+  export default {
+    components: {
+      MixTable,
+      PipeSelector
+    },
+    data () {
+      return {
+        pipeList: [{
+          name: '全部管道',
+          id: 1,
+          children: []
+        }],
+        tableConfig: {
+          isPagination: false,
+        },
+        tableColumns: [
+          {
+            label: "管道名称",
+            prop: ""
+          },
+          {
+            label: "分段编号",
+            prop: ""
+          },
+          {
+            label: "分段长度（m）",
+            prop: ""
+          },
+          {
+            label: "起始里程（m）",
+            prop: ""
+          },
+          {
+            label: "终止里程（m）",
+            prop: ""
+          },
+          {
+            label: "管径（mm）",
+            prop: ""
+          },
+          {
+            label: "压力",
+            prop: ""
+          },
+          {
+            label: "传输介质",
+            prop: "",
+          },
+          {
+            label: "易燃易爆场所（个）",
+            prop: ""
+          },
+          {
+            label: "操作",
+            prop: "operate"
+          }
+        ],
+        dialogVisible: false,
+        formData: {
+          startMileage: 0,
+          splitMileage: 0,
+          endMileage: 0,
+        },
+        actionType: false
+      }
+    },
+    computed: {
+      taskId () {
+        return this.$route.query.id
       },
-      tableColumns: [{
-        label: "管道名称",
-        prop: ""
-      }, {
-        label: "分段编号",
-        prop: ""
-      }, {
-        label: "分段长度（m）",
-        prop: ""
-      }, {
-        label: "起始里程（m）",
-        prop: ""
-      }, {
-        label: "终止里程（m）",
-        prop: ""
-      }, {
-        label: "管径（mm）",
-        prop: ""
-      }, {
-        label: "压力",
-        prop: ""
-      }, {
-        label: "传输介质",
-        prop: "",
-      }, {
-        label: "易燃易爆场所（个）",
-        prop: ""
-      }, {
-        label: "操作",
-        prop: "operate"
-      }],
-      tableRequestAPI: function () { },
-
-    }
-  },
-  methods: {
-    handleDiscern() { },
-    handleNext() {
-      this.$router.push({
-        path: '/DiscernSteps/level'
-      })
+      taskName () {
+        return this.$route.query.taskName
+      },
+      rules () {
+        return Object.assign(
+          {
+            startMileage: [{ required: true,message: '请输入' }],
+            endMileage: [{ required: true,message: '请输入' }],
+          },
+          this.actionType ? { splitMileage: [{ required: true,message: '请输入' }] } : null
+        )
+      }
+    },
+    created () {
+      this.getSelectedPipeList()
+    },
+    methods: {
+      getSelectedPipeList () {
+        Helper.queryAllSelected({
+          keyWords: '',
+          pageNo: 1,
+          pageSize: -1,
+          startTime: '',
+          endTime: '',
+          status: 0,
+          taskId: this.taskId
+        }).then((data) => {
+          this.pipeList.children = data.data;
+        })
+      },
+      /**@description 一键识别 */
+      handleDiscern () {
+        Helper.discernOneStep({
+          taskId: this.taskId,
+          nodeId: CURRENT_NODE_STEP
+        }).then((res) => {
+          this.$router.push({
+            path: '/DiscernSteps/discern',
+            query: {
+              id: this.taskId,
+              taskName: this.taskName
+            }
+          })
+        })
+      },
+      /**@description 下一步 */
+      handleNext () {
+        Helper.nextStepOpr({
+          taskId: this.taskId,
+          nodeId: CURRENT_NODE_STEP,
+          flag: 'next'
+        }).then(() => {
+          this.$router.push({
+            path: '/DiscernSteps/section',
+            query: {
+              id: this.taskId,
+              taskName: this.taskName
+            }
+          })
+        })
+      },
+      /**@description 单击打开编辑分段接口 */
+      onEditSegment (row) {
+        this.formData = {
+          startMileage: row.startMileage,
+          splitMileage: (row.startMileage + row.endMileage) / 2,
+          endMileage: row.endMileage,
+        }
+        this.__edittingRow = row
+        this.dialogVisible = true;
+      },
+      /**@description 编辑分段submit */
+      onSubmit () {
+        const { id,code,pipeSegmentCode } = this.__edittingRow;
+        Helper.pipeSplitSegment({
+          code,
+          id,
+          pipeSegmentCode,
+          startMileage: this.formData.startMileage,
+          splitMileage: this.actionType === true ? this.formData.splitMileage : null,
+          endMileage: this.formData.endMileage,
+          taskId: this.taskId
+        }).then(() => {
+          this.$message.success("拆分成功");
+          this.$refs.table.$refs.table.refresh();
+          this.__edittingRow = null;
+          this.formData = {}
+        })
+      }
     }
   }
-}
 </script>
 
 <style lang="scss" scoped>

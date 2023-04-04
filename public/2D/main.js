@@ -258,7 +258,7 @@ function Map(containerid, baseimage, opt) {
       };
       break;
   }
-  style.glyphs = "./public/data/fonts/test/{range}.pbf";
+  style.glyphs = "/data/fonts/test/{range}.pbf";
   this.map = new mapboxgl.Map({
     container: containerid, // container id
     style: style,

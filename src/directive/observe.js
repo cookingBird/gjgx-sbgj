@@ -13,6 +13,9 @@ const observedMap = new WeakMap()
 function setObserve (el, val) {
   observedMap.set(el, (observedMap.get(el) || []).concat(val))
 }
+function removeObserve (el) {
+  observedMap.delete(el)
+}
 
 function recordObserve (el, binding) {
   const arg = binding.arg
@@ -33,12 +36,25 @@ function recordObserve (el, binding) {
         break
       }
       case 'tableWrapperFix': {
-        setObserve(el, entry => Fix(entry.target))
+        setObserve(el, entry => {
+          Fix(entry.target)
+        })
+        break
+      }
+      case 'once': {
+        setObserve(el, entry => {
+          binding.value(entry)
+          removeObserve(el)
+        })
+        break
+      }
+      case 'always': {
+        setObserve(el, entry => binding.value(entry))
         break
       }
       default: {
         if (binding.value) {
-          setObserve(el, binding.value)
+          setObserve(el, entry => binding.value(entry))
         }
       }
     }

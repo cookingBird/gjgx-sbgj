@@ -4,21 +4,64 @@
       <div>
         <div class="choose-title">作业区所有管线列表</div>
         <div class="choose-search m-t-10 m-b-10 ">
-          <el-form :inline="true" label-width="100px">
+          <el-form
+            :inline="true"
+            label-width="100px"
+          >
             <el-form-item label="管线名称：">
-              <el-input placeholder="请输入管线名称"></el-input>
+              <el-input
+                v-model="leftKeyword"
+                placeholder="请输入管线名称"
+                @clear="getAllPipeList()"
+                clearable
+              ></el-input>
             </el-form-item>
-            <el-button class="f-r m-r-10" type="success">全选</el-button>
+            <el-button
+              class="inline-block ml-1"
+              type="primary"
+              @click="getAllPipeList()"
+            > 查询</el-button>
+            <el-button
+              class="f-r m-r-10"
+              type="success"
+              @click="handleSelectAll"
+            >全选</el-button>
           </el-form>
         </div>
         <div class="choose-table">
           <div class="choose-table-wrapper">
-            <el-table height="100%">
-              <el-table-column type="selection" width="55"></el-table-column>
-              <el-table-column type="index" width="55" label="序号"></el-table-column>
-              <el-table-column label="管线"></el-table-column>
-              <el-table-column label="类型"></el-table-column>
-              <el-table-column label="规格"></el-table-column>
+            <el-table
+              height="100%"
+              ref="leftTableRef"
+              :data="pipeList"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                type="selection"
+                width="55"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                type="index"
+                width="55"
+                label="序号"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                label="管线"
+                prop="pipeName"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                label="类型"
+                prop="pipeType"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                label="规格"
+                prop="specification"
+                align="center"
+              ></el-table-column>
             </el-table>
           </div>
         </div>
@@ -26,20 +69,57 @@
       <div>
         <div class="choose-title">已选择管线列表</div>
         <div class="choose-search m-t-10 m-b-10 ">
-          <el-form :inline="true" label-width="100px">
+          <el-form
+            :inline="true"
+            label-width="100px"
+          >
             <el-form-item label="管线名称：">
-              <el-input placeholder="请输入管线名称"></el-input>
+              <el-input
+                v-model="rightKeyword"
+                placeholder="请输入管线名称"
+                @clear="getSelectedPipeList()"
+                clearable
+              ></el-input>
             </el-form-item>
-            <el-button class="f-r m-r-10" type="primary">清空</el-button>
+            <el-button
+              class="inline-block ml-1"
+              type="primary"
+              @click="getSelectedPipeList()"
+            > 查询</el-button>
+            <el-button
+              class="f-r m-r-10"
+              type="primary"
+              @click="handleSelectClear"
+            >清空</el-button>
           </el-form>
         </div>
         <div class="choose-table">
           <div class="choose-table-wrapper">
-            <el-table height="100%">
-              <el-table-column type="index" width="55" label="序号"></el-table-column>
-              <el-table-column label="管线"></el-table-column>
-              <el-table-column label="类型"></el-table-column>
-              <el-table-column label="规格"></el-table-column>
+            <el-table
+              height="100%"
+              ref="rightTableRef"
+              :data="selectedPipeList"
+            >
+              <el-table-column
+                type="index"
+                width="55"
+                label="序号"
+              ></el-table-column>
+              <el-table-column
+                label="管线"
+                prop="name"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                label="类型"
+                prop="pipeType"
+                align="center"
+              ></el-table-column>
+              <el-table-column
+                label="规格"
+                prop="specification"
+                align="center"
+              ></el-table-column>
             </el-table>
           </div>
         </div>
@@ -47,33 +127,138 @@
     </div>
     <div class="choose-footer m-t-10 shadow-content">
       <div>
-        <el-button type="primary" @click="handleBack">退出</el-button>
-        <el-button type="primary" @click="handleDiscern">一键识别</el-button>
-        <el-button type="primary" @click="handleNext">下一步</el-button>
+        <el-button
+          type="primary"
+          @click="handleBack"
+        >退出</el-button>
+        <el-button
+          type="primary"
+          @click="handleDiscern"
+        >一键识别</el-button>
+        <el-button
+          type="primary"
+          @click="handleNext"
+        >下一步</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  data() {
-    return {
+  import * as Helper from './Helper';
+  const CURRENT_NODE_STEP = 1;
 
-    }
-  },
-  methods: {
-    handleBack() {
-      this.$router.go(-1);
+  export default {
+    data () {
+      return {
+        pipeList: [],
+        selectedPipeList: [],
+        leftKeyword: '',
+        rightKeyword: ''
+      }
     },
-    handleNext() {
-      this.$router.push({
-        path: '/DiscernSteps/section'
-      })
+    computed: {
+      taskId () {
+        return this.$route.query.id
+      },
+      taskName () {
+        return this.$route.query.taskName
+      }
     },
-    handleDiscern() { }
-  },
-}
+    created () {
+      this.bootstrap();
+    },
+    methods: {
+      getAllPipeList () {
+        Helper.queryAll({
+          keyWords: this.leftKeyword,
+          pageNo: 1,
+          pageSize: -1,
+          startTime: '',
+          endTime: '',
+          status: ''
+        }).then((data) => {
+          this.pipeList = data.data;
+        })
+      },
+      getSelectedPipeList () {
+        Helper.queryAllSelected({
+          keyWords: this.rightKeyword,
+          pageNo: 1,
+          pageSize: -1,
+          startTime: '',
+          endTime: '',
+          status: 0
+        }).then((data) => {
+          this.selectedPipeList = data.data;
+        })
+      },
+      bootstrap () {
+        this.getAllPipeList();
+        this.getSelectedPipeList();
+      },
+      handleSelectAll () {
+        this.pipeList.forEach(pipe => {
+          this.$refs['leftTableRef'].toggleRowSelection(pipe,true)
+        })
+      },
+      handleSelectClear () {
+        this.selectedPipeList.forEach(pipe => {
+          this.$refs['leftTableRef'].toggleRowSelection(pipe,false)
+        })
+      },
+      handleSelectionChange (rows) {
+        console.log('handleSelectionChange',rows)
+        this.selectedPipeList = rows;
+      },
+      handleBack () {
+        this.$router.go(-1);
+      },
+      /**@description 下一步 */
+      handleNext () {
+        Helper.pipeAddOrUpdate({
+          pipeLineVos: this.selectedPipeList,
+          taskId: this.taskId,
+          taskName: this.taskName
+        }).then(() => {
+          return Helper.nextStepOpr({
+            taskId: this.taskId,
+            nodeId: CURRENT_NODE_STEP,
+            flag: 'next'
+          })
+        }).then(() => {
+          this.$router.push({
+            path: '/DiscernSteps/section',
+            query: {
+              id: this.taskId,
+              taskName: this.taskName
+            }
+          })
+        })
+      },
+      /**@description 一键识别 */
+      handleDiscern () {
+        Helper.pipeAddOrUpdate({
+          pipeLineVos: this.selectedPipeList,
+          taskId: this.taskId,
+          taskName: this.taskName
+        }).then(() => {
+          return Helper.discernOneStep({
+            taskId: this.taskId,
+            nodeId: CURRENT_NODE_STEP,
+          })
+        }).then(() => {
+          this.$router.push({
+            path: '/DiscernSteps/discern',
+            query: {
+              id: this.taskId,
+              taskName: this.taskName
+            }
+          })
+        })
+      },
+    },
+  }
 </script>
 
 <style lang="scss" scoped>

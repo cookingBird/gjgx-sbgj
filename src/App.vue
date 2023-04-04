@@ -19,13 +19,13 @@
     },
     created () {
       //获取登录用户信息
-      // if (isMain()) {
-      //   this.$store.dispatch("auth/getPermission");
-      // } else {
-      //   getToken().then(_ => {
-      //     this.$store.dispatch("auth/getPermission");
-      //   })
-      // }
+      if (isMain()) {
+        this.$store.dispatch("auth/getPermission");
+      } else {
+        getToken().then(_ => {
+          this.$store.dispatch("auth/getPermission");
+        })
+      }
     },
     methods: {
       makeUrl (path) {

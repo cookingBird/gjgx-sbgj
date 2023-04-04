@@ -3,18 +3,20 @@
 		<div class="search-bar shadow-content">
 			<el-form :model="searchForm" :inline="true">
 				<el-form-item>
-					<el-input placeholder="请输入任务名称" clearable></el-input>
+					<el-input v-model="searchForm.keyWords" placeholder="请输入任务名称" clearable></el-input>
 				</el-form-item>
 				<el-form-item>
-					<el-select placeholder="请选择管线名称" clearable></el-select>
+					<el-select v-model="searchForm.pipeCode" placeholder="请选择管线名称" clearable filterable>
+						<el-option v-for="item in pipeList" :key="item.id" :label="item.pipeName" :value="item.pipeCode"></el-option>
+					</el-select>
 				</el-form-item>
 				<el-form-item>
-					<el-date-picker type="daterange" start-placeholder="开始日期" end-placeholder="结束日期"
-						range-separator="至"></el-date-picker>
+					<el-date-picker v-model="date" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期"
+						range-separator="至" format="yyyy-MM-dd" value-format="yyyy-MM-dd"></el-date-picker>
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary">查询</el-button>
-					<el-button type="primary">重置</el-button>
+					<el-button type="primary" @click="handleSearch">查询</el-button>
+					<el-button type="primary" @click="handleReset">重置</el-button>
 				</el-form-item>
 			</el-form>
 		</div>
@@ -22,9 +24,9 @@
 			<div id="map">
 				<base-map></base-map>
 			</div>
-			<div class="table-wrapper">
-				<common-table ref="table" :tableColumns="tableColumns" :url="tableRequestAPI" :query="searchForm"
-					:config="tableConfig" @handleCommand="tableCommand">
+			<div class="table-wrapper bg-fff shadow-content">
+				<common-table ref="table" :tableColumns="tableColumns" :url="tableReqUrl" :query="searchForm" reqMethods="POST"
+					:config="tableConfig" @handleCommand="tableCommand" @row-click="handleRowClick">
 				</common-table>
 			</div>
 		</div>
@@ -33,83 +35,139 @@
 
 <script>
 import Map from '@/components/Map.vue';
+import { pipeListAPI } from '@/api/result';
+
 export default {
 	components: {
 		BaseMap: Map
 	},
 	data() {
 		return {
+			tableReqUrl: window.URL_CONFIG.baseUrl + '/task/resultListVo',
+			date: [],
 			total: 0,
 			searchForm: {
-				pageNo: 1,
-				pageSize: 10
+				endTime: "",
+				startTime: "",
+				keyWords: "",
+				pipeCode: ""
 			},
 			tableColumns: [{
 				label: '任务名称',
-				prop: ''
+				prop: 'taskName'
 			}, {
 				label: '识别时间',
-				prop: ''
+				prop: 'recognitionTime'
 			}, {
 				label: '所属管线',
-				prop: ''
+				prop: 'pipeSegmentName'
 			}, {
 				label: '高后果区编号',
-				prop: ''
+				prop: 'hcaNo'
 			}, {
 				label: '是否高后果区',
-				prop: ''
+				prop: 'isHigh'
 			}, {
 				label: '等级',
-				prop: ''
+				prop: 'hcaLevel'
 			}, {
 				label: '长度（m）',
-				prop: ''
+				prop: 'hcaLength'
 			}, {
 				label: '起始里程（m）',
-				prop: ''
+				prop: 'beginMileage'
 			}, {
 				label: '终止里程（m）',
-				prop: ''
+				prop: 'endMileage'
 			}, {
 				label: '地区等级',
-				prop: ''
+				prop: 'regionLevel'
 			}, {
 				label: '影响半径',
-				prop: ''
+				prop: 'impactRadius'
 			}, {
 				label: '暴露半径',
-				prop: ''
+				prop: 'exposureRadius'
 			}, {
 				label: '人居（户）',
-				prop: ''
+				prop: 'population'
 			}, {
 				label: '特定场所（个）',
-				prop: ''
+				prop: 'specificProduction'
 			}, {
 				label: '易燃易爆场所（个）',
-				prop: ''
+				prop: 'flammableExplosivePlace'
 			}],
 			tableConfig: {
 				buttons: {
 					fixed: 'right',
 					list: [{
 						size: 'normal',
-						label: '同步'
+						label: '同步',
+						key: 'sync'
 					}],
 					width: '100px'
 				}
 			},
+			pipeList: [],
 		}
 	},
-
-	mounted() {
-
+	watch: {
+		date(val) {
+			if (Array.isArray(val)) {
+				this.searchForm.startTime = val[0] || "";
+				this.searchForm.endTime = val[1] || "";
+			} else {
+				this.searchForm.startTime = "";
+				this.searchForm.endTime = "";
+			}
+		},
+	},
+	created() {
+		this.getPipeList();
 	},
 
 	methods: {
-		tableCommand() {
+		handleRowClick(row) {
 
+		},
+		handleSearch() {
+			this.$refs['table'].refresh();
+		},
+		handleReset() {
+			this.searchForm = {
+				endTime: "",
+				startTime: "",
+				keyWords: "",
+				pipeCode: ""
+			}
+			this.date = [];
+		},
+		async getPipeList() {
+			const { code, data } = await pipeListAPI({
+				pageSize: -1,
+				pageNo: 1
+			})
+			if (code === 200) {
+				this.pipeList = data.data;
+			}
+		},
+		tableCommand(key, row) {
+			switch (key) {
+				case 'sync':
+					this.handleSync(row);
+					break;
+			}
+		},
+		async handleSync({ taskId, pipeCode }) {
+			const { code, data } = await syncData({
+				taskId: taskId,
+				pipeCode: pipeCode
+			})
+			if (code === 200) {
+				this.getPipeList();
+				this.$message.success(data);
+			}
 		},
 		tableRequestAPI() { }
 	},

@@ -10,8 +10,6 @@
       :data="tableData"
       :border="initCom.border"
       :class="config.class"
-      v-fix:tableWrapperHeight
-      v-observe:table
     >
       <!-- 表格前部插槽 -->
       <slot name="prepend"></slot>
@@ -28,13 +26,13 @@
         width="80px"
         align="center"
         :index="
-                                                    index =>
-                                                      initCom.index.method
-                                                        ? initCom.index.method(index)
-                                                        : pageParams && pageParams[pageSize]
-                                                          ? pageParams[pageSize] * (pageParams[pageNo] - 1) + index + 1
-                                                          : index + 1
-                                                  "
+            index =>
+              initCom.index.method
+                ? initCom.index.method(index)
+                : pageParams && pageParams[pageSize]
+                  ? pageParams[pageSize] * (pageParams[pageNo] - 1) + index + 1
+                  : index + 1
+          "
       >
       </el-table-column>
       <!-- 普通列 -->
@@ -63,12 +61,12 @@
               :row="scope.row"
             >
               {{
-                                                        item.format
-                                                        ? item.format(scope.row)
-                                                        : item.type === 'date' || initCom.showPlaceHolder
-                                                          ? scope.row[item.prop] || '--'
-                                                          : scope.row[item.prop]
-                                                      }}
+                item.format
+                ? item.format(scope.row)
+                : item.type === 'date' || initCom.showPlaceHolder
+                  ? scope.row[item.prop] || '--'
+                  : scope.row[item.prop]
+              }}
             </slot>
           </template>
         </el-table-column>
@@ -107,16 +105,17 @@
       :pageParams="pageParams"
       :total="total"
       :config="paginationConfig"
-      @size-change="sizeChange"
-      @current-change="currentChange"
+      @size-change="refresh()"
+      @current-change="refresh()"
+      @prev-click="refresh()"
+      @next-click="refresh()"
     ></pagination>
-
   </div>
 </template>
 
 <script>
   import request from '@/utils/request';
-  import { sendXhr,createXHR } from './MyXHR'
+  import { createXHR } from './MyXHR'
   import Column from './column';
   import pagination from './pagination.vue';
   export default {
@@ -135,7 +134,7 @@
       //表格数据
       data: {
         type: Array,
-        default: () => [],
+        default: () => ([]),
       },
       //表格初始配置（多选 or index、按钮组）
       config: {
@@ -153,7 +152,7 @@
         type: Boolean,
         default: true,
       },
-      // 分页参数
+      // 表格查询参数
       pageParams: {
         type: Object,
         default: () => {
@@ -166,9 +165,10 @@
       // 分页配置
       paginationConfig: {
         type: Object,
-        default: () => {
-          return {};
-        },
+        default: () => ({
+          "pageNo": 1,
+          "pageSize": 10,
+        }),
       },
       baseURL: {
         type: String,
@@ -211,6 +211,13 @@
         default: 'pageSize',
       },
     },
+    data () {
+      return {
+        total: 30,
+        loading: false,
+        tableData: this.data,
+      };
+    },
     computed: {
       initCom () {
         const config = this.config ?? {};
@@ -222,38 +229,17 @@
       },
       queryData: {
         get () {
-          return { ...this.query,...this.pageParams,appCode: this.$store.state.auth.appCode };
+          return { ...this.query,...this.pageParams };
         },
         set (val) {
           this.$emit('changeQuery',val);
         },
       },
     },
-    watch: {
-      tableData: {
-        handler (newVal,oldVal) {
-          this.$emit('tableDataChange',newVal);
-        },
-        deep: true,
-      },
-      pageParams: {
-        handler (val) {
-          this.refresh();
-        },
-        deep: true,
-      },
-    },
-    data () {
-      return {
-        total: 30,
-        loading: false,
-        tableData: this.data,
-      };
-    },
+
     created () {
       this.refresh();
     },
-    mounted () { },
     methods: {
       // 按钮组操作
       handleCommand (key,row) {
@@ -271,6 +257,7 @@
             this.total = total;
           }
         } catch (error) {
+          console.error(error)
           this.$message.error('获取表格信息失败');
         } finally {
           this.loading = false;
@@ -285,7 +272,10 @@
           this.__xhr = createXHR({
             baseURL: this.baseURL,
             url: this.url,
-            method: this.reqMethods.trim().toUpperCase()
+            method: this.reqMethods.trim().toUpperCase(),
+            headers: {
+              token: () => sessionStorage.getItem('token')
+            }
           })
         }
         // let params = { baseURL: this.baseURL,url: this.url,method: this.reqMethods };
@@ -298,22 +288,9 @@
         return this.__xhr.send({
           params: query,
           data: query
-        })
+        }).then(res => res.data)
       },
-      sizeChange (val) {
-        this.pageParams[this.pageNo] = 1;
-        this.pageParams[this.pageSize] = val;
-        this.$emit('sizeChange',val);
-      },
-      currentChange (val) {
-        this.pageParams[this.pageNo] = val;
-        this.$emit('currentChange',val);
-      },
-      xmlRequest (config = {}) {
-
-      }
     },
-    emits: ['handleCommand'],
   };
 </script>
 

@@ -19,13 +19,16 @@
 	},
 	"vueCompilerOptions": {
 		"experimentalCompatMode": 2,
-		"target": 2.7,
+		"target": 2,
 	},
 	"exclude": [
 		"node_modules",
 		"dist",
 		"public",
 		"static"
+	],
+	"include": [
+		"src",
 	],
 	"typeRoots": [
 		"./types",

@@ -1,48 +1,82 @@
 <template>
   <div class="tree-module">
     <ul>
-      <li v-for="(item, ind) in datalist" :key="ind" :class="mathClass(item)">
-        <div class="tree-title tree-title-ell tree-title-open"
+      <li
+        v-for="(item, ind) in datalist"
+        :key="ind"
+        :class="mathClass(item)"
+      >
+        <div
+          class="tree-title tree-title-ell tree-title-open"
           :class="{ 'tree-title-bg': item[optionsKey.key] === selectKey }"
-          :style="'padding-left: ' + (level * 30 + 10) + 'px'" @click="selectHandle(item)">
+          :style="'padding-left: ' + (level * 30 + 10) + 'px'"
+          @click="selectHandle(item)"
+        >
           <!-- 左侧图标 -->
           <span class="tree-title-icon">
-            <img v-if="level === 0" :src="require('@/assets/images/home.svg')" alt="" />
-            <img v-else-if="
-              (showLevel === 0 || level < showLevel - 1) &&
-              item[optionsKey.children] &&
-              item[optionsKey.children].length
-            " :src="require('@/assets/images/branch.svg')" alt="" srcset="" />
-            <img :src="require('@/assets/images/subNode.svg')
-            " alt="" v-else />
+            <img
+              v-if="level === 0"
+              :src="require('@/assets/images/home.svg')"
+              alt=""
+            />
+            <img
+              v-else-if="
+                (showLevel === 0 || level < showLevel - 1) &&
+                item[optionsKey.children] &&
+                item[optionsKey.children].length
+              "
+              :src="require('@/assets/images/branch.svg')"
+              alt=""
+              srcset=""
+            />
+            <img
+              v-else
+              :src="require('@/assets/images/subNode.svg')"
+              alt=""
+            />
           </span>
           <span :title="
             item[optionsKey.count] || item[optionsKey.count] === 0
               ? item[optionsKey.title] + '(' + item[optionsKey.count] + ')'
               : item[optionsKey.title]
-          ">{{ item[optionsKey.title] }}</span>
+          ">
+            {{ item[optionsKey.title] }}
+          </span>
           <!-- 数量 -->
           <span v-if="item[optionsKey.count] || item[optionsKey.count] === 0"> ({{ item[optionsKey.count] }})</span>
           <!-- 收拢图标 -->
-          <span class="tree-title-icon-open" v-if="
-            (showLevel === 0 || level < showLevel - 1) &&
-            level < 4 &&
-            item[optionsKey.children] &&
-            item[optionsKey.children].length
-          ">
-            <em :class="[hiddenChild.indexOf(item[optionsKey.key]) >= 0 ? 'above' : 'reverse', 'arrow']"
-              @click.stop="hiddenChildHandle(item)"></em>
+          <span
+            class="tree-title-icon-open"
+            v-if="
+              (showLevel === 0 || level < showLevel - 1) &&
+              level < 4 &&
+              item[optionsKey.children] &&
+              item[optionsKey.children].length
+            "
+          >
+            <em
+              :class="[hiddenChild.indexOf(item[optionsKey.key]) >= 0 ? 'above' : 'reverse', 'arrow']"
+              @click.stop="hiddenChildHandle(item)"
+            ></em>
           </span>
         </div>
         <!-- 加载子级节点 -->
-        <mymodule v-if="
-          (showLevel === 0 || level < showLevel - 1) &&
-          hiddenChild.indexOf(item[optionsKey.key]) >= 0 &&
-          level < 4 &&
-          item[optionsKey.children] &&
-          item[optionsKey.children].length
-        " :datalist="item[optionsKey.children]" :optionsKey="optionsKey" :defaultSelect="selectKey"
-          :showLevel="showLevel" :level="level + 1" :defaultOpen="defaultOpen" @select="selectHandle">
+        <mymodule
+          v-if="
+            (showLevel === 0 || level < showLevel - 1) &&
+            hiddenChild.indexOf(item[optionsKey.key]) >= 0 &&
+            level < 4 &&
+            item[optionsKey.children] &&
+            item[optionsKey.children].length
+          "
+          :datalist="item[optionsKey.children]"
+          :optionsKey="optionsKey"
+          :defaultSelect="selectKey"
+          :showLevel="showLevel"
+          :level="level + 1"
+          :defaultOpen="defaultOpen"
+          @select="selectHandle"
+        >
         </mymodule>
       </li>
     </ul>
@@ -50,57 +84,70 @@
 </template>
 
 <script>
-import mymodule from './module.vue';
-export default {
-  name: 'mymodule',
-  props: {
-    datalist: {
-      type: Array,
-      default: () => {
-        return [];
+  import mymodule from './module.vue';
+  export default {
+    name: 'mymodule',
+    props: {
+      datalist: {
+        type: Array,
+        default: () => {
+          return [];
+        },
+      },
+      // 默认展开
+      defaultOpen: {
+        type: Boolean,
+        default: false,
+      },
+      // 配置回显字段
+      optionsKey: {
+        type: Object,
+        default: () => {
+          return {};
+        },
+      },
+      // 默认选中
+      defaultSelect: {
+        default: '',
+      },
+      // 层级
+      level: {
+        default: 0,
+      },
+      // 树显示最高层级
+      showLevel: {
+        default: 0,
       },
     },
-    // 默认展开
-    defaultOpen: {
-      type: Boolean,
-      default: false,
+    components: {
+      mymodule,
     },
-    // 配置回显字段
-    optionsKey: {
-      type: Object,
-      default: () => {
-        return {};
+    data () {
+      return {
+        // 选中状态
+        selectKey: '',
+        // 展开子级
+        hiddenChild: [],
+      };
+    },
+    watch: {
+      defaultSelect (e) {
+        this.selectKey = e;
+      },
+      datalist () {
+        if (this.defaultOpen) {
+          for (var ind in this.datalist) {
+            if (this.datalist[ind][this.optionsKey.children] && this.datalist[ind][this.optionsKey.children].length) {
+              this.hiddenChild.push(this.datalist[ind][this.optionsKey.key]);
+            }
+          }
+        }
       },
     },
-    // 默认选中
-    defaultSelect: {
-      default: '',
-    },
-    // 层级
-    level: {
-      default: 0,
-    },
-    // 树显示最高层级
-    showLevel: {
-      default: 0,
-    },
-  },
-  components: {
-    mymodule,
-  },
-  data() {
-    return {
-      // 选中状态
-      selectKey: '',
-      // 展开子级
-      hiddenChild: [],
-    };
-  },
-  watch: {
-    defaultSelect(e) {
-      this.selectKey = e;
-    },
-    datalist() {
+    mounted () {
+      if (this.defaultSelect) {
+        this.selectKey = this.defaultSelect;
+      }
       if (this.defaultOpen) {
         for (var ind in this.datalist) {
           if (this.datalist[ind][this.optionsKey.children] && this.datalist[ind][this.optionsKey.children].length) {
@@ -109,48 +156,35 @@ export default {
         }
       }
     },
-  },
-  mounted() {
-    if (this.defaultSelect) {
-      this.selectKey = this.defaultSelect;
-    }
-    if (this.defaultOpen) {
-      for (var ind in this.datalist) {
-        if (this.datalist[ind][this.optionsKey.children] && this.datalist[ind][this.optionsKey.children].length) {
-          this.hiddenChild.push(this.datalist[ind][this.optionsKey.key]);
+    methods: {
+      // 收拢子级
+      hiddenChildHandle (item) {
+        if (this.hiddenChild.filter(i => i === item[this.optionsKey.key]).length) {
+          this.hiddenChild = this.hiddenChild.filter(i => i !== item[this.optionsKey.key]);
+        } else {
+          this.hiddenChild.push(item[this.optionsKey.key]);
         }
-      }
-    }
-  },
-  methods: {
-    // 收拢子级
-    hiddenChildHandle(item) {
-      if (this.hiddenChild.filter(i => i === item[this.optionsKey.key]).length) {
-        this.hiddenChild = this.hiddenChild.filter(i => i !== item[this.optionsKey.key]);
-      } else {
-        this.hiddenChild.push(item[this.optionsKey.key]);
-      }
+      },
+      // 计算class样式
+      mathClass (item) {
+        var className = '';
+        if (item[this.optionsKey.children] && item[this.optionsKey.children].length) {
+          className += ' add-before ';
+        }
+        if (this.level) {
+          className += ' add-after ';
+        }
+        className += ' add-before-' + this.level;
+        // 反馈
+        return className;
+      },
+      // 选择一行
+      selectHandle (e) {
+        this.selectKey = e[this.optionsKey.key];
+        this.$emit('select',e);
+      },
     },
-    // 计算class样式
-    mathClass(item) {
-      var className = '';
-      if (item[this.optionsKey.children] && item[this.optionsKey.children].length) {
-        className += ' add-before ';
-      }
-      if (this.level) {
-        className += ' add-after ';
-      }
-      className += ' add-before-' + this.level;
-      // 反馈
-      return className;
-    },
-    // 选择一行
-    selectHandle(e) {
-      this.selectKey = e[this.optionsKey.key];
-      this.$emit('select', e);
-    },
-  },
-};
+  };
 </script>
 
 <style lang="scss" scoped>

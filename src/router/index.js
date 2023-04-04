@@ -11,70 +11,71 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes:
-    process.env.NODE_ENV === 'production'
-      ? []
-      : [
-          {
-            path: '/',
-            redirect: '/DiscernStandardManage'
+  routes: process.env.NODE_ENV === 'production' ?
+    [] :
+    [{
+        path: '/',
+        redirect: '/DiscernStandardManage'
+      },
+      {
+        path: '/DiscernStandardManage',
+        component: () => import('@/views/DiscernStandardManage')
+      },
+      {
+        path: '/PotentialEffectAnalysis',
+        component: () => import('@/views/PotentialEffectAnalysis')
+      },
+      {
+        path: '/GhgqDiscern',
+        component: () => import('@/views/GhgqDiscern')
+      },
+      {
+        path: '/detail',
+        component: () => import('@/views/detail.vue')
+      },
+      {
+        path: '/DiscernSteps',
+        component: () => import('@/views/GhgqDiscern/stepLayout.vue'),
+        redirect: '/DiscernSteps/choose',
+        children: [{
+            path: '/DiscernSteps/choose',
+            component: () => import('@/views/GhgqDiscern/choose.vue'),
+            meta: {
+              step: 1,
+              name: '管道选择'
+            }
           },
           {
-            path: '/DiscernStandardManage',
-            component: () => import('@/views/DiscernStandardManage')
+            path: '/DiscernSteps/section',
+            component: () => import('@/views/GhgqDiscern/section.vue'),
+            meta: {
+              step: 2,
+              name: '管道分段'
+            }
           },
           {
-            path: '/PotentialEffectAnalysis',
-            component: () => import('@/views/PotentialEffectAnalysis')
+            path: '/DiscernSteps/level',
+            component: () => import('@/views/GhgqDiscern/level.vue'),
+            meta: {
+              step: 3,
+              name: '管道等级划分'
+            }
           },
           {
-            path: '/GhgqDiscern',
-            component: () => import('@/views/GhgqDiscern')
-          },
-          {
-            path: '/DiscernSteps',
-            component: () => import('@/views/GhgqDiscern/stepLayout.vue'),
-            redirect: '/DiscernSteps/choose',
-            children: [
-              {
-                path: '/DiscernSteps/choose',
-                component: () => import('@/views/GhgqDiscern/choose.vue'),
-                meta: {
-                  step: 1,
-                  name: '管道选择'
-                }
-              },
-              {
-                path: '/DiscernSteps/section',
-                component: () => import('@/views/GhgqDiscern/section.vue'),
-                meta: {
-                  step: 2,
-                  name: '管道分段'
-                }
-              },
-              {
-                path: '/DiscernSteps/level',
-                component: () => import('@/views/GhgqDiscern/level.vue'),
-                meta: {
-                  step: 3,
-                  name: '管道等级划分'
-                }
-              },
-              {
-                path: '/DiscernSteps/discern',
-                component: () => import('@/views/GhgqDiscern/discern.vue'),
-                meta: {
-                  step: 4,
-                  name: '高后果区识别'
-                }
-              }
-            ]
-          },
-          {
-            path: '/DiscernResultManage',
-            component: () => import('@/views/DiscernResultManage')
+            path: '/DiscernSteps/discern',
+            component: () => import('@/views/GhgqDiscern/discern.vue'),
+            meta: {
+              step: 4,
+              name: '高后果区识别'
+            }
           }
         ]
+      },
+      {
+        path: '/DiscernResultManage',
+        component: () => import('@/views/DiscernResultManage')
+      }
+    ]
 })
 
 router.beforeEach((to, from, next) => {
@@ -129,8 +130,16 @@ router.createRouter = function (menuList) {
 
   const loop = (arr, target) => {
     arr.forEach(item => {
-      const { funCode, route, children, funName, reqPath, funType, openMode } =
-        item
+      const {
+        funCode,
+        route,
+        children,
+        funName,
+        reqPath,
+        funType,
+        openMode
+      } =
+      item
       //按钮类型不创建路由
       if (funType === 1) return
       const option = {

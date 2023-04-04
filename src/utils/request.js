@@ -11,7 +11,7 @@ service.interceptors.request.use(
   config => {
     config.crossDomain = true
     config.async = true
-    config.headers.token = sessionStorage.token
+    config.headers.token = sessionStorage.token || ''
     return config
   },
   error => {

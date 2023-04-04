@@ -1,7 +1,7 @@
 /** @type {import('@vue/cli-service').ProjectOptions} */
 const path = require('path')
 const { ElementUiResolver } = require('unplugin-vue-components/resolvers')
-const CDN  = require('./config/cdn');
+const CDN = require('./config/cdn')
 module.exports = {
   publicPath: '/',
   lintOnSave: false,
@@ -9,7 +9,7 @@ module.exports = {
   chainWebpack: config => {
     config.plugin('html').tap(args => {
       args[0].title = ''
-      args[0].CDN = CDN;
+      args[0].CDN = CDN
       return args
     })
   },
@@ -29,5 +29,8 @@ module.exports = {
       //   include: [/\.vue$/, /\.vue\?vue/, /\.md$/]
       // })
     ]
+  },
+  devServer: {
+    port: 8081
   }
 }

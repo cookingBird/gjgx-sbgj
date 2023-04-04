@@ -1,2 +1,7 @@
+.action-header-ctx > :not([hidden]) ~ :not(.absolute) {
+  margin-left: 7px;
+}
 
-
+.flex-basis-0 {
+  flex-basis: 0;
+}
