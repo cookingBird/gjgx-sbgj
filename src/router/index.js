@@ -11,12 +11,31 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes: process.env.NODE_ENV === 'production' ?
-    [] :
-    [{
-        path: '/',
-        redirect: '/DiscernStandardManage'
+  routes: [],
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.query.token) {
+    sessionStorage.token = to.query.token
+  }
+  next()
+})
+
+router.createRouter = function (menuList) {
+  const route = {
+    path: '/',
+    name: 'root',
+    component: ViewRouter,
+    redirect: '/main',
+    children: [
+      //权限系统生成路由
+      {
+        path: '/main',
+        name: 'main',
+        component: Main,
+        children: []
       },
+      //业务页面静态路由
       {
         path: '/DiscernStandardManage',
         component: () => import('@/views/DiscernStandardManage')
@@ -75,56 +94,7 @@ const router = new VueRouter({
         path: '/DiscernResultManage',
         component: () => import('@/views/DiscernResultManage')
       }
-    ]
-})
 
-router.beforeEach((to, from, next) => {
-  if (to.query.token) {
-    sessionStorage.token = to.query.token
-  }
-  next()
-})
-
-router.createRouter = function (menuList) {
-  const route = {
-    path: '/',
-    name: 'root',
-    // component: ViewRouter,
-    redirect: '/main',
-    children: [
-      //权限系统生成路由
-      {
-        path: '/main',
-        name: 'main',
-        component: Main,
-        children: []
-      },
-      //业务页面静态路由
-      {
-        path: '/system/component',
-        name: 'cp',
-        component: () => import('@/views/cp.vue')
-      },
-      {
-        path: '/home',
-        name: 'home',
-        component: () => import('@/views/home.vue')
-      },
-      {
-        path: '/system/tag',
-        name: 'tag',
-        component: () => import('@/views/tag.vue')
-      },
-      {
-        path: '/system/homeconfig',
-        name: 'homeconfig',
-        component: () => import('@/views/homePageConfig.vue')
-      },
-      {
-        path: '/editor',
-        name: 'Editor',
-        component: () => import('@/views/pageEditor.vue')
-      }
     ]
   }
 
@@ -154,7 +124,7 @@ router.createRouter = function (menuList) {
       }
 
       option.component =
-        openMode === 'iframe' ? Iframe : () => import(`../views${route}`)
+        openMode === 'iframe' ? Iframe : Layout
       target.push(option)
       if (children instanceof Array) {
         let c = children.filter(item => item.funType !== 1)

@@ -18,7 +18,7 @@
 				<el-button
 					class="absolute inline-block right-2"
 					type="primary"
-					@click="dialogType = 1; dialogVisible =!dialogVisible"
+					@click="dialogType = 1; formData={}"
 				>
 					新增
 				</el-button>
@@ -55,10 +55,10 @@
 						label="操作"
 						align="center"
 					>
-						<template slot-scope="scope">
+						<template slot-scope="{row}">
 							<el-button
 								type="text"
-								@click="dialogType = 2;dialogVisible=true;"
+								@click="onEdit(row)"
 							>
 								编辑
 							</el-button>
@@ -96,8 +96,10 @@
 			</div>
 		</template>
 		<el-dialog
+			v-if="formData"
 			:title="dialogTitle"
-			:visible.sync="dialogVisible"
+			:visible="true"
+			@close="formData=null"
 			width="30%"
 		>
 			<el-form
@@ -142,7 +144,10 @@
 						type="primary"
 						@click="onSubmit"
 					>确定</el-button>
-					<el-button @click="dialogVisible = false">取消</el-button>
+					<el-button
+						type="primary"
+						@click="formData = null"
+					>取消</el-button>
 				</div>
 			</el-form>
 		</el-dialog>
@@ -178,12 +183,7 @@
 				queryString: '',
 				dialogVisible: false,
 				dialogType: 1,
-				rules: {
-					name: [{ required: true,message: '请输入' }],
-					scope: [{ required: true,message: '请输入' }],
-					file: [{ required: true,message: '请输入' }],
-				},
-				formData: {},
+				formData: null,
 				previewDialogVisible: false,
 				pdfPath: ''
 			};
@@ -191,13 +191,18 @@
 		computed: {
 			dialogTitle () {
 				return this.dialogType === 1 ? '新增' : this.dialogType === 2 ? '修改' : '其它'
-			}
-		},
-		watch: {
-			dialogVisible (val) {
-				if (val === true) {
-					this.formData = {}
-				}
+			},
+			rules () {
+				return this.dialogType === 1
+					? {
+						name: [{ required: true,message: '请输入' }],
+						scope: [{ required: true,message: '请输入' }],
+						file: [{ required: true,message: '请选择' }],
+					}
+					: {
+						name: [{ required: true,message: '请输入' }],
+						scope: [{ required: true,message: '请输入' }],
+					}
 			}
 		},
 		created () {
@@ -226,7 +231,7 @@
 				this.$refs.addForm.validate().then(res => {
 					Helper.addOrUpdate(this.formData).then(_ => {
 						this.$message.success('新增成功');
-						this.dialogVisible = false;
+						this.formData = null;
 					}).then(() => {
 						this.getData()
 					})
@@ -247,7 +252,17 @@
 				// Helper.renderPdf(row.pdfPath,"discern-standard-preview")
 			},
 			handleFileSelect (e) {
-				this.formData.file = e.target.files[0];
+				this.formData = {
+					...this.formData,
+					file: e.target.files[0]
+				};
+			},
+			onEdit (row) {
+				console.log('onEdit------',row)
+				this.dialogType = 2;
+				setTimeout(() => {
+					this.formData = row;
+				})
 			}
 		},
 	};
@@ -264,10 +279,12 @@
 		margin-top: 7vh !important;
 		overflow-y: hidden;
 	}
-	.dialog-preview.el-dialog__wrapper .el-dialog__header{
+
+	.dialog-preview.el-dialog__wrapper .el-dialog__header {
 		border-bottom: 2px solid #eee;
 	}
-	.dialog-preview.el-dialog__wrapper .el-dialog__body{
+
+	.dialog-preview.el-dialog__wrapper .el-dialog__body {
 		height: 100%;
 		overflow-y: scroll;
 	}

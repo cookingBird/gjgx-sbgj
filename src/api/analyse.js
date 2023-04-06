@@ -7,3 +7,11 @@ export function analyseListAPI(data) {
     data
   })
 }
+
+export function lineAround(params) {
+  return request({
+    url: '/highconsarea/getRegion',
+    method: 'GET',
+    params
+  })
+}

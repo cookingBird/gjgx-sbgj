@@ -88,11 +88,11 @@ export function queryAll ({ keyWords }) {
   })
 }
 
-export function queryAllSelected ({ keyWords }) {
+export function queryAllSelected ({ keyWords, taskId }) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/existList',
-    data: { keyWords }
+    data: { keyWords, taskId, pageNo: -1, pageSize: 10 }
   }).then(res => {
     if (res.code === 200) {
       return Promise.resolve(res.data)
@@ -217,7 +217,7 @@ export function pipeSplitSegment ({
   taskId
 }) {
   return Request.request({
-    url: '/highconsarea/levelOperate',
+    url: '/highconsarea/segmentation',
     method: 'post',
     data: {
       code,

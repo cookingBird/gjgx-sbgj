@@ -19,43 +19,41 @@ function removeObserve (el) {
 
 function recordObserve (el, binding) {
   const arg = binding.arg
-  if (arg) {
-    switch (arg) {
-      case 'tableEmptyRow': {
-        setObserve(el, fillEmptyRow)
-        break
+  switch (arg) {
+    case 'tableEmptyRow': {
+      setObserve(el, fillEmptyRow)
+      break
+    }
+    case 'tableCalcRow': {
+      if (!binding.value || !binding.value.callback) {
+        throw Error('observe tableCalcRow error')
       }
-      case 'tableCalcRow': {
-        if (!binding.value || !binding.value.callback) {
-          throw Error('observe tableCalcRow error')
-        }
-        const { height, callback } = binding.value
-        setObserve(el, entry => {
-          calcRow(entry, height).then(rowNum => callback(rowNum))
-        })
-        break
-      }
-      case 'tableWrapperFix': {
-        setObserve(el, entry => {
-          Fix(entry.target)
-        })
-        break
-      }
-      case 'once': {
-        setObserve(el, entry => {
-          binding.value(entry)
-          removeObserve(el)
-        })
-        break
-      }
-      case 'always': {
+      const { height, callback } = binding.value
+      setObserve(el, entry => {
+        calcRow(entry, height).then(rowNum => callback(rowNum))
+      })
+      break
+    }
+    case 'tableWrapperFix': {
+      setObserve(el, entry => {
+        Fix(entry.target, binding.value)
+      })
+      break
+    }
+    case 'once': {
+      setObserve(el, entry => {
+        binding.value(entry)
+        removeObserve(el)
+      })
+      break
+    }
+    case 'always': {
+      setObserve(el, entry => binding.value(entry))
+      break
+    }
+    default: {
+      if (binding.value) {
         setObserve(el, entry => binding.value(entry))
-        break
-      }
-      default: {
-        if (binding.value) {
-          setObserve(el, entry => binding.value(entry))
-        }
       }
     }
   }

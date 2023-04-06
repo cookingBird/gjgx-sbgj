@@ -107,7 +107,7 @@
               ></el-table-column>
               <el-table-column
                 label="管线"
-                prop="name"
+                prop="pipeName"
                 align="center"
               ></el-table-column>
               <el-table-column
@@ -165,7 +165,7 @@
         return this.$route.query.taskName
       }
     },
-    created () {
+    mounted () {
       this.bootstrap();
     },
     methods: {
@@ -179,6 +179,13 @@
           status: ''
         }).then((data) => {
           this.pipeList = data.data;
+          setTimeout(() => {
+            const findKey = 'pipeSegmentCode'
+            this.selectedPipeList.forEach(pipe => {
+              const findPipe = this.pipeList.find(p => p[findKey] === pipe[findKey]);
+              this.$refs['leftTableRef'].toggleRowSelection(findPipe,true)
+            })
+          },100)
         })
       },
       getSelectedPipeList () {
@@ -188,14 +195,15 @@
           pageSize: -1,
           startTime: '',
           endTime: '',
-          status: 0
+          status: 0,
+          taskId: this.taskId
         }).then((data) => {
           this.selectedPipeList = data.data;
         })
       },
       bootstrap () {
-        this.getAllPipeList();
         this.getSelectedPipeList();
+        this.getAllPipeList();
       },
       handleSelectAll () {
         this.pipeList.forEach(pipe => {
@@ -203,16 +211,27 @@
         })
       },
       handleSelectClear () {
+        const findKey = 'pipeSegmentCode'
         this.selectedPipeList.forEach(pipe => {
-          this.$refs['leftTableRef'].toggleRowSelection(pipe,false)
+          const findPipe = this.pipeList.find(p => p[findKey] === pipe[findKey]);
+          this.$refs['leftTableRef'].toggleRowSelection(findPipe,false)
         })
+        this.selectedPipeList = [];
       },
       handleSelectionChange (rows) {
-        console.log('handleSelectionChange',rows)
-        this.selectedPipeList = rows;
+        function removeRepeat (array,keyFile = id) {
+          return array.reduce((pre,curr) => {
+            if (pre.findIndex(n => n[keyFile] === curr[keyFile]) > -1) {
+              return pre
+            } else {
+              return pre.concat(curr)
+            }
+          },[])
+        }
+        this.selectedPipeList = removeRepeat(this.selectedPipeList.concat(rows),'pipeCode')
       },
       handleBack () {
-        this.$router.go(-1);
+        this.$router.push('/GhgqDiscern');
       },
       /**@description 下一步 */
       handleNext () {

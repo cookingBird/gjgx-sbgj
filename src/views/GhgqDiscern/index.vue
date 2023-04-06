@@ -18,7 +18,15 @@
 						v-model="searchForm.status"
 						placeholder="请选择识别状态"
 						clearable
-					></el-select>
+					>
+						<el-option
+							v-for="item in statusOptions"
+							:key="item.value"
+							:label="item.label"
+							:value="item.value"
+						>
+						</el-option>
+					</el-select>
 				</el-form-item>
 				<el-form-item>
 					<el-date-picker
@@ -37,7 +45,7 @@
 					>查询</el-button>
 					<el-button
 						type="primary"
-						@click="searchForm={}; $refs.table.refresh()"
+						@click="onRest"
 					>重置</el-button>
 				</el-form-item>
 				<el-button
@@ -146,7 +154,7 @@
 		data () {
 			return {
 				searchForm: {
-					status: 0,
+					status: void 0,
 					keyWords: '',
 					time: ['','']
 				},
@@ -161,7 +169,7 @@
 					},
 					{
 						label: '识别状态',
-						prop: 'statusName'
+						prop: 'nodeName'
 					},
 					{
 						label: '管线数量',
@@ -199,7 +207,25 @@
 					time: ''
 				},
 				previewDialogVisible: false,
-				pdfPath: ''
+				pdfPath: '',
+				statusOptions: [
+					{
+						value: 1,
+						label: '分段'
+					},
+					{
+						value: 2,
+						label: '地区等级划分'
+					},
+					{
+						value: 3,
+						label: '高后果区识别'
+					},
+					{
+						value: 4,
+						label: '已完成'
+					}
+				],
 			};
 		},
 		computed: {
@@ -229,6 +255,11 @@
 			},
 			taskIsFinish () {
 				return (task) => task.status === 1
+			}
+		},
+		watch: {
+			querySearch (val) {
+				console.log('watch querySearch',val)
 			}
 		},
 		mounted () {
@@ -323,6 +354,14 @@
 						...row
 					}
 				})
+			},
+			onRest () {
+				this.searchForm = {
+					status: void 0,
+					keyWords: '',
+					time: ['','']
+				};
+				setTimeout(this.$refs.table.refresh);
 			}
 		},
 	};

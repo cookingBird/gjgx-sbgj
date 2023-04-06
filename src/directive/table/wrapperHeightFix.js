@@ -1,6 +1,7 @@
 const fixTableBodyWrapper = (function () {
-  let timer
-  return function fixTableBodyWrapper (el) {
+  let timer,
+    done = false
+  return function fixTableBodyWrapper (el, cb) {
     console.log('fixTableBodyWrapper----------', el)
     timer && clearTimeout(timer)
     timer = setTimeout(() => {
@@ -11,8 +12,16 @@ const fixTableBodyWrapper = (function () {
       const bodyHeight = Math.floor(tableHeight - tableHeaderHeight)
       el.querySelector('.el-table__body-wrapper').style.height =
         bodyHeight + 'px'
+      el.querySelector('.el-table__body-wrapper').style.overflowY = 'scroll'
+
+      cb &&
+        (() => {
+          !done && cb(bodyHeight)
+          done = true
+        })()
+
       timer = void 0
-    },300)
+    }, 300)
   }
 })()
 

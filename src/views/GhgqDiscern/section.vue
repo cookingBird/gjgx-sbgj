@@ -7,7 +7,8 @@
           <pipe-selector
             :data="pipeList"
             :defaultOpen="true"
-            :optionsKey="{ title: 'name', key: 'id', children: 'children' }"
+            :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
+            @select="handlePipeSelect"
           ></pipe-selector>
         </el-scrollbar>
       </div>
@@ -15,24 +16,35 @@
         <div class="right-content">
           <mix-table
             ref="table"
-            :columns="tableColumns"
+            :tableColumns="tableColumns"
             :config="tableConfig"
+            @on-data="onTableGetData"
+            @row-click="handleTableRowClick"
             reqMethods="GET"
             url="/highconsarea/nextOperate"
-            :query="{ taskId:taskId,nodeId: 1,flag: ''}"
-            :pageParams="{ pageNo:1,pageSize:-1 }"
+            :isPagination="false"
+            :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
+            :pageParams="{ pageNo:-1,pageSize:10 }"
           >
-            <template #operate="{ row }">
-              <el-button
-                type="text"
-                @click="onEditSegment(row)"
-              >编辑分段</el-button>
-            </template>
+            <div class="absolute map-layer-switcher-group">
+              <LayerSwitcher
+                v-model="populationShow"
+                @change="onPopulationChange"
+              ></LayerSwitcher>
+              <LayerSwitcher
+                v-model="placeShow"
+                title="特定场所"
+                @change="onPlaceChange"
+              ></LayerSwitcher>
+            </div>
           </mix-table>
         </div>
-        <div class="right-footer bg-fff shadow-content m-t-10">
+        <div class="mt-1 right-footer shadow-content">
           <div>
-            <el-button @click="$router.go(-1)">上一步</el-button>
+            <el-button
+              type="primary"
+              @click="onPrev"
+            >上一步</el-button>
             <el-button
               type="primary"
               @click="handleDiscern"
@@ -59,11 +71,12 @@
       >
         <el-form-item
           label="起始里程："
-          prop="startMileage"
+          prop="beginMileage"
         >
           <el-input
+            :disabled="formData.beginMileage === 0"
             placeholder="请输入"
-            v-model="formData.startMileage"
+            v-model="formData.beginMileage"
           ></el-input>
         </el-form-item>
         <el-form-item
@@ -110,72 +123,85 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
+  import { lineAround } from '@/api/analyse';
+  import LayerSwitcher from '@/components/LayerSwitcher.vue'
   const CURRENT_NODE_STEP = 2;
 
   export default {
     components: {
       MixTable,
-      PipeSelector
+      PipeSelector,
+      LayerSwitcher
     },
     data () {
       return {
         pipeList: [{
-          name: '全部管道',
+          pipeName: '全部管道',
           id: 1,
           children: []
         }],
         tableConfig: {
           isPagination: false,
+          buttons: {
+            fixed: 'right',
+            list: [
+              {
+                size: 'normal',
+                label: '编辑分段',
+                click: this.onEditSegment
+              }
+            ],
+            width: '100px'
+          }
         },
         tableColumns: [
           {
             label: "管道名称",
-            prop: ""
+            prop: "pipeSegmentName"
           },
           {
             label: "分段编号",
-            prop: ""
+            prop: "code"
           },
           {
             label: "分段长度（m）",
-            prop: ""
+            prop: "segmentLength"
           },
           {
             label: "起始里程（m）",
-            prop: ""
+            prop: "beginMileage"
           },
           {
             label: "终止里程（m）",
-            prop: ""
+            prop: "endMileage"
           },
           {
             label: "管径（mm）",
-            prop: ""
+            prop: "diameter"
           },
           {
             label: "压力",
-            prop: ""
+            prop: "pressure"
           },
           {
             label: "传输介质",
-            prop: "",
+            prop: "transmissionMedium",
           },
           {
             label: "易燃易爆场所（个）",
-            prop: ""
+            prop: "flammableExplosivePlace"
           },
-          {
-            label: "操作",
-            prop: "operate"
-          }
         ],
         dialogVisible: false,
         formData: {
-          startMileage: 0,
+          beginMileage: 0,
           splitMileage: 0,
           endMileage: 0,
         },
-        actionType: false
+        actionType: false,
+        pipeCode: '',
+        populationShow: true,
+        placeShow: true
       }
     },
     computed: {
@@ -188,11 +214,14 @@
       rules () {
         return Object.assign(
           {
-            startMileage: [{ required: true,message: '请输入' }],
+            beginMileage: [{ required: true,message: '请输入' }],
             endMileage: [{ required: true,message: '请输入' }],
           },
           this.actionType ? { splitMileage: [{ required: true,message: '请输入' }] } : null
         )
+      },
+      mapRef () {
+        return this.$refs['table'].$refs['basemap'];
       }
     },
     created () {
@@ -209,7 +238,7 @@
           status: 0,
           taskId: this.taskId
         }).then((data) => {
-          this.pipeList.children = data.data;
+          this.pipeList[0].children = data.data;
         })
       },
       /**@description 一键识别 */
@@ -235,7 +264,7 @@
           flag: 'next'
         }).then(() => {
           this.$router.push({
-            path: '/DiscernSteps/section',
+            path: '/DiscernSteps/level',
             query: {
               id: this.taskId,
               taskName: this.taskName
@@ -246,8 +275,8 @@
       /**@description 单击打开编辑分段接口 */
       onEditSegment (row) {
         this.formData = {
-          startMileage: row.startMileage,
-          splitMileage: (row.startMileage + row.endMileage) / 2,
+          beginMileage: row.beginMileage,
+          splitMileage: (row.beginMileage + row.endMileage) / 2,
           endMileage: row.endMileage,
         }
         this.__edittingRow = row
@@ -260,16 +289,58 @@
           code,
           id,
           pipeSegmentCode,
-          startMileage: this.formData.startMileage,
+          startMileage: this.formData.beginMileage,
           splitMileage: this.actionType === true ? this.formData.splitMileage : null,
           endMileage: this.formData.endMileage,
           taskId: this.taskId
         }).then(() => {
           this.$message.success("拆分成功");
           this.$refs.table.$refs.table.refresh();
+        }).finally(() => {
           this.__edittingRow = null;
+          this.actionType = false;
           this.formData = {}
+          this.dialogVisible = false;
         })
+      },
+      onPrev () {
+        this.$router.push({
+          path: '/DiscernSteps/choose',
+          query: this.$route.query
+        })
+      },
+      handlePipeSelect (e) {
+        console.log('pipeSelect',e)
+        this.pipeCode = e.pipeSegmentCode;
+        this.$nextTick(() => {
+          this.$refs.table.$refs.table.refresh();
+        })
+      },
+      onTableGetData (data) {
+        this.mapRef.pipeRadiusRemove();
+        this.mapRef.pipeRender(data);
+      },
+      async handleTableRowClick (row) {
+        const { code,data } = await lineAround({ id: row.id });
+        if (code === 200) {
+
+          const { regionWkt,flammableWkt,specificWkt,populationWkt } = data;
+          //影响半径
+          regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
+          //人居
+          populationWkt.length && (this.__populationLayer = this.mapRef.renderMarkerByType(populationWkt,1));
+          //特定场所
+          specificWkt.length && (this.__placeLayer = this.mapRef.renderMarkerByType(specificWkt,2));
+          //易燃易爆场所
+          flammableWkt.length && (this.__boomLayer = this.mapRef.renderMarkerByType(flammableWkt,3));
+
+        }
+      },
+      onPopulationChange (val) {
+        this.__populationLayer && this.__populationLayer(val)
+      },
+      onPlaceChange (val) {
+        this.__placeLayer && this.__placeLayer(val)
       }
     }
   }
@@ -314,18 +385,15 @@
 
       .right-content {
         flex: 1;
+        position: relative;
       }
 
       .right-footer {
-        height: 70px;
         background-color: #fff;
-        text-align: center;
         display: flex;
-        align-items: center;
-
-        >div {
-          margin: 0 auto;
-        }
+        justify-content: center;
+        padding-top: 6px;
+        padding-bottom: 6px;
       }
     }
   }

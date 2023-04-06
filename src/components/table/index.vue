@@ -1,5 +1,7 @@
 <template>
-  <div class="gislife-table-wrapper">
+  <div
+    class="gislife-table-wrapper"
+  >
     <slot name="top"></slot>
     <el-table
       ref="table"
@@ -10,6 +12,9 @@
       :data="tableData"
       :border="initCom.border"
       :class="config.class"
+      v-observe:tableEmptyRow
+      v-observe:tableWrapperFix
+      :max-height="maxHeight"
     >
       <!-- 表格前部插槽 -->
       <slot name="prepend"></slot>
@@ -25,14 +30,6 @@
         :label="initCom.indexName || '序号'"
         width="80px"
         align="center"
-        :index="
-            index =>
-              initCom.index.method
-                ? initCom.index.method(index)
-                : pageParams && pageParams[pageSize]
-                  ? pageParams[pageSize] * (pageParams[pageNo] - 1) + index + 1
-                  : index + 1
-          "
       >
       </el-table-column>
       <!-- 普通列 -->
@@ -45,6 +42,7 @@
         </Column>
         <el-table-column
           v-else
+          ref="cols"
           v-bind="item"
           :prop="item.prop"
           :label="item.label"
@@ -61,12 +59,10 @@
               :row="scope.row"
             >
               {{
-                item.format
-                ? item.format(scope.row)
-                : item.type === 'date' || initCom.showPlaceHolder
-                  ? scope.row[item.prop] || '--'
+                  item.format
+                  ? item.format(scope.row[item.prop])
                   : scope.row[item.prop]
-              }}
+                }}
             </slot>
           </template>
         </el-table-column>
@@ -85,7 +81,7 @@
             :key="index"
             :type="btn.type || 'text'"
             :size="btn.size"
-            @click.stop="handleCommand(btn.key, scope.row)"
+            @click.stop="(btn.click&&btn.click(scope.row) )|| handleCommand(btn.key, scope.row)"
           >
             {{ btn.label }}
           </el-button>
@@ -216,6 +212,7 @@
         total: 30,
         loading: false,
         tableData: this.data,
+        maxHeight: void 0,
       };
     },
     computed: {
@@ -255,6 +252,7 @@
             let { data,total } = this.parseTableData(dataS);
             this.tableData = data;
             this.total = total;
+            this.$emit('onData',data);
           }
         } catch (error) {
           console.error(error)
@@ -278,18 +276,27 @@
             }
           })
         }
-        // let params = { baseURL: this.baseURL,url: this.url,method: this.reqMethods };
-        // if (this.reqMethods === 'GET') {
-        //   params = { ...params,params: query };
-        // } else {
-        //   params = { ...params,data: query };
-        // }
-        // return request(params);
-        return this.__xhr.send({
-          params: query,
-          data: query
-        }).then(res => res.data)
+        let params = { baseURL: this.baseURL,url: this.url,method: this.reqMethods };
+        if (this.reqMethods === 'GET') {
+          params = { ...params,params: query };
+        } else {
+          params = { ...params,data: query };
+        }
+        return request(params);
+        // return this.__xhr.send({
+        //   params: query,
+        //   data: query
+        // }).then(res => res.data)
       },
+      handleWrapperChange (entry) {
+        const maxHeight = this.$refs.table?.$el?.getBoundingClientRect().height;
+        this.maxHeight = maxHeight;
+      },
+      setColsSlots (slot) {
+        console.log('setColsSlots-----------',this.$refs.cols)
+        this.$scopedSlots = slot
+        this.$forceUpdate()
+      }
     },
   };
 </script>
@@ -309,6 +316,10 @@
     flex-direction: column;
   }
 
+  .gislife-table-wrapper>.gislife-table {
+    height: 100%;
+  }
+
   .gislife-table-wrapper> :not([hidden])~ :not([hidden]) {
     margin-top: calc(var(--el-y-gutter) * 1px);
   }
@@ -320,6 +331,10 @@
   .gislife-table-wrapper .gislife-table {
     flex-grow: 1;
   }
+
+  /* .gislife-table .el-table__body-wrapper {
+                                        overflow-y: scroll;
+                                      } */
 
   .gislife-table-pagination {
     display: flex;
