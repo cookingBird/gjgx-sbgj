@@ -19,7 +19,6 @@
           ref="table"
           :tableColumns="tableColumns"
           :config="tableConfig"
-          @onData="onTableGetData"
           @row-click="handleTableRowClick"
           reqMethods="GET"
           url="/highconsarea/nextOperate"
@@ -405,8 +404,16 @@
               people: res.populationWkt.length,
               place: res.specificWkt.length
             }
+            console.log('pipeAroundTotal----------------------',res)
           })
-        // this.onTableGetData([pipe])
+        // requestDom(() => this.$refs['table']?.$refs['basemap']?.$refs['map']?.$refs['map'])
+        //   .then((comp) => {
+        //     console.log('map loaded--------------------------',comp)
+        //   })
+        // setTimeout(() => {
+        //   console.log('pipe-----------------------',pipe)
+        //   this.onTableGetData([pipe])
+        // },1000)
       },
     }
   }

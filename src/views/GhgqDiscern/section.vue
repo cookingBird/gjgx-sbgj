@@ -345,7 +345,10 @@
               place: res.specificWkt.length
             }
           })
-        // this.onTableGetData([pipe])
+        requestDom(() => this.$refs['table']?.$refs['basemap'])
+          .then((comp) => {
+            this.onTableGetData([pipe])
+          })
       },
       onTableGetData (data) {
         this.mapRef.pipeRadiusRemove();
