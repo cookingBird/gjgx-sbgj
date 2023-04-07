@@ -37,12 +37,6 @@ const fillEmptyRow = (function () {
           const rowNodeHeight = rowContent.getBoundingClientRect().height
           //*3、得到空行数
           const rowNum = Math.floor(restHeight / rowNodeHeight)
-          console.log(
-            'trigger observe rowNum----------------',
-            rowNum,
-            rowNodeHeight,
-            restHeight
-          )
           //*4、插入空行
           const contentEl = tableNode.querySelector('.el-table__body tbody')
           for (let i = 0; i < rowNum; i++) {

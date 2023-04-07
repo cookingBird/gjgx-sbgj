@@ -2,9 +2,9 @@
   <div class="main-container">
     <CusHeader :title="systemName" />
     <div :class="{
-            'page-content': true,
-            homepageBgColor: $route.path == '/home' || $route.path == '/main/home',
-          }">
+      'page-content': true,
+      homepageBgColor: $route.path == '/home' || $route.path == '/main/home',
+    }">
       <router-view />
     </div>
   </div>
@@ -17,7 +17,7 @@ export default {
   components: {
     CusHeader,
   },
-  data () {
+  data() {
     return {
       systemName: "共建共享指标配置系统",
     };

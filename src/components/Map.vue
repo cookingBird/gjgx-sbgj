@@ -1,16 +1,16 @@
 <template>
-  <div class="map-container">
-    <gislife-map
-      v-if="appConfig.baseUrl"
-      v-on="$listeners"
-      ref="map"
-      :appcode="appConfig.appCode"
-      :baseUrl="appConfig.baseUrl"
-      :requestHeader="requestHeader"
-      @onLoad="handleMapLoad"
-      @onMapClick="handleMapClick"
-    />
-  </div>
+<div class="map-container">
+  <gislife-map
+    v-if="appConfig.baseUrl"
+    v-on="$listeners"
+    ref="map"
+    :appcode="appConfig.appCode"
+    :baseUrl="appConfig.baseUrl"
+    :requestHeader="requestHeader"
+    @onLoad="handleMapLoad"
+    @onMapClick="handleMapClick"
+  />
+</div>
 </template>
 
 <script>
@@ -403,6 +403,7 @@
        * **/
 
       async renderMarkerByType (data,type) {
+        console.log('renderMarkerByType---------------',data)
         let layer;
         const { map } = this.$refs['map'].map;
         const MARKER_MAP = {
@@ -452,9 +453,9 @@
         return {
           toggleVisibility: function (val) {
             if (val) {
-              layer && (layer.visibility = 'visible')
+              layer && map.setLayoutProperty(id,'visibility','visible')
             } else {
-              layer && (layer.visibility = 'none')
+              layer && map.setLayoutProperty(id,'visibility','none')
             }
           }
         }

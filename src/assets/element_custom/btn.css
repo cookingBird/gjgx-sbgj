@@ -6,7 +6,15 @@
   flex-basis: 0;
 }
 
-.el-button-level {
-  background-color: #eee;
-  color: #000;
+.el-button-level.el-button {
+  background-color: #f4f4f5;
+  border: 1px solid #f4f4f5;
+  color: #9c9c9c;
+  border-radius: 9999px;
+}
+.el-button-level.el-button:hover,
+.el-button-level.el-button.selected {
+  border-color: #71b5ff;
+  background-color: #ecf5ff;
+  color: #71b5ff;
 }

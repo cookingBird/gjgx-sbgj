@@ -1,83 +1,79 @@
 <template>
-	<main>
-		<div class="search-bar shadow-content">
-			<el-form
-				:model="searchForm"
-				:inline="true"
-			>
-				<el-form-item>
-					<el-input
-						v-model="searchForm.keyWords"
-						placeholder="请输入任务名称"
-						clearable
-					></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-select
-						v-model="searchForm.pipeCode"
-						placeholder="请选择管线名称"
-						clearable
-						filterable
-					>
-						<el-option
-							v-for="item in pipeList"
-							:key="item.id"
-							:label="item.pipeName"
-							:value="item.pipeCode"
-						></el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item>
-					<el-date-picker
-						v-model="date"
-						type="daterange"
-						start-placeholder="开始日期"
-						end-placeholder="结束日期"
-						range-separator="至"
-						format="yyyy-MM-dd"
-						value-format="yyyy-MM-dd"
-					></el-date-picker>
-				</el-form-item>
-				<el-form-item>
-					<el-button
-						type="primary"
-						@click="handleSearch"
-					>查询</el-button>
-					<el-button
-						type="primary"
-						@click="handleReset"
-					>重置</el-button>
-				</el-form-item>
-			</el-form>
-		</div>
-		<div class="page-content m-t-10">
-			<div id="map">
-				<base-map></base-map>
-			</div>
-			<div class="table-wrapper bg-fff shadow-content">
-				<common-table
-					ref="table"
-					:tableColumns="tableColumns"
-					:url="tableReqUrl"
-					:query="searchForm"
-					reqMethods="POST"
-					:config="tableConfig"
-					@handleCommand="tableCommand"
-					@row-click="handleRowClick"
+<main>
+	<div class="search-bar shadow-content">
+		<el-form
+			:model="searchForm"
+			:inline="true"
+		>
+			<el-form-item>
+				<el-input
+					v-model="searchForm.keyWords"
+					placeholder="请输入任务名称"
+					clearable
+				></el-input>
+			</el-form-item>
+			<el-form-item>
+				<el-select
+					v-model="searchForm.pipeCode"
+					placeholder="请选择管线名称"
+					clearable
+					filterable
 				>
-				</common-table>
-			</div>
-		</div>
-	</main>
+					<el-option
+						v-for="item in pipeList"
+						:key="item.id"
+						:label="item.pipeName"
+						:value="item.pipeCode"
+					></el-option>
+				</el-select>
+			</el-form-item>
+			<el-form-item>
+				<el-date-picker
+					v-model="date"
+					type="daterange"
+					start-placeholder="开始日期"
+					end-placeholder="结束日期"
+					range-separator="至"
+					format="yyyy-MM-dd"
+					value-format="yyyy-MM-dd"
+				></el-date-picker>
+			</el-form-item>
+			<el-form-item>
+				<el-button
+					type="primary"
+					@click="handleSearch"
+				>查询</el-button>
+				<el-button
+					type="primary"
+					@click="handleReset"
+				>重置</el-button>
+			</el-form-item>
+		</el-form>
+	</div>
+	<div class="page-content m-t-10">
+		<MixTable
+			ref="mixTableRef"
+			:url="tableReqUrl"
+			:tableColumns="tableColumns"
+			:config="mixTableCfg"
+			:query="searchForm"
+			@onData="onTableGetData"
+			@handleCommand="tableCommand"
+		>
+		</MixTable>
+	</div>
+</main>
 </template>
 
 <script>
 	import Map from '@/components/Map.vue';
-	import { pipeListAPI } from '@/api/result';
+	import { pipeListAPI,syncData } from '@/api/result';
+	import MixTable from '@/components/mixTable';
 
 	export default {
 		components: {
-			BaseMap: Map
+			BaseMap: Map,
+			MixTable
 		},
 		data () {
 			return {
@@ -89,6 +85,22 @@
 					startTime: "",
 					keyWords: "",
 					pipeCode: ""
+				},
+				mixTableCfg: {
+					switcher: false,
+					index: true,
+					class: "my-el-table-ctx",
+					buttons: {
+						fixed: 'right',
+						list: [
+							{
+								size: 'normal',
+								label: '同步',
+								key: 'sync'
+							}
+						],
+						width: '100px'
+					},
 				},
 				tableColumns: [{
 					label: '任务名称',
@@ -104,10 +116,34 @@
 					prop: 'hcaNo'
 				},{
 					label: '是否高后果区',
-					prop: 'isHigh'
+					prop: 'isHigh',
+					format (val) {
+						if (val === null) {
+							return '-'
+						} else if (val == 0) {
+							return '否'
+						} else if (val == 1) {
+							return '是'
+						}
+					}
 				},{
 					label: '等级',
-					prop: 'hcaLevel'
+					prop: 'hcaLevel',
+					format: function (val) {
+						if (val == 0) {
+							return '-'
+						} else if (val == 1) {
+							return '一级'
+						} else if (val == 2) {
+							return '二级'
+						} else if (val == 3) {
+							return '三级'
+						} else if (val == 4) {
+							return '四级'
+						} else {
+							return val
+						}
+					}
 				},{
 					label: '长度（m）',
 					prop: 'hcaLength'
@@ -119,7 +155,22 @@
 					prop: 'endMileage'
 				},{
 					label: '地区等级',
-					prop: 'regionLevel'
+					prop: 'regionLevel',
+					format: function (val) {
+						if (val == 0) {
+							return '-'
+						} else if (val == 1) {
+							return '一级'
+						} else if (val == 2) {
+							return '二级'
+						} else if (val == 3) {
+							return '三级'
+						} else if (val == 4) {
+							return '四级'
+						} else {
+							return val
+						}
+					}
 				},{
 					label: '影响半径',
 					prop: 'impactRadius'
@@ -161,13 +212,19 @@
 				}
 			},
 		},
+		computed: {
+			mapRef () {
+				return this.$refs['mixTableRef'].$refs['basemap'];
+			},
+		},
 		created () {
 			this.getPipeList();
 		},
 
 		methods: {
-			handleRowClick (row) {
-
+			onTableGetData (data) {
+				this.mapRef.pipeRadiusRemove();
+				this.mapRef.pipeRender(data);
 			},
 			handleSearch () {
 				this.$refs['table'].refresh();
@@ -208,7 +265,6 @@
 					this.$message.success(data);
 				}
 			},
-			tableRequestAPI () { }
 		},
 	};
 </script>

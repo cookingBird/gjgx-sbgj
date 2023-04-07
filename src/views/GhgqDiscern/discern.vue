@@ -1,86 +1,98 @@
 <template>
-  <div class="discern-wrapper">
-    <div class="discern-top shadow-content bg-fff"></div>
-    <div class="discern-content">
-      <div class="discern-content-left shadow-content bg-fff">
-        <el-scrollbar>
-          <pipe-selector
-            :data="pipeList"
-            :defaultOpen="true"
-            :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
-          ></pipe-selector>
-        </el-scrollbar>
-      </div>
-      <div class="discern-content-right">
-        <div class="right-content">
-          <mix-table
-            ref="table"
-            :tableColumns="tableColumns"
-            :config="tableConfig"
-            @on-data="onTableGetData"
-            @row-click="handleTableRowClick"
-            reqMethods="GET"
-            url="/highconsarea/nextOperate"
-            :isPagination="false"
-            :query="{ taskId:taskId,nodeId: 3,flag: '',pipeCode:pipeCode}"
-            :pageParams="{pageNo:1,pageSize:-1}"
-          >
-            <div class="absolute map-layer-switcher-group">
-              <LayerSwitcher
-                v-model="populationShow"
-                @change="onPopulationChange"
-              ></LayerSwitcher>
-              <LayerSwitcher
-                v-model="placeShow"
-                title="特定场所"
-                @change="onPlaceChange"
-              ></LayerSwitcher>
-            </div>
-          </mix-table>
-        </div>
-        <div class="mt-2 right-footer shadow-content">
-          <div>
+<div class="discern-wrapper">
+  <div class="discern-top shadow-content bg-fff"></div>
+  <div class="discern-content">
+    <div class="discern-content-left shadow-content bg-fff">
+      <el-scrollbar>
+        <pipe-selector
+          :data="pipeList"
+          :defaultOpen="true"
+          :defaultSelect="pipeList[0].children[0]?.id"
+          :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
+          @select="handlePipeSelect"
+        ></pipe-selector>
+      </el-scrollbar>
+    </div>
+    <div class="discern-content-right">
+      <div class="right-content">
+        <mix-table
+          ref="table"
+          :tableColumns="tableColumns"
+          :config="tableConfig"
+          @onData="onTableGetData"
+          @row-click="handleTableRowClick"
+          reqMethods="GET"
+          url="/highconsarea/nextOperate"
+          :isPagination="false"
+          :query="{ taskId:taskId,nodeId: 3,flag: '',pipeCode:pipeCode}"
+          :pageParams="{pageNo:1,pageSize:-1}"
+        >
+          <!-- <template v-slot:action>
             <el-button
-              type="primary"
-              @click="onPrev"
-            >上一步</el-button>
-            <el-button
-              type="primary"
-              @click="handleNext"
-            >完成</el-button>
+              type="text"
+              @click="onEdit(slotProps)"
+            >修改等级</el-button>
+          </template> -->
+          <div class="absolute map-layer-switcher-group">
+            <LayerSwitcher
+              v-model="populationShow"
+              :number="pipeAroundTotal.people"
+              title="人居"
+              @change="onPopulationChange"
+            ></LayerSwitcher>
+            <LayerSwitcher
+              v-model="placeShow"
+              :number="pipeAroundTotal.place"
+              title="特定场所"
+              @change="onPlaceChange"
+            ></LayerSwitcher>
           </div>
+        </mix-table>
+      </div>
+      <div class="mt-2 right-footer shadow-content">
+        <div>
+          <el-button
+            type="primary"
+            @click="onPrev"
+          >上一步</el-button>
+          <el-button
+            type="primary"
+            @click="handleNext"
+          >完成</el-button>
         </div>
       </div>
     </div>
-    <el-dialog
-      @close="onclose"
-      v-if="dialogVisible"
-      title="修改地区等级"
-      :visible.sync="dialogVisible"
-      width="30%"
-    >
-      <div class="flex justify-around">
-        <el-button
-          v-for="btn in levelGroup"
-          :key="btn.level"
-          :class="{'level-active':selectRowLevel === btn.level}"
-          class="text-gray-900 border-[#f4f4f5] bg-[#f4f4f5] rounded-full hover:border-[#71b5ff] hover:bg-[#ecf5ff] hover:text-[#71b5ff]"
-          @click="onSelectLevel(btn)"
-        >
-          {{ btn.label }}
-        </el-button>
-      </div>
-      <div class="flex justify-center mt-2">
-        <el-button
-          v-for="aBtn in dialogAction"
-          :key="aBtn.code"
-          @click="onDialogAction(aBtn)"
-        >
-          {{ aBtn.label }}
-        </el-button>
-      </div>
-    </el-dialog>
   </div>
+  <el-dialog
+    v-if="edittingRow"
+    @close="onclose"
+    title="修改地区等级"
+    :visible="true"
+    width="30%"
+  >
+    <div class="flex justify-around">
+      <el-button
+        v-for="btn in levelGroup"
+        :key="btn.level"
+        :class="{'selected':edittingRow.hcaLevel == btn.level}"
+        class="el-button-level"
+        @click="onSelectLevel(btn)"
+      >
+        {{ btn.label }}
+      </el-button>
+    </div>
+    <div class="flex justify-center mt-7">
+      <el-button
+        type="primary"
+        v-for="aBtn in dialogAction"
+        :key="aBtn.code"
+        @click="onDialogAction(aBtn)"
+      >
+        {{ aBtn.label }}
+      </el-button>
+    </div>
+  </el-dialog>
+</div>
 </template>
 
 <script>
@@ -99,11 +111,13 @@
     },
     data () {
       return {
-        pipeList: [{
-          pipeName: '全部管道',
-          id: 1,
-          children: []
-        }],
+        pipeList: [
+          {
+            pipeName: '全部管道',
+            id: 1,
+            children: []
+          }
+        ],
         tableConfig: {
           isPagination: false,
           buttons: {
@@ -121,28 +135,32 @@
         tableColumns: [
           {
             label: "所属管线",
-            prop: "pipeSegmentName"
+            prop: "pipeSegmentName",
+            // width: 150
           },
           {
             label: "高后果区编号",
-            prop: "hcaNo"
+            prop: "hcaNo",
+            // width: 150
           },
           {
             label: "是否高后果区",
             prop: "isHigh",
+            // width: 150,
             format (val) {
               if (val === null) {
                 return '-'
               } else if (val == 0) {
-                return '否'
-              } else if (val == 1) {
                 return '是'
+              } else if (val == 1) {
+                return '否'
               }
             }
           },
           {
             label: "高后果区等级",
             prop: "hcaLevel",
+            // width: 120,
             format: function (val) {
               if (val == 0) {
                 return '-'
@@ -161,15 +179,18 @@
           },
           {
             label: "长度（m）",
-            prop: "segmentLength"
+            prop: "segmentLength",
+            // width: 120,
           },
           {
             label: "终止里程（m）",
-            prop: "endMileage"
+            prop: "endMileage",
+            // width: 120,
           },
           {
             label: "地区等级",
             prop: "regionLevel",
+            // width: 120,
             format: function (val) {
               if (val == 0) {
                 return '-'
@@ -189,27 +210,40 @@
           {
             label: "人居（户）",
             prop: "population",
+            // width: 120,
           },
           {
             label: "特定场所（个）",
-            prop: "specificProduction"
+            prop: "specificProduction",
+            // width: 120,
           },
           {
             label: "易燃易爆场所（个）",
-            prop: "flammableExplosivePlace"
+            prop: "flammableExplosivePlace",
+            // width: 120,
           },
           {
             label: "影响半径",
-            prop: "impactRadius"
+            prop: "impactRadius",
+            // width: 120,
           },
           {
             label: "暴露半径",
-            prop: "exposureRadius"
+            prop: "exposureRadius",
+            // width: 120,
           },
           {
             label: "识别时间",
-            prop: "recognitionTime"
-          }
+            prop: "recognitionTime",
+            // width: 120,
+            format (val) {
+              return val ? val.split(' ')[0] : '-'
+            }
+          },
+          // {
+          //   label: "操作",
+          //   prop: "action"
+          // },
         ],
         dialogVisible: false,
         levelGroup: [
@@ -225,7 +259,12 @@
         selectRowLevel: 1,
         pipeCode: '',
         populationShow: true,
-        placeShow: true
+        placeShow: true,
+        edittingRow: null,
+        pipeAroundTotal: {
+          people: 300,
+          place: 200
+        }
       }
     },
     computed: {
@@ -254,6 +293,7 @@
           taskId: this.taskId
         }).then((data) => {
           this.pipeList[0].children = data.data;
+          this.handlePipeSelect(data.data[0])
         })
       },
 
@@ -271,41 +311,37 @@
       },
       /**@description 编辑等级，打开弹窗 */
       onEdit (row) {
-        this.dialogVisible = true;
-        this.__edittingRow = row
+        this.edittingRow = row;
       },
       /**@description 关闭弹窗 */
       onclose () {
-        this.dialogVisible = false;
-        this.__edittingRow = null
+        this.edittingRow = null
       },
       /**@description 选择等级 */
-      onSelectLevel (level) {
-        this.selectRowLevel = level
+      onSelectLevel (btn) {
+        Object.assign(this.edittingRow,btn)
       },
       /**@description 关闭弹窗，提交表单 */
       onDialogAction (aBtn) {
-        const { code,id,pipeSegmentCode } = this.__edittingRow;
         switch (aBtn.code) {
           case 'cancel': {
-            this.dialogVisible = false;
-            this.__edittingRow = null;
+            this.edittingRow = null;
             break;
           }
           case 'submit': {
+            const { level,label,code,id,pipeSegmentCode } = this.edittingRow
             Helper.pipeLevelMutation({
               code,
               id,
-              levelName: this.selectRowLevel.label,
-              levelNo: this.selectRowLevel.level,
+              levelName: label,
+              levelNo: level,
               node: CURRENT_NODE_STEP,
               pipeSegmentCode,
               taskId: this.taskId
             }).then(() => {
               this.$message.success('修改成功');
               this.$refs.table.$refs.table.refresh();
-              this.dialogVisible = false;
-              this.__edittingRow = null;
+              this.edittingRow = null;
             })
             break;
           }
@@ -332,20 +368,46 @@
           //影响半径
           regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
           //人居
-          populationWkt.length && (this.__populationLayer = this.mapRef.renderMarkerByType(populationWkt,1));
+          populationWkt.length && (this.mapRef.renderMarkerByType(populationWkt,1)
+            .then(layer => {
+              this.__populationLayer = layer;
+            }));
           //特定场所
-          specificWkt.length && (this.__placeLayer = this.mapRef.renderMarkerByType(specificWkt,2));
+          specificWkt.length && (this.mapRef.renderMarkerByType(specificWkt,2)
+            .then(layer => {
+              this.__placeLayer = layer;
+            }));
           //易燃易爆场所
-          flammableWkt.length && (this.__boomLayer = this.mapRef.renderMarkerByType(flammableWkt,3));
+          flammableWkt.length && (this.mapRef.renderMarkerByType(flammableWkt,3)
+            .then(layer => {
+              this.__boomLayer = layer;
+            }));
 
         }
       },
       onPopulationChange (val) {
-        this.__populationLayer && this.__populationLayer(val)
+        this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
       onPlaceChange (val) {
-        this.__placeLayer && this.__placeLayer(val)
-      }
+        this.__placeLayer && this.__placeLayer.toggleVisibility(val)
+      },
+      handlePipeSelect (pipe) {
+        const requestDom = require("@/utils/misc").requestDom;
+        this.pipeCode = pipe.pipeSegmentCode;
+        requestDom(() => this.$refs['table']?.$refs['table'])
+          .then((comp) => {
+            comp.refresh({ pipeCode: pipe.pipeSegmentCode })
+          })
+        const pipeAround = require('@/api/analyse').pipeAround;
+        pipeAround({ taskId: this.taskId,pipeCode: pipe.pipeSegmentCode })
+          .then((res) => {
+            this.pipeAroundTotal = {
+              people: res.populationWkt.length,
+              place: res.specificWkt.length
+            }
+          })
+        // this.onTableGetData([pipe])
+      },
     }
   }
 </script>

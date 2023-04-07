@@ -85,7 +85,7 @@
 				tableCols: [
 					{ prop: 'secOrgName',label: '二级单位' },
 					{ prop: 'orgName',label: '三级单位' },
-					{ prop: 'pipeName',label: '管道名称' },
+					{ prop: 'pipeSegmentName',label: '管道名称' },
 					{ prop: 'startPosition',label: '起点' },
 					{ prop: 'endPosition',label: '终点' },
 					{ prop: 'segmentLength',label: '管道长度' },

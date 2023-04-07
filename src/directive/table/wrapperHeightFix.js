@@ -2,7 +2,6 @@ const fixTableBodyWrapper = (function () {
   let timer,
     done = false
   return function fixTableBodyWrapper (el, cb) {
-    console.log('fixTableBodyWrapper----------', el)
     timer && clearTimeout(timer)
     timer = setTimeout(() => {
       const tableHeight = el.getBoundingClientRect().height

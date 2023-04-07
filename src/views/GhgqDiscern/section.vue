@@ -1,122 +1,131 @@
 <template>
-  <div class="section-wrapper">
-    <div class="section-top shadow-content bg-fff"></div>
-    <div class="section-content">
-      <div class="section-content-left shadow-content bg-fff">
-        <el-scrollbar>
-          <pipe-selector
-            :data="pipeList"
-            :defaultOpen="true"
-            :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
-            @select="handlePipeSelect"
-          ></pipe-selector>
-        </el-scrollbar>
-      </div>
-      <div class="section-content-right">
-        <div class="right-content">
-          <mix-table
-            ref="table"
-            :tableColumns="tableColumns"
-            :config="tableConfig"
-            @on-data="onTableGetData"
-            @row-click="handleTableRowClick"
-            reqMethods="GET"
-            url="/highconsarea/nextOperate"
-            :isPagination="false"
-            :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
-            :pageParams="{ pageNo:-1,pageSize:10 }"
-          >
-            <div class="absolute map-layer-switcher-group">
-              <LayerSwitcher
-                v-model="populationShow"
-                @change="onPopulationChange"
-              ></LayerSwitcher>
-              <LayerSwitcher
-                v-model="placeShow"
-                title="特定场所"
-                @change="onPlaceChange"
-              ></LayerSwitcher>
-            </div>
-          </mix-table>
-        </div>
-        <div class="mt-1 right-footer shadow-content">
-          <div>
-            <el-button
-              type="primary"
-              @click="onPrev"
-            >上一步</el-button>
-            <el-button
-              type="primary"
-              @click="handleDiscern"
-            >一键识别</el-button>
-            <el-button
-              type="primary"
-              @click="handleNext"
-            >下一步</el-button>
+<div class="section-wrapper">
+  <div class="section-top shadow-content bg-fff"></div>
+  <div class="section-content">
+    <div class="section-content-left shadow-content bg-fff">
+      <el-scrollbar>
+        <pipe-selector
+          :data="pipeList"
+          :defaultOpen="true"
+          :defaultSelect="pipeList[0].children[0]?.id"
+          :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
+          @select="handlePipeSelect"
+        ></pipe-selector>
+      </el-scrollbar>
+    </div>
+    <div class="section-content-right">
+      <div class="right-content">
+        <mix-table
+          ref="table"
+          :tableColumns="tableColumns"
+          :config="tableConfig"
+          @onData="onTableGetData"
+          @row-click="handleTableRowClick"
+          reqMethods="GET"
+          url="/highconsarea/nextOperate"
+          :isPagination="false"
+          :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
+          :pageParams="{ pageNo:-1,pageSize:10 }"
+        >
+          <!-- <template v-slot:operator>
+            <el-button>
+              分段
+            </el-button>
+          </template> -->
+          <div class="absolute map-layer-switcher-group">
+            <LayerSwitcher
+              v-model="populationShow"
+              title="人居"
+              :number="pipeAroundTotal.people"
+              @change="onPopulationChange"
+            ></LayerSwitcher>
+            <LayerSwitcher
+              v-model="placeShow"
+              :number="pipeAroundTotal.place"
+              title="特定场所"
+              @change="onPlaceChange"
+            ></LayerSwitcher>
           </div>
+        </mix-table>
+      </div>
+      <div class="mt-1 right-footer shadow-content">
+        <div>
+          <el-button
+            type="primary"
+            @click="onPrev"
+          >上一步</el-button>
+          <el-button
+            type="primary"
+            @click="handleDiscern"
+          >一键识别</el-button>
+          <el-button
+            type="primary"
+            @click="handleNext"
+          >下一步</el-button>
         </div>
       </div>
     </div>
-    <el-dialog
-      v-if="dialogVisible"
-      title="编辑"
-      :visible.sync="dialogVisible"
-      width="30%"
-    >
-      <el-form
-        :model="formData"
-        ref="addForm"
-        label-width="110px"
-        :rules="rules"
-      >
-        <el-form-item
-          label="起始里程："
-          prop="beginMileage"
-        >
-          <el-input
-            :disabled="formData.beginMileage === 0"
-            placeholder="请输入"
-            v-model="formData.beginMileage"
-          ></el-input>
-        </el-form-item>
-        <el-form-item
-          v-show="actionType"
-          label="拆分里程："
-          prop="splitMileage"
-        >
-          <el-input
-            placeholder="请输入"
-            v-model="formData.splitMileage"
-          ></el-input>
-        </el-form-item>
-        <el-form-item
-          label="终止里程："
-          prop="endMileage"
-        >
-          <el-input
-            placeholder="请输入"
-            v-model="formData.endMileage"
-          ></el-input>
-        </el-form-item>
-        <div class="flex justify-center">
-          <el-button
-            type="primary"
-            @click="dialogVisible = false"
-          >取消</el-button>
-          <el-button
-            type="primary"
-            @click="actionType = !actionType"
-          >
-            {{ actionType !== true ? '拆分' : '取消拆分' }}
-          </el-button>
-          <el-button
-            type="primary"
-            @click="onSubmit"
-          >确定</el-button>
-        </div>
-      </el-form>
-    </el-dialog>
   </div>
+  <el-dialog
+    v-if="dialogVisible"
+    title="编辑"
+    :visible.sync="dialogVisible"
+    width="30%"
+  >
+    <el-form
+      :model="formData"
+      ref="addForm"
+      label-width="110px"
+      :rules="rules"
+    >
+      <el-form-item
+        label="起始里程："
+        prop="beginMileage"
+      >
+        <el-input
+          :disabled="formData.beginMileage === 0"
+          placeholder="请输入"
+          v-model="formData.beginMileage"
+        ></el-input>
+      </el-form-item>
+      <el-form-item
+        v-show="actionType"
+        label="拆分里程："
+        prop="splitMileage"
+      >
+        <el-input
+          placeholder="请输入"
+          v-model="formData.splitMileage"
+        ></el-input>
+      </el-form-item>
+      <el-form-item
+        label="终止里程："
+        prop="endMileage"
+      >
+        <el-input
+          placeholder="请输入"
+          v-model="formData.endMileage"
+        ></el-input>
+      </el-form-item>
+      <div class="flex justify-center">
+        <el-button
+          type="primary"
+          @click="dialogVisible = false"
+        >取消</el-button>
+        <el-button
+          type="primary"
+          @click="actionType = !actionType"
+        >
+          {{ actionType !== true ? '拆分' : '取消拆分' }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="onSubmit"
+        >确定</el-button>
+      </div>
+    </el-form>
+  </el-dialog>
+</div>
 </template>
 
 <script>
@@ -124,6 +133,7 @@
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
   import { lineAround } from '@/api/analyse';
+
   import LayerSwitcher from '@/components/LayerSwitcher.vue'
   const CURRENT_NODE_STEP = 2;
 
@@ -135,11 +145,13 @@
     },
     data () {
       return {
-        pipeList: [{
-          pipeName: '全部管道',
-          id: 1,
-          children: []
-        }],
+        pipeList: [
+          {
+            pipeName: '全部管道',
+            id: 1,
+            children: []
+          }
+        ],
         tableConfig: {
           isPagination: false,
           buttons: {
@@ -191,6 +203,10 @@
             label: "易燃易爆场所（个）",
             prop: "flammableExplosivePlace"
           },
+          {
+            label: "操作",
+            prop: "operator"
+          },
         ],
         dialogVisible: false,
         formData: {
@@ -201,7 +217,11 @@
         actionType: false,
         pipeCode: '',
         populationShow: true,
-        placeShow: true
+        placeShow: true,
+        pipeAroundTotal: {
+          people: 300,
+          place: 200
+        }
       }
     },
     computed: {
@@ -239,6 +259,7 @@
           taskId: this.taskId
         }).then((data) => {
           this.pipeList[0].children = data.data;
+          this.handlePipeSelect(data.data[0])
         })
       },
       /**@description 一键识别 */
@@ -309,12 +330,22 @@
           query: this.$route.query
         })
       },
-      handlePipeSelect (e) {
-        console.log('pipeSelect',e)
-        this.pipeCode = e.pipeSegmentCode;
-        this.$nextTick(() => {
-          this.$refs.table.$refs.table.refresh();
-        })
+      handlePipeSelect (pipe) {
+        const requestDom = require("@/utils/misc").requestDom;
+        this.pipeCode = pipe.pipeSegmentCode;
+        requestDom(() => this.$refs['table']?.$refs['table'])
+          .then((comp) => {
+            comp.refresh({ pipeCode: pipe.pipeSegmentCode })
+          })
+        const pipeAround = require('@/api/analyse').pipeAround;
+        pipeAround({ taskId: this.taskId,pipeCode: pipe.pipeSegmentCode })
+          .then((res) => {
+            this.pipeAroundTotal = {
+              people: res.populationWkt.length,
+              place: res.specificWkt.length
+            }
+          })
+        // this.onTableGetData([pipe])
       },
       onTableGetData (data) {
         this.mapRef.pipeRadiusRemove();
@@ -328,19 +359,28 @@
           //影响半径
           regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
           //人居
-          populationWkt.length && (this.__populationLayer = this.mapRef.renderMarkerByType(populationWkt,1));
+          populationWkt.length && (this.mapRef.renderMarkerByType(populationWkt,1)
+            .then(layer => {
+              this.__populationLayer = layer;
+            }));
           //特定场所
-          specificWkt.length && (this.__placeLayer = this.mapRef.renderMarkerByType(specificWkt,2));
+          specificWkt.length && (this.mapRef.renderMarkerByType(specificWkt,2)
+            .then(layer => {
+              this.__placeLayer = layer;
+            }));
           //易燃易爆场所
-          flammableWkt.length && (this.__boomLayer = this.mapRef.renderMarkerByType(flammableWkt,3));
+          flammableWkt.length && (this.mapRef.renderMarkerByType(flammableWkt,3)
+            .then(layer => {
+              this.__boomLayer = layer;
+            }));
 
         }
       },
       onPopulationChange (val) {
-        this.__populationLayer && this.__populationLayer(val)
+        this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
       onPlaceChange (val) {
-        this.__placeLayer && this.__placeLayer(val)
+        this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       }
     }
   }

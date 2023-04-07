@@ -14,10 +14,10 @@ export function remove (id) {
   })
 }
 
-export function addOrUpdate (data) {
+export function addOrUpdate ({ id, name, scope, file }) {
   const formData = new FormData()
-  Object.entries(data).forEach(item => {
-    formData.append(item[0], item[1])
+  Object.entries({ id, name, scope, file }).forEach(item => {
+    formData.append(item[0], item[1] || null)
   })
   return Request.request({
     method: 'post',
@@ -48,7 +48,6 @@ export function query (query) {
     }
   })
 }
-
 
 // export function renderPdf (srcUrl, canvasID) {
 //   fetch(srcUrl).then(response => {

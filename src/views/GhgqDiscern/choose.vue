@@ -170,7 +170,7 @@
     },
     methods: {
       getAllPipeList () {
-        Helper.queryAll({
+        return Helper.queryAll({
           keyWords: this.leftKeyword,
           pageNo: 1,
           pageSize: -1,
@@ -179,17 +179,10 @@
           status: ''
         }).then((data) => {
           this.pipeList = data.data;
-          setTimeout(() => {
-            const findKey = 'pipeSegmentCode'
-            this.selectedPipeList.forEach(pipe => {
-              const findPipe = this.pipeList.find(p => p[findKey] === pipe[findKey]);
-              this.$refs['leftTableRef'].toggleRowSelection(findPipe,true)
-            })
-          },100)
         })
       },
       getSelectedPipeList () {
-        Helper.queryAllSelected({
+        return Helper.queryAllSelected({
           keyWords: this.rightKeyword,
           pageNo: 1,
           pageSize: -1,
@@ -201,9 +194,20 @@
           this.selectedPipeList = data.data;
         })
       },
-      bootstrap () {
-        this.getSelectedPipeList();
-        this.getAllPipeList();
+      syncItemStatus (uniqueKey = 'pipeSegmentCode') {
+        this.$nextTick(() => {
+          const findKey = uniqueKey
+          this.selectedPipeList.forEach(pipe => {
+            const findPipe = this.pipeList
+              .find(p => p[findKey] == pipe[findKey]);
+            this.$refs['leftTableRef'].toggleRowSelection(findPipe,true)
+          })
+        })
+      },
+      async bootstrap () {
+        await this.getSelectedPipeList();
+        await this.getAllPipeList();
+        this.syncItemStatus();
       },
       handleSelectAll () {
         this.pipeList.forEach(pipe => {
@@ -219,16 +223,7 @@
         this.selectedPipeList = [];
       },
       handleSelectionChange (rows) {
-        function removeRepeat (array,keyFile = id) {
-          return array.reduce((pre,curr) => {
-            if (pre.findIndex(n => n[keyFile] === curr[keyFile]) > -1) {
-              return pre
-            } else {
-              return pre.concat(curr)
-            }
-          },[])
-        }
-        this.selectedPipeList = removeRepeat(this.selectedPipeList.concat(rows),'pipeCode')
+        this.selectedPipeList = rows
       },
       handleBack () {
         this.$router.push('/GhgqDiscern');

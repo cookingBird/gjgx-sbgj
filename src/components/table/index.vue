@@ -1,112 +1,112 @@
 <template>
-  <div
-    class="gislife-table-wrapper"
+<div
+  class="gislife-table-wrapper"
+  v-observe="onTableResize"
+>
+  <slot name="top"></slot>
+  <el-table
+    ref="table"
+    class="gislife-table"
+    v-bind="$attrs"
+    v-on="$listeners"
+    v-loading="loading"
+    :data="tableData"
+    :border="initCom.border"
+    :class="config.class"
+    v-observe:tableEmptyRow
+    :max-height="maxHeight"
+    style="width: 100%"
   >
-    <slot name="top"></slot>
-    <el-table
-      ref="table"
-      class="gislife-table"
-      v-bind="$attrs"
-      v-on="$listeners"
-      v-loading="loading"
-      :data="tableData"
-      :border="initCom.border"
-      :class="config.class"
-      v-observe:tableEmptyRow
-      v-observe:tableWrapperFix
-      :max-height="maxHeight"
+    <!-- 表格前部插槽 -->
+    <slot name="prepend"></slot>
+    <!-- 多选 -->
+    <el-table-column
+      type="selection"
+      v-if="initCom.selection"
+    > </el-table-column>
+    <!-- 索引 -->
+    <el-table-column
+      v-if="initCom.index"
+      type="index"
+      :label="initCom.indexName || '序号'"
+      width="80px"
+      align="center"
     >
-      <!-- 表格前部插槽 -->
-      <slot name="prepend"></slot>
-      <!-- 多选 -->
-      <el-table-column
-        type="selection"
-        v-if="initCom.selection"
-      > </el-table-column>
-      <!-- 索引 -->
-      <el-table-column
-        v-if="initCom.index"
-        type="index"
-        :label="initCom.indexName || '序号'"
-        width="80px"
-        align="center"
+    </el-table-column>
+    <!-- 普通列 -->
+    <template v-for="(item, index) in tableColumns">
+      <Column
+        v-if="item.children && item.children.length"
+        :columnsHeader="item"
+        :key="'custom-column' + index"
       >
-      </el-table-column>
-      <!-- 普通列 -->
-      <template v-for="(item, index) in tableColumns">
-        <Column
-          v-if="item.children && item.children.length"
-          :columnsHeader="item"
-          :key="'custom-column' + index"
-        >
-        </Column>
-        <el-table-column
-          v-else
-          ref="cols"
-          v-bind="item"
-          :prop="item.prop"
-          :label="item.label"
-          :align="item.align || 'center'"
-          :key="'el-column' + index"
-          :show-overflow-tooltip="item.overflowTooltip ?? true"
-        >
-          <template #default="scope">
-            <!-- 插槽,插槽名为对应prop,不使用可不写插槽 -->
-            <slot
-              :name="item.prop"
-              :index="scope.$index"
-              :column="scope.column"
-              :row="scope.row"
-            >
-              {{
-                  item.format
-                  ? item.format(scope.row[item.prop])
-                  : scope.row[item.prop]
-                }}
-            </slot>
-          </template>
-        </el-table-column>
-      </template>
-      <!-- 按钮组 -->
+      </Column>
       <el-table-column
-        v-if="initCom.buttons"
-        :label="initCom.buttons.label || '操作'"
-        :align="initCom.buttons.align || 'center'"
-        :width="initCom.buttons.width"
-        :fixed="initCom.buttons.fixed"
+        v-else
+        ref="cols"
+        v-bind="item"
+        :prop="item.prop"
+        :label="item.label"
+        :align="item.align || 'center'"
+        :key="'el-column' + index"
+        :show-overflow-tooltip="item.overflowTooltip ?? true"
       >
-        <template v-slot="scope">
-          <el-button
-            v-for="(btn, index) in initCom.buttons.list"
-            :key="index"
-            :type="btn.type || 'text'"
-            :size="btn.size"
-            @click.stop="(btn.click&&btn.click(scope.row) )|| handleCommand(btn.key, scope.row)"
+        <template #default="scope">
+          <!-- 插槽,插槽名为对应prop,不使用可不写插槽 -->
+          <slot
+            :name="item.prop"
+            :column="scope.column"
+            :row="scope.row"
           >
-            {{ btn.label }}
-          </el-button>
+            {{
+              item.format
+              ? item.format(scope.row[item.prop])
+              : scope.row[item.prop]
+            }}
+          </slot>
         </template>
       </el-table-column>
-      <!-- 表格尾部插槽 -->
-      <slot name="append"></slot>
-      <!-- 暂无数据提示 -->
-      <template v-slot:empty>
-        <slot name="empty"> 暂无数据 </slot>
+    </template>
+    <!-- 按钮组 -->
+    <el-table-column
+      v-if="initCom.buttons"
+      :label="initCom.buttons.label || '操作'"
+      :align="initCom.buttons.align || 'center'"
+      :width="initCom.buttons.width"
+      :fixed="initCom.buttons.fixed"
+    >
+      <template v-slot="scope">
+        <el-button
+          v-for="(btn, index) in initCom.buttons.list"
+          :key="index"
+          :type="btn.type || 'text'"
+          :size="btn.size"
+          @click.stop="(btn.click&&btn.click(scope.row) )|| handleCommand(btn.key, scope.row)"
+        >
+          {{ btn.label }}
+        </el-button>
       </template>
-    </el-table>
-    <slot name="bottom"></slot>
-    <pagination
-      v-if="isPagination"
-      class="gislife-table-pagination"
-      :pageParams="pageParams"
-      :total="total"
-      :config="paginationConfig"
-      @size-change="refresh()"
-      @current-change="refresh()"
-      @prev-click="refresh()"
-      @next-click="refresh()"
-    ></pagination>
-  </div>
+    </el-table-column>
+    <!-- 表格尾部插槽 -->
+    <slot name="append"></slot>
+    <!-- 暂无数据提示 -->
+    <template v-slot:empty>
+      <slot name="empty"> 暂无数据 </slot>
+    </template>
+  </el-table>
+  <slot name="bottom"></slot>
+  <pagination
+    v-if="isPagination"
+    class="gislife-table-pagination"
+    :pageParams="pageParams"
+    :total="total"
+    :config="paginationConfig"
+    @size-change="refresh()"
+    @current-change="refresh()"
+    @prev-click="refresh()"
+    @next-click="refresh()"
+  ></pagination>
+</div>
 </template>
 
 <script>
@@ -243,8 +243,9 @@
         this.$emit('handleCommand',key,row);
       },
       // 刷新数据
-      async refresh (isPagination = true) {
-        let params = isPagination ? this.queryData : this.query;
+      async refresh (pas) {
+        let params = Object.assign(this.queryData,pas);
+        // console.log('refresh---------',params)
         this.loading = true;
         try {
           let dataS = await this.getData(params);
@@ -292,10 +293,12 @@
         const maxHeight = this.$refs.table?.$el?.getBoundingClientRect().height;
         this.maxHeight = maxHeight;
       },
-      setColsSlots (slot) {
-        console.log('setColsSlots-----------',this.$refs.cols)
-        this.$scopedSlots = slot
-        this.$forceUpdate()
+      onTableResize (entry) {
+        const table = entry.target.querySelector('.el-table');
+        const tableBoundingClientRect = table.getBoundingClientRect();
+        this.maxHeight = Math.floor(tableBoundingClientRect.height);
+        const tableWrapper = table.querySelector('.el-table__body-wrapper');
+        tableWrapper.style.height = '100%'
       }
     },
   };
@@ -308,12 +311,17 @@
     align-items: center;
     justify-content: center;
   }
+  /* .gislife-table-wrapper .gislife-table .el-table__body-wrapper{
+    overflow-x: scroll;
+  } */
 
   .gislife-table-wrapper {
     --el-y-gutter: 7;
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    width: 100%;
   }
 
   .gislife-table-wrapper>.gislife-table {
@@ -331,10 +339,6 @@
   .gislife-table-wrapper .gislife-table {
     flex-grow: 1;
   }
-
-  /* .gislife-table .el-table__body-wrapper {
-                                        overflow-y: scroll;
-                                      } */
 
   .gislife-table-pagination {
     display: flex;

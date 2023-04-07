@@ -1,50 +1,51 @@
 <template>
-  <div class="mix-table-wrapper">
-    <div
-      v-if="configs.switcher"
-      class="absolute mix-table__action-btn"
+<div class="mix-table-wrapper">
+  <div
+    v-if="configs.switcher"
+    class="absolute mix-table__action-btn"
+  >
+    <el-button
+      :class="{ 'mix-table__action-btn-item': true, 'selected': type === item }"
+      v-for="item in ['混合', '表格', '地图']"
+      :key="item"
+      @click="type = item"
     >
-      <el-button
-        :class="{ 'mix-table__action-btn-item': true, 'selected': type === item }"
-        v-for="item in ['混合', '表格', '地图']"
-        :key="item"
-        @click="type = item"
-      >
-        {{ item }}
-      </el-button>
-    </div>
-
-    <div
-      v-if="configs.map"
-      v-show="type !== '表格'"
-      class="shadow-content mix-table__map"
-    >
-      <base-map
-        ref="basemap"
-        @onLoad="mapload = true"
-      ></base-map>
-    </div>
-
-    <div
-      v-if="mapload && configs.table"
-      v-show="type !== '地图'"
-      class="mix-table__table shadow-content"
-    >
-      <common-table
-        ref="table"
-        @handleCommand="(key, row) => $emit('handleCommand', key, row)"
-        @row-click="handleRowClick"
-        @onData="(data) => $emit('onData',data)"
-        v-bind="$attrs"
-      >
-      </common-table>
-    </div>
-    <slot v-if="mapload"></slot>
+      {{ item }}
+    </el-button>
   </div>
+
+  <div
+    v-if="configs.map"
+    v-show="type !== '表格'"
+    class="shadow-content mix-table__map"
+  >
+    <base-map
+      ref="basemap"
+      @onLoad="mapload = true"
+    ></base-map>
+  </div>
+
+  <div
+    v-if="mapload && configs.table"
+    v-show="type !== '地图'"
+    class="mix-table__table shadow-content"
+  >
+    <common-table
+      ref="table"
+      @handleCommand="(key, row) => $emit('handleCommand', key, row)"
+      @row-click="handleRowClick"
+      @onData="(data) => $emit('onData',data)"
+      v-bind="$attrs"
+    >
+    </common-table>
+  </div>
+  <slot v-if="mapload"></slot>
+</div>
 </template>
 
 <script>
   import Map from '@/components/Map';
+  import { requestDom } from "@/utils/misc"
 
   export default {
     components: {
@@ -82,16 +83,15 @@
       }
     },
     mounted () {
-      // console.log('this.$scopedSlots',this.$refs,this.$scopedSlots)
-      // setTimeout(() => {
-      //   this.$refs.table.setColsSlots(this.$scopedSlots)
-
-      //   // this.$refs.table.$nextTick(() => {
-      //   //   this.$refs.table.$forceUpdate()
-      //   //   this.$refs.table.$refs.table.$forceUpdate()
-      //   //   console.log('table.$scopedSlots',this.$refs.table)
-      //   // },);
-      // },2000)
+      requestDom(() => this.$refs.table).then((el) => {
+        // el.$slots = this.$slots
+        el.$scopedSlots = this.$scopedSlots
+        el.$nextTick(() => {
+          el.$forceUpdate()
+          // console.log('this',this)
+          // console.log('$refs.table',el)
+        });
+      })
     },
     methods: {
       handleRowClick (row) {

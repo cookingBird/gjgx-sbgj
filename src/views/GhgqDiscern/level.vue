@@ -1,90 +1,95 @@
 <template>
-  <div class="level-wrapper">
-    <div class="level-top shadow-content bg-fff"></div>
-    <div class="level-content">
-      <div class="level-content-left shadow-content bg-fff">
-        <el-scrollbar>
-          <pipe-selector
-            :data="pipeList"
-            :defaultOpen="true"
-            :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
-            @select="handlePipeSelect"
-          ></pipe-selector>
-        </el-scrollbar>
+<div class="level-wrapper">
+  <div class="level-top shadow-content bg-fff"></div>
+  <div class="level-content">
+    <div class="level-content-left shadow-content bg-fff">
+      <el-scrollbar>
+        <pipe-selector
+          :data="pipeList"
+          :defaultOpen="true"
+          :defaultSelect="pipeList[0].children[0]?.id"
+          :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
+          @select="handlePipeSelect"
+        ></pipe-selector>
+      </el-scrollbar>
+    </div>
+    <div class="level-content-right">
+      <div class="right-content">
+        <mix-table
+          ref="table"
+          :tableColumns="tableColumns"
+          :config="tableConfig"
+          @onData="onTableGetData"
+          @row-click="handleTableRowClick"
+          reqMethods="GET"
+          url="/highconsarea/nextOperate"
+          :isPagination="false"
+          :query="{ taskId:taskId,nodeId: 2,flag: '',pipeCode: pipeCode}"
+          :pageParams="{pageNo:1,pageSize:-1}"
+        >
+          <div class="absolute map-layer-switcher-group">
+            <LayerSwitcher
+              v-model="populationShow"
+              :number="pipeAroundTotal.people"
+              title="人居"
+              @change="onPopulationChange"
+            ></LayerSwitcher>
+            <LayerSwitcher
+              v-model="placeShow"
+              :number="pipeAroundTotal.place"
+              title="特定场所"
+              @change="onPlaceChange"
+            ></LayerSwitcher>
+          </div>
+        </mix-table>
       </div>
-      <div class="level-content-right">
-        <div class="right-content">
-          <mix-table
-            ref="table"
-            :tableColumns="tableColumns"
-            :config="tableConfig"
-            @on-data="onTableGetData"
-            @row-click="handleTableRowClick"
-            reqMethods="GET"
-            url="/highconsarea/nextOperate"
-            :isPagination="false"
-            :query="{ taskId:taskId,nodeId: 2,flag: '',pipeCode:pipeCode}"
-            :pageParams="{pageNo:1,pageSize:-1}"
-          >
-            <div class="absolute map-layer-switcher-group">
-              <LayerSwitcher
-                v-model="populationShow"
-                @change="onPopulationChange"
-              ></LayerSwitcher>
-              <LayerSwitcher
-                v-model="placeShow"
-                title="特定场所"
-                @change="onPlaceChange"
-              ></LayerSwitcher>
-            </div>
-          </mix-table>
-        </div>
-        <div class="mt-2 right-footer shadow-content">
-          <el-button
-            type="primary"
-            @click="onPrev"
-          >上一步</el-button>
-          <el-button
-            type="primary"
-            @click="handleDiscern"
-          >一键识别</el-button>
-          <el-button
-            type="primary"
-            @click="handleNext"
-          >下一步</el-button>
+      <div class="mt-2 right-footer shadow-content">
+        <el-button
+          type="primary"
+          @click="onPrev"
+        >上一步</el-button>
+        <el-button
+          type="primary"
+          @click="handleDiscern"
+        >一键识别</el-button>
+        <el-button
+          type="primary"
+          @click="handleNext"
+        >下一步</el-button>
 
-        </div>
       </div>
     </div>
-    <el-dialog
-      @close="onclose"
-      v-if="dialogVisible"
-      title="修改地区等级"
-      :visible.sync="dialogVisible"
-      width="25%"
-    >
-      <div class="flex justify-around">
-        <el-button
-          v-for="btn in levelGroup"
-          :key="btn.level"
-          :class="{'level-active':selectRowLevel === btn.level}"
-          class="text-gray-900 border-[#f4f4f5] bg-[#f4f4f5] rounded-full hover:border-[#71b5ff] hover:bg-[#ecf5ff] hover:text-[#71b5ff]"
-          @click="onSelectLevel(btn)"
-        >
-          {{ btn.label }}
-        </el-button>
-      </div>
-      <div class="flex justify-center mt-9">
-        <el-button
-          v-for="aBtn in dialogAction"
-          :key="aBtn.code"
-          @click="onDialogAction(aBtn)"
-        >
-          {{ aBtn.label }}
-        </el-button>
-      </div>
-    </el-dialog>
   </div>
+  <el-dialog
+    @close="onclose"
+    v-if="dialogVisible"
+    title="修改地区等级"
+    :visible.sync="dialogVisible"
+    width="25%"
+  >
+    <div class="flex justify-around">
+      <el-button
+        v-for="btn in levelGroup"
+        :key="btn.level"
+        :class="{'selected':(selectRowLevel == btn.level || selectRowLevel == btn.label)}"
+        class="el-button-level"
+        @click="onSelectLevel(btn)"
+      >
+        {{ btn.label }}
+      </el-button>
+    </div>
+    <div class="flex justify-center mt-7">
+      <el-button
+        v-for="aBtn in dialogAction"
+        type="primary"
+        :key="aBtn.code"
+        @click="onDialogAction(aBtn)"
+      >
+        {{ aBtn.label }}
+      </el-button>
+    </div>
+  </el-dialog>
+</div>
 </template>
 
 <script>
@@ -92,7 +97,7 @@
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper'
   import LayerSwitcher from '@/components/LayerSwitcher.vue'
-    import { lineAround } from '@/api/analyse';
+  import { lineAround,pipeAround } from '@/api/analyse';
   const CURRENT_NODE_STEP = 3;
 
   export default {
@@ -189,7 +194,11 @@
         selectRowLevel: 1,
         pipeCode: '',
         populationShow: true,
-        placeShow: true
+        placeShow: true,
+        pipeAroundTotal: {
+          people: 300,
+          place: 200
+        }
       }
     },
     computed: {
@@ -218,6 +227,7 @@
           taskId: this.taskId
         }).then((data) => {
           this.pipeList[0].children = data.data;
+          this.handlePipeSelect(data.data[0])
         })
       },
       /**@description 一键识别 */
@@ -253,18 +263,19 @@
       },
       onEdit (row) {
         this.dialogVisible = true;
-        this.__edittingRow = row
+        this.__edittingRow = row;
+        this.selectRowLevel = row.regionLevel;
       },
       onclose () {
         this.dialogVisible = false;
         this.__edittingRow = null
       },
-      onSelectLevel (level) {
-        this.selectRowLevel = level
+      onSelectLevel (btn) {
+        this.__selectBtn = btn;
+        this.selectRowLevel = btn.level
       },
       onDialogAction (aBtn) {
         const { code,id,pipeSegmentCode } = this.__edittingRow;
-        console.log('this.__edittingRow',this.__edittingRow)
         switch (aBtn.code) {
           case 'cancel': {
             this.dialogVisible = false;
@@ -272,11 +283,12 @@
             break;
           }
           case 'submit': {
+            const { label,level } = this.__selectBtn;
             Helper.pipeLevelMutation({
               code,
               id,
-              levelName: this.selectRowLevel.label,
-              levelNo: this.selectRowLevel.level,
+              levelName: label,
+              levelNo: level,
               node: CURRENT_NODE_STEP,
               pipeSegmentCode,
               taskId: this.taskId
@@ -299,12 +311,22 @@
           query: this.$route.query
         })
       },
-      handlePipeSelect (e) {
-        console.log('pipeSelect',e)
-        this.pipeCode = e.pipeSegmentCode;
-        this.$nextTick(() => {
-          this.$refs.table.$refs.table.refresh();
-        })
+      handlePipeSelect (pipe) {
+        const requestDom = require("@/utils/misc").requestDom;
+        this.pipeCode = pipe.pipeSegmentCode;
+        requestDom(() => this.$refs['table']?.$refs['table'])
+          .then((comp) => {
+            comp.refresh({ pipeCode: pipe.pipeSegmentCode })
+          })
+        const pipeAround = require('@/api/analyse').pipeAround;
+        pipeAround({ taskId: this.taskId,pipeCode: pipe.pipeSegmentCode })
+          .then((res) => {
+            this.pipeAroundTotal = {
+              people: res.populationWkt.length,
+              place: res.specificWkt.length
+            }
+          })
+        // this.onTableGetData([pipe])
       },
       onTableGetData (data) {
         this.mapRef.pipeRadiusRemove();
@@ -318,20 +340,29 @@
           //影响半径
           regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
           //人居
-          populationWkt.length && (this.__populationLayer = this.mapRef.renderMarkerByType(populationWkt,1));
+          populationWkt.length && (this.mapRef.renderMarkerByType(populationWkt,1)
+            .then(layer => {
+              this.__populationLayer = layer;
+            }));
           //特定场所
-          specificWkt.length && (this.__placeLayer = this.mapRef.renderMarkerByType(specificWkt,2));
+          specificWkt.length && (this.mapRef.renderMarkerByType(specificWkt,2)
+            .then(layer => {
+              this.__placeLayer = layer;
+            }));
           //易燃易爆场所
-          flammableWkt.length && (this.__boomLayer = this.mapRef.renderMarkerByType(flammableWkt,3));
+          flammableWkt.length && (this.mapRef.renderMarkerByType(flammableWkt,3)
+            .then(layer => {
+              this.__boomLayer = layer;
+            }));
 
         }
       },
       onPopulationChange (val) {
-        this.__populationLayer && this.__populationLayer(val)
+        this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
       onPlaceChange (val) {
-        this.__placeLayer && this.__placeLayer(val)
-      }
+        this.__placeLayer && this.__placeLayer.toggleVisibility(val)
+      },
     }
   }
 </script>

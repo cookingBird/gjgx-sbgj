@@ -66,7 +66,7 @@
 		color: #27a626;
 		font-weight: 900;
 		font-size: 30px;
-		max-width: 61px;
+		max-width: 95px;
 		text-overflow: ellipsis;
 	}
 

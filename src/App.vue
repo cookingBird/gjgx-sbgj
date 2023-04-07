@@ -26,6 +26,7 @@
           this.$store.dispatch("auth/getPermission");
         })
       }
+      // sessionStorage.setItem('token', "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpcCI6IjE5Mi4xNjguMS4yMzYiLCJleHAiOjE2ODA5Mzg0OTUsInVzZXJJZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.QeNwtz9w-gJr0jiJmpVNIPxzHxnemsirVKdvDRLDUq4")
     },
     methods: {
       makeUrl (path) {

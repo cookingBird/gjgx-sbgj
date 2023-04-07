@@ -1,11 +1,11 @@
-export function removeRepeat (array, keyFile = id) {
-  function validateFileds (source, target, fileds) {
+export function arrayDupRemove (array, ...keyFileds) {
+  function validateFileds (source, target, fileds = keyFileds) {
     return fileds.reduce((pre, curF) => {
       return pre && source[curF] === target[curF]
     }, true)
   }
   return array.reduce((pre, curr) => {
-    if (pre.findIndex(n => n[keyFile] === curr[keyFile]) > -1) {
+    if (pre.findIndex(n => validateFileds(n, curr, keyFileds)) > -1) {
       return pre
     } else {
       return pre.concat(curr)
@@ -19,13 +19,8 @@ export function requestDom (
   type = 'requestAnimationFrame'
 ) {
   function getDom (id, callback, type) {
-    if (document && window && window.requestAnimationFrame) {
-      const el =
-        typeof id === 'string'
-          ? document.getElementById(id)
-          : Object.prototype.toString.call(id) === '[object Function]'
-          ? id()
-          : id
+    if (document && window) {
+      const el = typeof id === 'string' ? document.getElementById(id) : id()
       if (!judgeCb(el)) {
         if (type === 'requestAnimationFrame') {
           requestAnimationFrame(() => {
@@ -45,17 +40,7 @@ export function requestDom (
     }
   }
 
-  let resolver
   return new Promise(resolve => {
-    resolver = resolve
-    getDom(
-      id,
-      el => {
-        setTimeout(() => {
-          resolver(el)
-        })
-      },
-      type
-    )
+    getDom(id, resolve, type)
   })
 }

@@ -1,148 +1,150 @@
 <template>
-	<main>
-		<div class="search-bar shadow-content">
-			<el-form
-				class="relative"
-				:model="searchForm"
-				:inline="true"
-			>
-				<el-form-item>
-					<el-input
-						v-model="searchForm.keyWords"
-						placeholder="请输入任务名称"
-						clearable
-					></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-select
-						v-model="searchForm.status"
-						placeholder="请选择识别状态"
-						clearable
+<main>
+	<div class="search-bar shadow-content">
+		<el-form
+			class="relative"
+			:model="searchForm"
+			:inline="true"
+		>
+			<el-form-item>
+				<el-input
+					v-model="searchForm.keyWords"
+					placeholder="请输入任务名称"
+					clearable
+				></el-input>
+			</el-form-item>
+			<el-form-item>
+				<el-select
+					v-model="searchForm.status"
+					placeholder="请选择识别状态"
+					clearable
+				>
+					<el-option
+						v-for="item in statusOptions"
+						:key="item.value"
+						:label="item.label"
+						:value="item.value"
 					>
-						<el-option
-							v-for="item in statusOptions"
-							:key="item.value"
-							:label="item.label"
-							:value="item.value"
-						>
-						</el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item>
-					<el-date-picker
-						v-model="searchForm.time"
-						type="daterange"
-						value-format="yyyy-MM-dd HH:mm:ss"
-						start-placeholder="开始日期"
-						end-placeholder="结束日期"
-						range-separator="至"
-					></el-date-picker>
-				</el-form-item>
-				<el-form-item>
-					<el-button
-						type="primary"
-						@click="$refs.table.refresh()"
-					>查询</el-button>
-					<el-button
-						type="primary"
-						@click="onRest"
-					>重置</el-button>
-				</el-form-item>
+					</el-option>
+				</el-select>
+			</el-form-item>
+			<el-form-item>
+				<el-date-picker
+					v-model="searchForm.time"
+					type="daterange"
+					format="yyyy-MM-dd"
+					value-format="yyyy-MM-dd"
+					start-placeholder="开始日期"
+					end-placeholder="结束日期"
+					range-separator="至"
+				></el-date-picker>
+			</el-form-item>
+			<el-form-item>
 				<el-button
 					type="primary"
-					class="absolute inline-block right-2"
-					@click="()=>{dialogType=1;dialogVisible=true;formData.id=void 0;}"
-				>新增</el-button>
-			</el-form>
-		</div>
-		<div class="page-content m-t-10">
-			<common-table
-				ref="table"
-				class="my-table-wrapper"
-				:tableColumns="tableColumns"
-				:url="appCtx.makeUrl('task/list')"
-				reqMethods="POST"
-				:config="tableConfig"
-				:query="querySearch"
-			>
-				<template #operate="{ row }">
-					<el-button
-						type="text"
-						v-show="taskIsFinish(row)"
-						@click="onEdit(row)"
-					>编辑</el-button>
-					<el-button
-						type="text"
-						v-show="taskIsFinish(row)"
-						@click="onSync(row)"
-					>数据同步</el-button>
-					<el-button
-						type="text"
-						v-show="!taskIsFinish(row)"
-						@click="onContinue(row)"
-					>继续识别</el-button>
-					<el-button
-						v-show="taskIsFinish(row)"
-						type="text"
-						@click="onPreview(row)"
-					>查看报告</el-button>
-					<el-button
-						type="text"
-						@click="onDelete(row)"
-					>删除</el-button>
-				</template>
-			</common-table>
-		</div>
-		<el-dialog
-			v-if="dialogVisible"
-			:title="dialogTitle"
-			:visible.sync="dialogVisible"
-			width="30%"
+					@click="$refs.table.refresh()"
+				>查询</el-button>
+				<el-button
+					type="primary"
+					@click="onRest"
+				>重置</el-button>
+			</el-form-item>
+			<el-button
+				type="primary"
+				class="absolute inline-block right-2"
+				@click="formData={}"
+			>新增</el-button>
+		</el-form>
+	</div>
+	<div class="page-content m-t-10">
+		<common-table
+			ref="table"
+			class="my-table-wrapper"
+			:tableColumns="tableColumns"
+			:url="appCtx.makeUrl('task/list')"
+			reqMethods="POST"
+			:config="tableConfig"
+			:query="querySearch"
 		>
-			<el-form
-				:model="formData"
-				ref="addForm"
-				label-width="110px"
-				:rules="rules"
-			>
-				<el-form-item
-					label="任务名称："
-					prop="taskName"
-				>
-					<el-input
-						placeholder="请输入"
-						v-model="formData.taskName"
-					></el-input>
-				</el-form-item>
-				<el-form-item
-					label="任务描述："
-					prop="taskDescription"
-				>
-					<el-input
-						type="textarea"
-						autosize
-						placeholder="请输入"
-						v-model="formData.taskDescription"
-					></el-input>
-				</el-form-item>
-				<div class="flex justify-center">
-					<el-button
-						type="primary"
-						@click="onSubmit"
-					>确定</el-button>
-					<el-button @click="dialogVisible = false">取消</el-button>
-				</div>
-			</el-form>
-		</el-dialog>
-		<el-dialog
-			title="标准预览"
-			v-if="previewDialogVisible"
-			:visible.sync="previewDialogVisible"
-			class="dialog-preview"
+			<template v-slot:report="{row}">
+				<el-button
+					type="text"
+					@click="onPreview(row)"
+				> {{ taskIsFinish(row) ? '预览' : '-'}}</el-button>
+			</template>
+			<template #operate="{ row }">
+				<el-button
+					type="text"
+					@click="onEdit(row)"
+				>编辑任务</el-button>
+				<el-button
+					type="text"
+					v-show="taskIsFinish(row)"
+					@click="onSync(row)"
+				>数据同步</el-button>
+				<el-button
+					type="text"
+					@click="onContinue(row)"
+				>{{taskIsFinish(row) ? '编辑识别' : '继续识别'}}</el-button>
+
+				<el-button
+					type="text"
+					@click="onDelete(row)"
+				>删除</el-button>
+			</template>
+		</common-table>
+	</div>
+	<el-dialog
+		v-if="formData"
+		:title="dialogTitle"
+		@close="formData=null"
+		:visible="true"
+		width="30%"
+	>
+		<el-form
+			:model="formData"
+			ref="addForm"
+			label-width="110px"
+			:rules="rules"
 		>
-			<pdf :src="pdfPath"></pdf>
-		</el-dialog>
-	</main>
+			<el-form-item
+				label="任务名称："
+				prop="taskName"
+			>
+				<el-input
+					placeholder="请输入"
+					v-model="formData.taskName"
+				></el-input>
+			</el-form-item>
+			<el-form-item
+				label="任务描述："
+				prop="taskDescription"
+			>
+				<el-input
+					type="textarea"
+					autosize
+					placeholder="请输入"
+					v-model="formData.taskDescription"
+				></el-input>
+			</el-form-item>
+			<div class="flex justify-center">
+				<el-button
+					type="primary"
+					@click="onSubmit"
+				>确定</el-button>
+				<el-button @click="formData = null">取消</el-button>
+			</div>
+		</el-form>
+	</el-dialog>
+	<el-dialog
+		title="标准预览"
+		v-if="previewDialogVisible"
+		:visible.sync="previewDialogVisible"
+		class="dialog-preview"
+	>
+		<pdf :src="pdfPath"></pdf>
+	</el-dialog>
+</main>
 </template>
 
 <script>
@@ -169,43 +171,46 @@
 					},
 					{
 						label: '识别状态',
-						prop: 'nodeName'
+						prop: 'nodeName',
+						width: 90
 					},
 					{
 						label: '管线数量',
-						prop: 'pipeLineTotal'
+						prop: 'pipeLineTotal',
+						width: 80
 					},
 					{
 						label: '包含管道',
 						prop: 'includePipeLine'
 					},
 					{
-						label: '任务描述',
-						prop: 'taskDescription'
-					},
-					{
 						label: '识别成果',
 						prop: 'recognitionResults'
 					},
 					{
+						label: '报告',
+						prop: 'report',
+						width: 70
+					},
+					{
+						label: '任务描述',
+						prop: 'taskDescription'
+					},
+					{
 						label: '操作',
-						prop: 'operate'
+						prop: 'operate',
+						width: 270
 					}
 				],
 				tableConfig: {
 					border: true
 				},
-				dialogVisible: false,
 				dialogType: 1,
 				rules: {
 					taskName: [{ required: true,message: '请输入' }],
 					taskDescription: [{ required: true,message: '请输入' }],
 				},
-				formData: {
-					"status": 0,
-					"keyWords": "",
-					time: ''
-				},
+				formData: null,
 				previewDialogVisible: false,
 				pdfPath: '',
 				statusOptions: [
@@ -256,14 +261,6 @@
 			taskIsFinish () {
 				return (task) => task.status === 1
 			}
-		},
-		watch: {
-			querySearch (val) {
-				console.log('watch querySearch',val)
-			}
-		},
-		mounted () {
-			console.log('boolean',Boolean(''))
 		},
 
 		methods: {
@@ -334,8 +331,11 @@
 						path = '/DiscernSteps/discern'
 						break;
 					}
+					case 4: {
+						path = '/DiscernSteps/discern'
+						break;
+					}
 				}
-				console.log('onContinue------------',row)
 				this.$router.push({
 					path: path,
 					query: {
@@ -348,12 +348,14 @@
 			 * @description 编辑已识别完成的任务，跳转到选择管线页面
 			 */
 			onEdit (row) {
-				this.$router.push({
-					path: '/DiscernSteps/choose',
-					query: {
-						...row
-					}
-				})
+				this.formData = row
+				console.log('onEdit',row)
+				// this.$router.push({
+				// 	path: '/DiscernSteps/choose',
+				// 	query: {
+				// 		...row
+				// 	}
+				// })
 			},
 			onRest () {
 				this.searchForm = {

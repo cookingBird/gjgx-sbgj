@@ -1,86 +1,87 @@
 <template>
-  <div class="tree-module">
-    <ul>
-      <li
-        v-for="(item, ind) in datalist"
-        :key="ind"
-        :class="mathClass(item)"
+<div class="tree-module">
+  <ul>
+    <li
+      v-for="(item, ind) in datalist"
+      :key="ind"
+      :class="mathClass(item)"
+    >
+      <div
+        class="tree-title tree-title-ell tree-title-open"
+        :class="{ 'tree-title-bg': item[optionsKey.key] === selectKey }"
+        :style="'padding-left: ' + (level * 30 + 10) + 'px'"
+        @click="selectHandle(item)"
       >
-        <div
-          class="tree-title tree-title-ell tree-title-open"
-          :class="{ 'tree-title-bg': item[optionsKey.key] === selectKey }"
-          :style="'padding-left: ' + (level * 30 + 10) + 'px'"
-          @click="selectHandle(item)"
-        >
-          <!-- 左侧图标 -->
-          <span class="tree-title-icon">
-            <img
-              v-if="level === 0"
-              :src="require('@/assets/images/home.svg')"
-              alt=""
-            />
-            <img
-              v-else-if="
+        <!-- 左侧图标 -->
+        <span class="tree-title-icon">
+          <img
+            v-if="level === 0"
+            :src="require('@/assets/images/home.svg')"
+            alt=""
+          />
+          <img
+            v-else-if="
+                  (showLevel === 0 || level < showLevel - 1) &&
+                  item[optionsKey.children] &&
+                  item[optionsKey.children].length
+                "
+            :src="require('@/assets/images/branch.svg')"
+            alt=""
+            srcset=""
+          />
+          <img
+            v-else
+            :src="require('@/assets/images/subNode.svg')"
+            alt=""
+          />
+        </span>
+        <span :title="
+              item[optionsKey.count] || item[optionsKey.count] === 0
+                ? item[optionsKey.title] + '(' + item[optionsKey.count] + ')'
+                : item[optionsKey.title]
+            ">
+          {{ item[optionsKey.title] }}
+        </span>
+        <!-- 数量 -->
+        <span v-if="item[optionsKey.count] || item[optionsKey.count] === 0"> ({{ item[optionsKey.count] }})</span>
+        <!-- 收拢图标 -->
+        <span
+          class="tree-title-icon-open"
+          v-if="
                 (showLevel === 0 || level < showLevel - 1) &&
+                level < 4 &&
                 item[optionsKey.children] &&
                 item[optionsKey.children].length
               "
-              :src="require('@/assets/images/branch.svg')"
-              alt=""
-              srcset=""
-            />
-            <img
-              v-else
-              :src="require('@/assets/images/subNode.svg')"
-              alt=""
-            />
-          </span>
-          <span :title="
-            item[optionsKey.count] || item[optionsKey.count] === 0
-              ? item[optionsKey.title] + '(' + item[optionsKey.count] + ')'
-              : item[optionsKey.title]
-          ">
-            {{ item[optionsKey.title] }}
-          </span>
-          <!-- 数量 -->
-          <span v-if="item[optionsKey.count] || item[optionsKey.count] === 0"> ({{ item[optionsKey.count] }})</span>
-          <!-- 收拢图标 -->
-          <span
-            class="tree-title-icon-open"
-            v-if="
+        >
+          <em
+            :class="[hiddenChild.indexOf(item[optionsKey.key]) >= 0 ? 'above' : 'reverse', 'arrow']"
+            @click.stop="hiddenChildHandle(item)"
+          ></em>
+        </span>
+      </div>
+      <!-- 加载子级节点 -->
+      <mymodule
+        v-if="
               (showLevel === 0 || level < showLevel - 1) &&
+              hiddenChild.indexOf(item[optionsKey.key]) >= 0 &&
               level < 4 &&
               item[optionsKey.children] &&
               item[optionsKey.children].length
             "
-          >
-            <em
-              :class="[hiddenChild.indexOf(item[optionsKey.key]) >= 0 ? 'above' : 'reverse', 'arrow']"
-              @click.stop="hiddenChildHandle(item)"
-            ></em>
-          </span>
-        </div>
-        <!-- 加载子级节点 -->
-        <mymodule
-          v-if="
-            (showLevel === 0 || level < showLevel - 1) &&
-            hiddenChild.indexOf(item[optionsKey.key]) >= 0 &&
-            level < 4 &&
-            item[optionsKey.children] &&
-            item[optionsKey.children].length
-          "
-          :datalist="item[optionsKey.children]"
-          :optionsKey="optionsKey"
-          :defaultSelect="selectKey"
-          :showLevel="showLevel"
-          :level="level + 1"
-          :defaultOpen="defaultOpen"
-          @select="selectHandle"
-        >
-        </mymodule>
-      </li>
-    </ul>
-  </div>
+        :datalist="item[optionsKey.children]"
+        :optionsKey="optionsKey"
+        :defaultSelect="selectKey"
+        :showLevel="showLevel"
+        :level="level + 1"
+        :isRoot="false"
+        :defaultOpen="defaultOpen"
+        @select="selectHandle"
+      >
+      </mymodule>
+    </li>
+  </ul>
+</div>
 </template>
 
 <script>
@@ -118,6 +119,10 @@
       showLevel: {
         default: 0,
       },
+      isRoot: {
+        type: Boolean,
+        default: true
+      }
     },
     components: {
       mymodule,
@@ -128,39 +133,57 @@
         selectKey: '',
         // 展开子级
         hiddenChild: [],
+        flattenArray: []
       };
+    },
+    computed: {
+      treeIds () {
+        return (this.isRoot ? (this.flattenArray
+          .find(n => n.treeIds.endsWith(this.defaultSelect))?.treeIds)
+          : this.$parent.treeIds)
+      }
     },
     watch: {
       defaultSelect (e) {
         this.selectKey = e;
       },
-      datalist () {
-        if (this.defaultOpen) {
-          for (var ind in this.datalist) {
-            if (this.datalist[ind][this.optionsKey.children] && this.datalist[ind][this.optionsKey.children].length) {
-              this.hiddenChild.push(this.datalist[ind][this.optionsKey.key]);
-            }
+      datalist: {
+        immediate: true,
+        handler (val) {
+          if (Array.isArray(val) && val.length && this.isRoot) {
+            this.flattenArray = val.map(node => this.flattenTree(node)).flat()
+              .map(node => ({
+                ...node,
+                treeIds: node.parents.concat(node.data)
+                  .map(n => n.id).join(',')
+              }))
           }
-        }
-      },
+          setTimeout(() => {
+            if (this.defaultOpen) {
+              for (const node of val) {
+                if (this.treeIds && this.treeIds.includes(node.id)) {
+                  this.hiddenChild.push(node.id)
+                }
+              }
+            }
+          })
+        },
+      }
     },
     mounted () {
       if (this.defaultSelect) {
         this.selectKey = this.defaultSelect;
       }
-      if (this.defaultOpen) {
-        for (var ind in this.datalist) {
-          if (this.datalist[ind][this.optionsKey.children] && this.datalist[ind][this.optionsKey.children].length) {
-            this.hiddenChild.push(this.datalist[ind][this.optionsKey.key]);
-          }
-        }
-      }
     },
     methods: {
       // 收拢子级
       hiddenChildHandle (item) {
-        if (this.hiddenChild.filter(i => i === item[this.optionsKey.key]).length) {
-          this.hiddenChild = this.hiddenChild.filter(i => i !== item[this.optionsKey.key]);
+        if (this.hiddenChild
+          .filter(i => i === item[this.optionsKey.key])
+          .length
+        ) {
+          this.hiddenChild = this.hiddenChild
+            .filter(i => i !== item[this.optionsKey.key]);
         } else {
           this.hiddenChild.push(item[this.optionsKey.key]);
         }
@@ -183,9 +206,69 @@
         this.selectKey = e[this.optionsKey.key];
         this.$emit('select',e);
       },
+      //
+      flattenTree (target,options = {}) {
+        const isFunction = (tar) => (Object.prototype.toString.call(tar) === '[object Function]');
+        const getRankIndex = (rank,rankIndex = {}) => {
+          if (rankIndex[rank]) {
+            rankIndex[rank].push(1);
+            return rankIndex[rank].length - 1;
+          } else {
+            rankIndex[rank] = [];
+            rankIndex[rank].push(1);
+            return 0;
+          }
+        }
+        /**
+         * @param {rootNode} target
+         * @param {object} options
+         * @param {function|string} options.children
+         * @param {Function} options.filter
+         * @returns {Array}
+         */
+        function _flattenTree (
+          target,
+          options = {},
+          rank = 0,
+          parents = [],
+          result = [],
+          rankIndex = {},
+        ) {
+          const { children = 'children',filter } = options;
+          if (filter && filter(target)) {
+            result.push({
+              data: target,
+              parents,
+              rank,
+              rankIndex: getRankIndex(rank,rankIndex),
+            })
+          } else if (!filter) {
+            result.push({
+              data: target,
+              rank,
+              parents,
+              rankIndex: getRankIndex(rank,rankIndex)
+            })
+          }
+
+          const childrenMaps = isFunction(children)
+            ? children(target)
+            : target[children];
+          if (Array.isArray(childrenMaps) && children.length > 0) {
+            childrenMaps.forEach(child => {
+              _flattenTree(child,options,rank + 1,[...parents,target],result,rankIndex)
+            })
+          } else {
+            result[result.length - 1].lastRank = true;
+          }
+          return result;
+        }
+
+        return _flattenTree(target,options)
+      },
     },
   };
-</script>
+</script> 
 
 <style lang="scss" scoped>
 .tree-module {
