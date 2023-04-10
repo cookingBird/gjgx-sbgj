@@ -11355,6 +11355,11 @@ vue-pdf@^4.3.0:
     vue-resize-sensor "^2.0.0"
     worker-loader "^2.0.0"
 
+vue-ref@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmmirror.com/vue-ref/-/vue-ref-2.0.0.tgz#483084d732abed11da796778a8266a3af0ea1a9c"
+  integrity sha512-uKNKpFOVeWNqS2mrBZqnpLyXJo5Q+vnkex6JvpENvhXHFNBW/SJTP8vJywLuVT3DpxwXcF9N0dyIiZ4/NpTexQ==
+
 vue-resize-sensor@^2.0.0:
   version "2.0.0"
   resolved "http://94.191.8.73:7015/repository/npm-group/vue-resize-sensor/-/vue-resize-sensor-2.0.0.tgz#3a587fd6802e1688709cf2c5aadae7a0075952bf"

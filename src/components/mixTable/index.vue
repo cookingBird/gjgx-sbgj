@@ -20,6 +20,7 @@
     class="shadow-content mix-table__map"
   >
     <base-map
+      v-ref="(c)=>setRef('mixMap',c)"
       ref="basemap"
       @onLoad="mapload = true"
     ></base-map>
@@ -28,13 +29,14 @@
   <div
     v-if="mapload && configs.table"
     v-show="type !== '地图'"
-    class="mix-table__table shadow-content"
+    class="shadow-content mix-table__table"
   >
     <common-table
       ref="table"
+      v-ref="(c)=>setRef('mixTable',c)"
       @handleCommand="(key, row) => $emit('handleCommand', key, row)"
       @row-click="handleRowClick"
-      @onData="(data) => $emit('onData',data)"
+      @onData="(data) => $emit('onData', data)"
       v-bind="$attrs"
     >
     </common-table>
@@ -45,53 +47,54 @@
 
 <script>
   import Map from '@/components/Map';
-  import { requestDom } from "@/utils/misc"
+  import { requestDom } from '@/utils/misc';
 
   export default {
     components: {
-      BaseMap: Map
+      BaseMap: Map,
     },
+    inject: ['setRef'],
     watch: {
       type (val) {
         this.$nextTick(() => {
           this.$refs['basemap'].resize();
-          this.$refs.table.$refs.table.doLayout()
-        })
+          this.$refs.table.$refs.table.doLayout();
+        });
       },
       mapload (val) {
         if (val) {
           this.$nextTick(() => {
             this.$refs['basemap'].resize();
-          })
+          });
         }
       },
     },
     data () {
       return {
         mapload: false,
-        type: "混合",
+        type: '混合',
         defaultConfig: {
           switcher: true,
           map: true,
-          table: true
-        }
-      }
+          table: true,
+        },
+      };
     },
     computed: {
       configs () {
-        return { ...this.defaultConfig,...this.config }
-      }
+        return { ...this.defaultConfig,...this.config };
+      },
     },
     mounted () {
       requestDom(() => this.$refs.table).then((el) => {
         // el.$slots = this.$slots
-        el.$scopedSlots = this.$scopedSlots
+        el.$scopedSlots = this.$scopedSlots;
         el.$nextTick(() => {
-          el.$forceUpdate()
+          el.$forceUpdate();
           // console.log('this',this)
           // console.log('$refs.table',el)
         });
-      })
+      });
     },
     methods: {
       handleRowClick (row) {
@@ -99,18 +102,19 @@
         row.wkt && this.$refs['basemap'].locationByLineString(row.wkt);
       },
       switchView (to) {
-        this.type = to
-      }
-    }
-  }
+        this.type = to;
+      },
+    },
+  };
 </script>
 
 <style lang="css">
   .mix-table-wrapper {
-    --el-y-gutter: 6;
+    --el-spacing-y: 7px;
     --el-p: 4;
     --action-btn-top: -55;
     --action-btn-right: 4;
+    --border-radius: 5px;
     width: 100%;
     height: 100%;
     display: flex;
@@ -118,25 +122,29 @@
     position: relative;
   }
 
+  .mix-table-wrapper>.mix-table__map {
+    border-radius: var(--border-radius, 4px);
+  }
+
   .mix-table-wrapper> :not(.absolute) {
     flex-grow: 1;
     flex-basis: 0;
-    padding: calc(var(--el-p) *1px) calc(var(--el-p) *1px);
+    padding: calc(var(--el-p) * 1px) calc(var(--el-p) * 1px);
   }
 
-  .mix-table-wrapper> :not(.absolute):not([hidden])~ :not(.absolute):not([hidden]) {
-    margin-top: calc(var(--el-y-gutter) *1px);
+  .mix-table-wrapper> :not(.absolute):not([style*="display: none"])~ :not(.absolute) {
+    margin-top: var(--el-spacing-y, var(--margin-top));
   }
 
   .mix-table__action-btn {
     --bgc: #306fcf;
     --f: #ffffff;
     position: absolute;
-    top: calc(var(--action-btn-top)*1px);
-    right: calc(var(--action-btn-right)*1px);
+    top: calc(var(--action-btn-top) * 1px);
+    right: calc(var(--action-btn-right) * 1px);
   }
 
-  .mix-table__action-btn> :not([hidden])+:not([hidden]) {
+  .mix-table__action-btn> :not([hidden])+ :not([hidden]) {
     margin-left: 0;
     border-left: none;
     border-top-left-radius: 0;
@@ -162,5 +170,10 @@
   .mix-table__action-btn>.mix-table__action-btn-item.selected {
     background-color: var(--bgc);
     color: var(--f);
+  }
+
+  .mix-table__table.shadow-content {
+    background-color: transparent;
+    padding: 0 0;
   }
 </style>

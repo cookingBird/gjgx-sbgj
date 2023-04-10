@@ -1,6 +1,6 @@
 <template>
-<main>
-  <div class="step-wrapper shadow-content">
+<main class="flex flex-col">
+  <div class="flex-grow-0 flex-shrink-0 rounded step-wrapper shadow-content">
     <el-steps
       :active="stepActive"
       align-center
@@ -23,7 +23,7 @@
       ></el-step>
     </el-steps>
   </div>
-  <div class="page-content m-t-10">
+  <div class="flex-grow overflow-hidden rounded page-content">
     <router-view></router-view>
   </div>
 </main>
@@ -57,7 +57,6 @@ main {
   height: 100%;
 
   .page-content {
-    height: calc(100% - 90px);
     width: 100%;
   }
 }
@@ -84,6 +83,9 @@ main {
   }
 
   .is-process {
+    color: #063770;
+    border-color: #063770;
+
     .el-step__icon {
       border-color: #3B9CF6;
       background-color: #3B9CF6;

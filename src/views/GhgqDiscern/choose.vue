@@ -1,147 +1,166 @@
 <template>
-  <div class="choose-wrapper">
-    <div class="choose-content">
-      <div>
-        <div class="choose-title">作业区所有管线列表</div>
-        <div class="choose-search m-t-10 m-b-10 ">
-          <el-form
-            :inline="true"
-            label-width="100px"
+<div class="choose-wrapper">
+  <div class="choose-content">
+    <div class="rounded">
+      <div class="choose-title">作业区所有管线列表</div>
+      <div class="choose-search m-t-10 m-b-10">
+        <el-form
+          :inline="true"
+          label-width="100px"
+        >
+          <el-form-item label="管线名称：">
+            <el-input
+              v-model="leftKeyword"
+              placeholder="请输入管线名称"
+              @clear="queryPipeList"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-button
+            class="inline-block ml-1"
+            type="primary"
+            @click="queryPipeList"
           >
-            <el-form-item label="管线名称：">
-              <el-input
-                v-model="leftKeyword"
-                placeholder="请输入管线名称"
-                @clear="getAllPipeList()"
-                clearable
-              ></el-input>
-            </el-form-item>
-            <el-button
-              class="inline-block ml-1"
-              type="primary"
-              @click="getAllPipeList()"
-            > 查询</el-button>
-            <el-button
-              class="f-r m-r-10"
-              type="success"
-              @click="handleSelectAll"
-            >全选</el-button>
-          </el-form>
-        </div>
-        <div class="choose-table">
-          <div class="choose-table-wrapper">
-            <el-table
-              height="100%"
-              ref="leftTableRef"
-              :data="pipeList"
-              @selection-change="handleSelectionChange"
-            >
-              <el-table-column
-                type="selection"
-                width="55"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                type="index"
-                width="55"
-                label="序号"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                label="管线"
-                prop="pipeName"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                label="类型"
-                prop="pipeType"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                label="规格"
-                prop="specification"
-                align="center"
-              ></el-table-column>
-            </el-table>
-          </div>
-        </div>
+            查询</el-button>
+          <el-button
+            class="f-r m-r-10"
+            type="success"
+            @click="handleSelectAll"
+          >全选</el-button>
+        </el-form>
       </div>
-      <div>
-        <div class="choose-title">已选择管线列表</div>
-        <div class="choose-search m-t-10 m-b-10 ">
-          <el-form
-            :inline="true"
-            label-width="100px"
+      <div class="flex flex-col flex-grow choose-table">
+        <div
+          class="relative flex-grow overflow-hidden choose-table-wrapper"
+          v-observe:tableMaxHeight="onTableMaxHeight"
+        >
+          <el-table
+            ref="leftTableRef"
+            height="100%"
+            :data="pipeList"
+            :max-height="leftMaxHeight"
+            @selection-change="handleSelectionChange"
           >
-            <el-form-item label="管线名称：">
-              <el-input
-                v-model="rightKeyword"
-                placeholder="请输入管线名称"
-                @clear="getSelectedPipeList()"
-                clearable
-              ></el-input>
-            </el-form-item>
-            <el-button
-              class="inline-block ml-1"
-              type="primary"
-              @click="getSelectedPipeList()"
-            > 查询</el-button>
-            <el-button
-              class="f-r m-r-10"
-              type="primary"
-              @click="handleSelectClear"
-            >清空</el-button>
-          </el-form>
+            <el-table-column
+              type="selection"
+              width="55"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              type="index"
+              width="55"
+              label="序号"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              label="管线"
+              prop="pipeName"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              label="类型"
+              prop="pipeType"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              label="规格"
+              prop="specification"
+              align="center"
+            ></el-table-column>
+          </el-table>
         </div>
-        <div class="choose-table">
-          <div class="choose-table-wrapper">
-            <el-table
-              height="100%"
-              ref="rightTableRef"
-              :data="selectedPipeList"
-            >
-              <el-table-column
-                type="index"
-                width="55"
-                label="序号"
-              ></el-table-column>
-              <el-table-column
-                label="管线"
-                prop="pipeName"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                label="类型"
-                prop="pipeType"
-                align="center"
-              ></el-table-column>
-              <el-table-column
-                label="规格"
-                prop="specification"
-                align="center"
-              ></el-table-column>
-            </el-table>
-          </div>
+        <div class="flex justify-center flex-grow-0 flex-shrink-0 p-3">
+          <el-pagination
+            layout="total,sizes, prev, pager, next, jumper"
+            :total="leftPageCfg.total"
+            :current-page.sync="leftPageCfg.currentPage"
+            :page-size.sync="leftPageCfg.pageSize"
+            @size-change="queryPipeList"
+            @current-change="queryPipeList"
+            @prev-click="queryPipeList"
+            @next-click="queryPipeList"
+            background
+          ></el-pagination>
         </div>
       </div>
     </div>
-    <div class="choose-footer m-t-10 shadow-content">
-      <div>
-        <el-button
-          type="primary"
-          @click="handleBack"
-        >退出</el-button>
-        <el-button
-          type="primary"
-          @click="handleDiscern"
-        >一键识别</el-button>
-        <el-button
-          type="primary"
-          @click="handleNext"
-        >下一步</el-button>
+    <div class="rounded">
+      <div class="choose-title">已选择管线列表</div>
+      <div class="choose-search m-t-10 m-b-10">
+        <el-form
+          :inline="true"
+          label-width="100px"
+        >
+          <el-form-item label="管线名称：">
+            <el-input
+              v-model="rightKeyword"
+              placeholder="请输入管线名称"
+              @clear="getSelectedPipeList()"
+              clearable
+            ></el-input>
+          </el-form-item>
+          <el-button
+            class="inline-block ml-1"
+            type="primary"
+            @click="getSelectedPipeList()"
+          >
+            查询</el-button>
+          <el-button
+            class="f-r m-r-10"
+            type="primary"
+            @click="handleSelectClear"
+          >清空</el-button>
+        </el-form>
+      </div>
+      <div class="choose-table">
+        <div class="choose-table-wrapper">
+          <el-table
+            height="100%"
+            ref="rightTableRef"
+            :data="selectedListFiltered"
+          >
+            <el-table-column
+              type="index"
+              width="55"
+              label="序号"
+            ></el-table-column>
+            <el-table-column
+              label="管线"
+              prop="pipeName"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              label="类型"
+              prop="pipeType"
+              align="center"
+            ></el-table-column>
+            <el-table-column
+              label="规格"
+              prop="specification"
+              align="center"
+            ></el-table-column>
+          </el-table>
+        </div>
       </div>
     </div>
   </div>
+  <div class="flex justify-center rounded m-t-10 choose-footer shadow-content">
+    <div class="p-2">
+      <el-button
+        type="primary"
+        @click="handleBack"
+      >退出</el-button>
+      <el-button
+        type="primary"
+        @click="handleDiscern"
+      >一键识别</el-button>
+      <el-button
+        type="primary"
+        @click="handleNext"
+      >下一步</el-button>
+    </div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -154,32 +173,48 @@
         pipeList: [],
         selectedPipeList: [],
         leftKeyword: '',
-        rightKeyword: ''
-      }
+        rightKeyword: '',
+        leftMaxHeight: 300,
+        leftPageCfg: {
+          total: 0,
+          currentPage: 1,
+          pageSize: 10,
+        },
+      };
     },
     computed: {
       taskId () {
-        return this.$route.query.id
+        return this.$route.query.id;
       },
       taskName () {
-        return this.$route.query.taskName
-      }
+        return this.$route.query.taskName;
+      },
+      selectedListFiltered () {
+        return this.selectedPipeList
+          .filter((node) => node.pipeName.includes(this.rightKeyword));
+      },
     },
     mounted () {
       this.bootstrap();
     },
     methods: {
-      getAllPipeList () {
+      queryPipeList () {
+        const { currentPage,pageSize } = this.leftPageCfg;
         return Helper.queryAll({
           keyWords: this.leftKeyword,
-          pageNo: 1,
-          pageSize: -1,
+          pageNo: currentPage,
+          pageSize: pageSize,
           startTime: '',
           endTime: '',
-          status: ''
+          status: '',
         }).then((data) => {
+          this.leftPageCfg = {
+            ...this.leftPageCfg,
+            total: data.totalCount,
+          };
           this.pipeList = data.data;
-        })
+          this.syncItemStatus();
+        });
       },
       getSelectedPipeList () {
         return Helper.queryAllSelected({
@@ -189,41 +224,42 @@
           startTime: '',
           endTime: '',
           status: 0,
-          taskId: this.taskId
+          taskId: this.taskId,
         }).then((data) => {
           this.selectedPipeList = data.data;
-        })
+        });
       },
       syncItemStatus (uniqueKey = 'pipeSegmentCode') {
         this.$nextTick(() => {
-          const findKey = uniqueKey
-          this.selectedPipeList.forEach(pipe => {
-            const findPipe = this.pipeList
-              .find(p => p[findKey] == pipe[findKey]);
-            this.$refs['leftTableRef'].toggleRowSelection(findPipe,true)
-          })
-        })
+          const findKey = uniqueKey;
+          this.selectedPipeList.forEach((pipe) => {
+            const findPipe = this.pipeList.find((p) => p[findKey] == pipe[findKey]);
+            this.$refs['leftTableRef'].toggleRowSelection(findPipe,true);
+          });
+          // sync pipeList中最新的匹配数据
+          this.selectedPipeList = this.selectedPipeList
+            .map(pipe => this.pipeList.find(p => p[uniqueKey] === pipe[uniqueKey]))
+        });
       },
       async bootstrap () {
         await this.getSelectedPipeList();
-        await this.getAllPipeList();
-        this.syncItemStatus();
+        await this.queryPipeList();
       },
       handleSelectAll () {
-        this.pipeList.forEach(pipe => {
-          this.$refs['leftTableRef'].toggleRowSelection(pipe,true)
-        })
+        this.pipeList.forEach((pipe) => {
+          this.$refs['leftTableRef'].toggleRowSelection(pipe,true);
+        });
       },
       handleSelectClear () {
-        const findKey = 'pipeSegmentCode'
-        this.selectedPipeList.forEach(pipe => {
-          const findPipe = this.pipeList.find(p => p[findKey] === pipe[findKey]);
-          this.$refs['leftTableRef'].toggleRowSelection(findPipe,false)
-        })
+        const findKey = 'pipeSegmentCode';
+        this.selectedPipeList.forEach((pipe) => {
+          const findPipe = this.pipeList.find((p) => p[findKey] === pipe[findKey]);
+          this.$refs['leftTableRef'].toggleRowSelection(findPipe,false);
+        });
         this.selectedPipeList = [];
       },
       handleSelectionChange (rows) {
-        this.selectedPipeList = rows
+        this.selectedPipeList = rows;
       },
       handleBack () {
         this.$router.push('/GhgqDiscern');
@@ -233,46 +269,53 @@
         Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
-          taskName: this.taskName
-        }).then(() => {
-          return Helper.nextStepOpr({
-            taskId: this.taskId,
-            nodeId: CURRENT_NODE_STEP,
-            flag: 'next'
-          })
-        }).then(() => {
-          this.$router.push({
-            path: '/DiscernSteps/section',
-            query: {
-              id: this.taskId,
-              taskName: this.taskName
-            }
-          })
+          taskName: this.taskName,
         })
+          .then(() => {
+            return Helper.nextStepOpr({
+              taskId: this.taskId,
+              nodeId: CURRENT_NODE_STEP,
+              flag: 'next',
+            });
+          })
+          .then(() => {
+            this.$router.push({
+              path: '/DiscernSteps/section',
+              query: {
+                id: this.taskId,
+                taskName: this.taskName,
+              },
+            });
+          });
       },
       /**@description 一键识别 */
       handleDiscern () {
         Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
-          taskName: this.taskName
-        }).then(() => {
-          return Helper.discernOneStep({
-            taskId: this.taskId,
-            nodeId: CURRENT_NODE_STEP,
-          })
-        }).then(() => {
-          this.$router.push({
-            path: '/DiscernSteps/discern',
-            query: {
-              id: this.taskId,
-              taskName: this.taskName
-            }
-          })
+          taskName: this.taskName,
         })
+          .then(() => {
+            return Helper.discernOneStep({
+              taskId: this.taskId,
+              nodeId: CURRENT_NODE_STEP,
+            });
+          })
+          .then(() => {
+            this.$router.push({
+              path: '/DiscernSteps/discern',
+              query: {
+                id: this.taskId,
+                taskName: this.taskName,
+              },
+            });
+          });
+      },
+      onTableMaxHeight (value,tar = 'left') {
+        this.leftMaxHeight = value;
       },
     },
-  }
+  };
 </script>
 
 <style lang="scss" scoped>
@@ -322,7 +365,7 @@
   }
 
   .choose-footer {
-    height: 70px;
+    // height: 70px;
     background-color: #fff;
     text-align: center;
     display: flex;

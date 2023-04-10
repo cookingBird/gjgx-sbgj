@@ -1,19 +1,19 @@
 <template>
 <div class="level-wrapper">
-  <div class="level-top shadow-content bg-fff"></div>
+  <div class="bg-white rounded level-top shadow-content"></div>
   <div class="level-content">
-    <div class="level-content-left shadow-content bg-fff">
+    <div class="flex-grow-0 flex-shrink-0 bg-white rounded level-content-left shadow-content">
       <el-scrollbar>
         <pipe-selector
           :data="pipeList"
           :defaultOpen="true"
-          :defaultSelect="pipeList[0].children[0]?.id"
+          :defaultSelect="selectedPipe?.id || pipeList[0].children[0]?.id"
           :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
           @select="handlePipeSelect"
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="level-content-right">
+    <div class="flex-grow overflow-hidden level-content-right">
       <div class="right-content">
         <mix-table
           ref="table"
@@ -43,7 +43,7 @@
           </div>
         </mix-table>
       </div>
-      <div class="mt-2 right-footer shadow-content">
+      <div class="mt-2 rounded right-footer shadow-content">
         <el-button
           type="primary"
           @click="onPrev"
@@ -96,8 +96,9 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper'
-  import LayerSwitcher from '@/components/LayerSwitcher.vue'
-  import { lineAround,pipeAround } from '@/api/analyse';
+  import LayerSwitcher from '@/components/LayerSwitcher.vue';
+  import * as Misc from '@/utils/misc';
+  import { lineAround } from '@/api/analyse';
   const CURRENT_NODE_STEP = 3;
 
   export default {
@@ -111,6 +112,7 @@
         pipeList: [{
           pipeName: '全部管道',
           id: 1,
+          pipeCode: 1,
           children: []
         }],
         tableConfig: {
@@ -210,25 +212,47 @@
       },
       mapRef () {
         return this.$refs['table'].$refs['basemap'];
+      },
+      selectedPipe () {
+        this.choosePipe = this.$route.query.choosePipe;
+        return this.$route.query.choosePipe
       }
     },
-    created () {
-      this.getSelectedPipeList()
+    async created () {
+      await this.$nextTick();
+      this.getSelectedPipeList();
     },
     methods: {
       getSelectedPipeList () {
-        Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
-          taskId: this.taskId
-        }).then((data) => {
-          this.pipeList[0].children = data.data;
-          this.handlePipeSelect(data.data[0])
-        })
+        if (this.choosePipe) {
+          //上一步返回
+          this.handlePipeSelect(this.choosePipe)
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          })
+        } else {
+          //第一次进入
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            this.handlePipeSelect(data.data[0])
+          })
+        }
       },
       /**@description 一键识别 */
       handleDiscern () {
@@ -256,7 +280,14 @@
             path: '/DiscernSteps/discern',
             query: {
               id: this.taskId,
-              taskName: this.taskName
+              taskName: this.taskName,
+              choosePipe: Misc.getObjFileds(
+                this.choosePipe,
+                'id',
+                'pipeCode',
+                'pipeSegmentCode',
+                'pipeName'
+              )
             }
           })
         })
@@ -305,15 +336,20 @@
           }
         }
       },
+      /**@description 上一步 */
       onPrev () {
         this.$router.push({
           path: '/DiscernSteps/section',
-          query: this.$route.query
+          query: {
+            ...this.$route.query,
+            choosePipe: this.choosePipe
+          }
         })
       },
       handlePipeSelect (pipe) {
         const requestDom = require("@/utils/misc").requestDom;
         this.pipeCode = pipe.pipeSegmentCode;
+        this.choosePipe = pipe;
         requestDom(() => this.$refs['table']?.$refs['table'])
           .then((comp) => {
             comp.refresh({ pipeCode: pipe.pipeSegmentCode })
@@ -332,8 +368,8 @@
           })
       },
       onTableGetData (data) {
-        this.mapRef.pipeRadiusRemove();
-        this.mapRef.pipeRender(data);
+        // this.mapRef.pipeRadiusRemove();
+        // this.mapRef.pipeRender(data);
       },
       async handleTableRowClick (row) {
         const { code,data } = await lineAround({ id: row.id });
@@ -386,7 +422,7 @@
     display: flex;
 
     .level-content-left {
-      width: 340px;
+      width: 300px;
       height: 100%;
       margin-right: 10px;
       padding: 8px;

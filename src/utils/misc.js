@@ -44,3 +44,13 @@ export function requestDom (
     getDom(id, resolve, type)
   })
 }
+
+export function getObjFileds (target, ...fileds) {
+  if (!target) return {}
+  if (fileds.length === 0) return target
+  const res = {}
+  for (const key of fileds) {
+    res[key] = target[key]
+  }
+  return res
+}

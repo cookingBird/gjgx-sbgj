@@ -1,10 +1,10 @@
 <template>
-  <div
-    id="app"
-    :class="{ homepageBgColor: $route.path == '/home' || $route.path == '/main/home'}"
-  >
-    <router-view />
-  </div>
+<div
+  id="app"
+  :class="{ homepageBgColor: $route.path == '/home' || $route.path == '/main/home'}"
+>
+  <router-view />
+</div>
 </template>
 
 <script>
@@ -14,7 +14,9 @@
   export default {
     provide () {
       return {
-        appCtx: this
+        appCtx: this,
+        setRef: (key,node) => this[key] = node,
+        getRef: (key) => this[key]
       }
     },
     created () {

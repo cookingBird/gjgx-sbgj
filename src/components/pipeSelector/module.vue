@@ -8,7 +8,7 @@
     >
       <div
         class="tree-title tree-title-ell tree-title-open"
-        :class="{ 'tree-title-bg': item[optionsKey.key] === selectKey }"
+        :class="{ 'tree-title-bg': item[optionsKey.key] === selectedKey }"
         :style="'padding-left: ' + (level * 30 + 10) + 'px'"
         @click="selectHandle(item)"
       >
@@ -71,7 +71,7 @@
             "
         :datalist="item[optionsKey.children]"
         :optionsKey="optionsKey"
-        :defaultSelect="selectKey"
+        :defaultSelect="selectedKey || defaultSelect"
         :showLevel="showLevel"
         :level="level + 1"
         :isRoot="false"
@@ -130,7 +130,7 @@
     data () {
       return {
         // 选中状态
-        selectKey: '',
+        selectedKey: void 0,
         // 展开子级
         hiddenChild: [],
         flattenArray: []
@@ -144,8 +144,12 @@
       }
     },
     watch: {
-      defaultSelect (e) {
-        this.selectKey = e;
+      defaultSelect: {
+        immediate: true,
+        handler (e) {
+          this.selectedKey = e;
+          setTimeout(this.openDefault);
+        }
       },
       datalist: {
         immediate: true,
@@ -155,24 +159,18 @@
               .map(node => ({
                 ...node,
                 treeIds: node.parents.concat(node.data)
-                  .map(n => n.id).join(',')
+                  .map(n => n[this.optionsKey.key]).join(',')
               }))
           }
-          setTimeout(() => {
-            if (this.defaultOpen) {
-              for (const node of val) {
-                if (this.treeIds && this.treeIds.includes(node.id)) {
-                  this.hiddenChild.push(node.id)
-                }
-              }
-            }
-          })
+          // console.log('defaultSelect-----------',this.defaultSelect);
+          // console.log('datalist-----------',this.datalist);
+          setTimeout(this.openDefault)
         },
       }
     },
     mounted () {
       if (this.defaultSelect) {
-        this.selectKey = this.defaultSelect;
+        this.selectedKey = this.defaultSelect;
       }
     },
     methods: {
@@ -203,7 +201,7 @@
       },
       // 选择一行
       selectHandle (e) {
-        this.selectKey = e[this.optionsKey.key];
+        this.selectedKey = e[this.optionsKey.key];
         this.$emit('select',e);
       },
       //
@@ -242,7 +240,7 @@
               rank,
               rankIndex: getRankIndex(rank,rankIndex),
             })
-          } else if (!filter) {
+          } else {
             result.push({
               data: target,
               rank,
@@ -254,7 +252,7 @@
           const childrenMaps = isFunction(children)
             ? children(target)
             : target[children];
-          if (Array.isArray(childrenMaps) && children.length > 0) {
+          if (Array.isArray(childrenMaps) && childrenMaps.length > 0) {
             childrenMaps.forEach(child => {
               _flattenTree(child,options,rank + 1,[...parents,target],result,rankIndex)
             })
@@ -263,9 +261,18 @@
           }
           return result;
         }
-
         return _flattenTree(target,options)
       },
+      //
+      openDefault () {
+        if (this.defaultOpen) {
+          for (const node of this.datalist) {
+            if (this.treeIds && this.treeIds.includes(node[this.optionsKey.key])) {
+              this.hiddenChild.push(node[this.optionsKey.key])
+            }
+          }
+        }
+      }
     },
   };
 </script> 

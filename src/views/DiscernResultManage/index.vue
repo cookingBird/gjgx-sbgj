@@ -50,7 +50,7 @@
 			</el-form-item>
 		</el-form>
 	</div>
-	<div class="page-content m-t-10">
+	<div class="page-content">
 		<MixTable
 			ref="mixTableRef"
 			:url="tableReqUrl"
@@ -290,13 +290,7 @@ main {
 
 	.page-content {
 		height: calc(100% - 66px);
-
-		>div {
-			padding: 8px;
-		}
-
-
-
+		
 		#map {
 			height: 380px;
 			background-color: #000;

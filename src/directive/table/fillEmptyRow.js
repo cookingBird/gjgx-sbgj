@@ -6,7 +6,7 @@ const fillEmptyRow = (function () {
       const tableNode = entry.target
       //移除之前添加的fill节点
       const fillNodes = tableNode.querySelectorAll(
-        '.el-table__body-wrapper .el-tale__row-empty-fill-tag'
+        '.el-tale__row-empty-fill-tag'
       )
       fillNodes.forEach(node => node.remove())
       timer = setTimeout(() => {
@@ -44,7 +44,15 @@ const fillEmptyRow = (function () {
             appendingNode.style.height = rowNodeHeight + 'px'
             contentEl.appendChild(appendingNode)
           }
-
+          //*fixed表格
+          const fixedEl = tableNode.querySelector(
+            '.el-table__fixed-body-wrapper .el-table__body tbody'
+          )
+          for (let i = 0; i < rowNum; i++) {
+            const appendingNode = rowElClone.cloneNode(true)
+            appendingNode.style.height = rowNodeHeight + 'px'
+            fixedEl.appendChild(appendingNode)
+          }
           resolve(rowNum)
         }
         timer = void 0

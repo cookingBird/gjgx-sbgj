@@ -17,8 +17,12 @@
 
 .my-el-button-none.el-button,
 .my-el-button-none.el-button:hover {
-  background-color: transparent ;
+  background-color: transparent;
   border: none;
   font-weight: var(--h-f-w);
-  color: var(--h-bgc) ;
+  color: var(--h-bgc);
+}
+
+.el-table__fixed-right {
+  background-color: #fff;
 }

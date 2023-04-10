@@ -1,19 +1,19 @@
 <template>
 <div class="section-wrapper">
-  <div class="section-top shadow-content bg-fff"></div>
+  <div class="bg-white rounded section-top shadow-content"></div>
   <div class="section-content">
-    <div class="section-content-left shadow-content bg-fff">
+    <div class="flex-grow-0 flex-shrink-0 bg-white rounded section-content-left shadow-content">
       <el-scrollbar>
         <pipe-selector
           :data="pipeList"
           :defaultOpen="true"
-          :defaultSelect="pipeList[0].children[0]?.id"
+          :defaultSelect="selectedPipe?.id || pipeList[0].children[0]?.id"
           :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
           @select="handlePipeSelect"
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="section-content-right">
+    <div class="flex-grow overflow-hidden section-content-right">
       <div class="right-content">
         <mix-table
           ref="table"
@@ -48,8 +48,8 @@
           </div>
         </mix-table>
       </div>
-      <div class="mt-1 right-footer shadow-content">
-        <div>
+      <div class="flex-grow-0 flex-shrink-0 p-2 mt-2 bg-white rounded shadow-content">
+        <div class="flex justify-center">
           <el-button
             type="primary"
             @click="onPrev"
@@ -203,10 +203,10 @@
             label: "易燃易爆场所（个）",
             prop: "flammableExplosivePlace"
           },
-          {
-            label: "操作",
-            prop: "operator"
-          },
+          // {
+          //   label: "操作",
+          //   prop: "operator"
+          // },
         ],
         dialogVisible: false,
         formData: {
@@ -242,25 +242,47 @@
       },
       mapRef () {
         return this.$refs['table'].$refs['basemap'];
+      },
+      selectedPipe () {
+        this.choosePipe = this.$route.query.choosePipe;
+        return this.$route.query.choosePipe
       }
     },
-    created () {
-      this.getSelectedPipeList()
+    async created () {
+      await new Promise((resolve) => { setTimeout(resolve,100) });
+      this.getSelectedPipeList();
     },
     methods: {
       getSelectedPipeList () {
-        Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
-          taskId: this.taskId
-        }).then((data) => {
-          this.pipeList[0].children = data.data;
-          this.handlePipeSelect(data.data[0])
-        })
+        if (this.choosePipe) {
+          //上一步返回
+          this.handlePipeSelect(this.choosePipe)
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          })
+        } else {
+          //第一次进入
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            this.handlePipeSelect(data.data[0])
+          })
+        }
       },
       /**@description 一键识别 */
       handleDiscern () {
@@ -288,7 +310,8 @@
             path: '/DiscernSteps/level',
             query: {
               id: this.taskId,
-              taskName: this.taskName
+              taskName: this.taskName,
+              choosePipe: this.choosePipe
             }
           })
         })
@@ -324,15 +347,18 @@
           this.dialogVisible = false;
         })
       },
+      /**@description 上一步 */
       onPrev () {
         this.$router.push({
           path: '/DiscernSteps/choose',
           query: this.$route.query
         })
       },
+      /**@description 选择管道 */
       handlePipeSelect (pipe) {
-        const requestDom = require("@/utils/misc").requestDom;
+        this.choosePipe = pipe;
         this.pipeCode = pipe.pipeSegmentCode;
+        const requestDom = require("@/utils/misc").requestDom;
         requestDom(() => this.$refs['table']?.$refs['table'])
           .then((comp) => {
             comp.refresh({ pipeCode: pipe.pipeSegmentCode })
@@ -351,8 +377,8 @@
           })
       },
       onTableGetData (data) {
-        this.mapRef.pipeRadiusRemove();
-        this.mapRef.pipeRender(data);
+        // this.mapRef.pipeRadiusRemove();
+        // this.mapRef.pipeRender(data);
       },
       async handleTableRowClick (row) {
         const { code,data } = await lineAround({ id: row.id });
@@ -405,7 +431,7 @@
     display: flex;
 
     .section-content-left {
-      width: 340px;
+      width: 300px;
       height: 100%;
       margin-right: 10px;
       padding: 8px;
@@ -429,14 +455,6 @@
       .right-content {
         flex: 1;
         position: relative;
-      }
-
-      .right-footer {
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        padding-top: 6px;
-        padding-bottom: 6px;
       }
     }
   }

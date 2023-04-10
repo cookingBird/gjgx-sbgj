@@ -1,6 +1,7 @@
 import Fix from './table/wrapperHeightFix'
 import fillEmptyRow from './table/fillEmptyRow'
 import calcRow from './table/calcRow'
+import calcMaxHeight from './table/maxHeight'
 
 const observer = new ResizeObserver(entries => {
   for (const entry of entries) {
@@ -37,6 +38,12 @@ function recordObserve (el, binding) {
     case 'tableWrapperFix': {
       setObserve(el, entry => {
         Fix(entry.target, binding.value)
+      })
+      break
+    }
+    case 'tableMaxHeight': {
+      setObserve(el, entry => {
+        binding.value && binding.value(calcMaxHeight(entry))
       })
       break
     }

@@ -2,18 +2,18 @@
 <div class="discern-wrapper">
   <div class="discern-top shadow-content bg-fff"></div>
   <div class="discern-content">
-    <div class="discern-content-left shadow-content bg-fff">
+    <div class="flex-grow-0 flex-shrink-0 bg-white rounded discern-content-left shadow-content">
       <el-scrollbar>
         <pipe-selector
           :data="pipeList"
           :defaultOpen="true"
-          :defaultSelect="pipeList[0].children[0]?.id"
+          :defaultSelect="selectedPipe?.id || pipeList[0].children[0]?.id"
           :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
           @select="handlePipeSelect"
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="discern-content-right">
+    <div class="flex-grow overflow-hidden discern-content-right">
       <div class="right-content">
         <mix-table
           ref="table"
@@ -48,7 +48,7 @@
           </div>
         </mix-table>
       </div>
-      <div class="mt-2 right-footer shadow-content">
+      <div class="mt-2 rounded right-footer shadow-content">
         <div>
           <el-button
             type="primary"
@@ -99,7 +99,8 @@
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
   import { lineAround } from '@/api/analyse';
-  import LayerSwitcher from '@/components/LayerSwitcher.vue'
+  import LayerSwitcher from '@/components/LayerSwitcher.vue';
+  import * as Misc from '@/utils/misc'
   const CURRENT_NODE_STEP = 4;
 
   export default {
@@ -135,17 +136,17 @@
           {
             label: "所属管线",
             prop: "pipeSegmentName",
-            // width: 150
+            width: 150
           },
           {
             label: "高后果区编号",
             prop: "hcaNo",
-            // width: 150
+            width: 150
           },
           {
             label: "是否高后果区",
             prop: "isHigh",
-            // width: 150,
+            width: 150,
             format (val) {
               if (val === null) {
                 return '-'
@@ -159,7 +160,7 @@
           {
             label: "高后果区等级",
             prop: "hcaLevel",
-            // width: 120,
+            width: 120,
             format: function (val) {
               if (val == 0) {
                 return '-'
@@ -179,17 +180,17 @@
           {
             label: "长度（m）",
             prop: "segmentLength",
-            // width: 120,
+            width: 120,
           },
           {
             label: "终止里程（m）",
             prop: "endMileage",
-            // width: 120,
+            width: 120,
           },
           {
             label: "地区等级",
             prop: "regionLevel",
-            // width: 120,
+            width: 120,
             format: function (val) {
               if (val == 0) {
                 return '-'
@@ -209,32 +210,32 @@
           {
             label: "人居（户）",
             prop: "population",
-            // width: 120,
+            width: 120,
           },
           {
             label: "特定场所（个）",
             prop: "specificProduction",
-            // width: 120,
+            width: 120,
           },
           {
             label: "易燃易爆场所（个）",
             prop: "flammableExplosivePlace",
-            // width: 120,
+            width: 120,
           },
           {
             label: "影响半径",
             prop: "impactRadius",
-            // width: 120,
+            width: 120,
           },
           {
             label: "暴露半径",
             prop: "exposureRadius",
-            // width: 120,
+            width: 120,
           },
           {
             label: "识别时间",
             prop: "recognitionTime",
-            // width: 120,
+            width: 120,
             format (val) {
               return val ? val.split(' ')[0] : '-'
             }
@@ -249,7 +250,7 @@
           { label: '一级',level: 1 },
           { label: '二级',level: 2 },
           { label: '三级',level: 3 },
-          { label: '四级',level: 4 },
+          // { label: '四级',level: 4 },
         ],
         dialogAction: [
           { label: '取消',code: 'cancel' },
@@ -275,25 +276,48 @@
       },
       mapRef () {
         return this.$refs['table'].$refs['basemap'];
+      },
+      selectedPipe () {
+        this.choosePipe = this.$route.query.choosePipe;
+        return this.$route.query.choosePipe
       }
     },
-    created () {
+    async created () {
+      await this.$nextTick();
       this.getSelectedPipeList();
     },
     methods: {
       getSelectedPipeList () {
-        Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
-          taskId: this.taskId
-        }).then((data) => {
-          this.pipeList[0].children = data.data;
-          this.handlePipeSelect(data.data[0])
-        })
+        console.log('this.$route',this.$route)
+        if (this.choosePipe) {
+          //上一步返回
+          this.handlePipeSelect(this.choosePipe)
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          })
+        } else {
+          //第一次进入
+          Helper.queryAllSelected({
+            keyWords: '',
+            pageNo: 1,
+            pageSize: -1,
+            startTime: '',
+            endTime: '',
+            status: 0,
+            taskId: this.taskId
+          }).then((data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            this.handlePipeSelect(data.data[0])
+          })
+        }
       },
 
       /**@description 下一步 */
@@ -352,7 +376,16 @@
       onPrev () {
         this.$router.push({
           path: '/DiscernSteps/level',
-          query: this.$route.query
+          query: {
+            ...this.$route.query,
+            choosePipe: Misc.getObjFileds(
+              this.choosePipe,
+              'id',
+              'pipeCode',
+              'pipeSegmentCode',
+              'pipeName'
+            )
+          }
         })
       },
       onTableGetData (data) {
@@ -393,6 +426,7 @@
       handlePipeSelect (pipe) {
         const requestDom = require("@/utils/misc").requestDom;
         this.pipeCode = pipe.pipeSegmentCode;
+        this.choosePipe = pipe;
         requestDom(() => this.$refs['table']?.$refs['table'])
           .then((comp) => {
             comp.refresh({ pipeCode: pipe.pipeSegmentCode })
@@ -404,7 +438,6 @@
               people: res.populationWkt.length,
               place: res.specificWkt.length
             }
-            console.log('pipeAroundTotal----------------------',res)
           })
         // requestDom(() => this.$refs['table']?.$refs['basemap']?.$refs['map']?.$refs['map'])
         //   .then((comp) => {
@@ -435,7 +468,7 @@
     display: flex;
 
     .discern-content-left {
-      width: 340px;
+      width: 300px;
       height: 100%;
       margin-right: 10px;
       padding: 8px;

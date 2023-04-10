@@ -70,14 +70,14 @@ export function taskDetail (id) {
  * @description 过程管理
  */
 
-export function queryAll ({ keyWords }) {
+export function queryAll ({ keyWords, pageNo, pageSize }) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/queryPipeLine',
     data: {
       keyWords,
-      pageNo: 1,
-      pageSize: 999
+      pageNo: pageNo,
+      pageSize: pageSize
     }
   }).then(res => {
     if (res.code === 200) {

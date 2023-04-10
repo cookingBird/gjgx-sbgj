@@ -4,6 +4,7 @@ import router from './router'
 import store from './store'
 import scroll from 'vue-seamless-scroll'
 import dataV from '@jiaminghi/data-view'
+import vueRef from 'vue-ref'
 import gislife from 'gislife-library'
 import 'gislife-library/packages/theme-chalk/lib/index.css'
 import ElementUI from 'element-ui'
@@ -18,6 +19,7 @@ import './assets/style/index.scss'
 import './assets/tailwind.css'
 import './message'
 
+Vue.use(vueRef)
 Vue.use(scroll)
 Vue.use(dataV)
 Vue.use(Message)
@@ -26,7 +28,7 @@ Directives.install(Vue)
 Vue.use(ElementUI)
 Vue.component('common-table', Table)
 
-Vue.prototype.$Map = Map;
+Vue.prototype.$Map = Map
 Vue.config.productionTip = false
 
 new Vue({
