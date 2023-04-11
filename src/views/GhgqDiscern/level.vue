@@ -14,7 +14,7 @@
       </el-scrollbar>
     </div>
     <div
-      class="flex-grow overflow-hidden level-content-right"
+      class="flex-grow level-content-right"
       v-loading="loading"
     >
       <div class="right-content">

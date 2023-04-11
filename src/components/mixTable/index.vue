@@ -142,6 +142,7 @@
     position: absolute;
     top: calc(var(--action-btn-top) * 1px);
     right: calc(var(--action-btn-right) * 1px);
+    z-index: 999;
   }
 
   .mix-table__action-btn> :not([hidden])+ :not([hidden]) {

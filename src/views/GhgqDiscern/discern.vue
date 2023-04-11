@@ -14,7 +14,7 @@
       </el-scrollbar>
     </div>
     <div
-      class="flex-grow overflow-hidden discern-content-right"
+      class="flex-grow discern-content-right"
       v-loading="loading"
     >
       <div class="right-content">
@@ -460,7 +460,8 @@
 
       .right-content {
         flex: 1;
-        position: relative
+        position: relative,
+        
       }
 
       .right-footer {
