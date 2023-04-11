@@ -352,6 +352,12 @@
         mixMapRef.locationByLineString(pipe.wkt)
         this.renderRadius(pipe)
         this.renderFeatures(pipe)
+        const populationWkt = pipe.regionDto.populationWkt;
+        const specificWkt = pipe.regionDto.specificWkt;
+        Object.assign(this.pipeAroundTotal,{
+          people: populationWkt.length,
+          place: specificWkt.length
+        })
       },
 
       onTableGetData (data) {
