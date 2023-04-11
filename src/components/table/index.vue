@@ -106,10 +106,9 @@
   >
     <pagination
       class="gislife-table-pagination"
-      :pageParams="pageParams"
+      :pageParams.sync="pageCfg"
       :total="total"
       :config="paginationConfig"
-      @size-change="refresh()"
       @current-change="refresh()"
       @prev-click="refresh()"
       @next-click="refresh()"
@@ -225,6 +224,7 @@
         loading: false,
         tableData: this.data,
         maxHeight: 300,
+        pageCfg: this.pageParams
       };
     },
     computed: {
@@ -255,8 +255,8 @@
         this.$emit('handleCommand',key,row);
       },
       // 刷新数据
-      async refresh (pas) {
-        let params = Object.assign(this.queryData,pas);
+      async refresh (paras) {
+        let params = Object.assign({},this.queryData,paras);
         this.loading = true;
         try {
           let dataS = await this.getData(params);

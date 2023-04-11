@@ -13,11 +13,11 @@
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="flex-grow overflow-hidden discern-content-right">
-      <div
-        class="right-content"
-        v-loading="loading"
-      >
+    <div
+      class="flex-grow overflow-hidden discern-content-right"
+      v-loading="loading"
+    >
+      <div class="right-content">
         <mix-table
           ref="table"
           :tableColumns="tableColumns"
@@ -157,9 +157,9 @@
               if (val === null) {
                 return '-'
               } else if (val == 0) {
-                return '是'
-              } else if (val == 1) {
                 return '否'
+              } else if (val == 1) {
+                return '是'
               }
             }
           },
@@ -288,7 +288,8 @@
         return this.$route.query.choosePipe
       }
     },
-    created () {
+    async created () {
+      // await new Promise((resolve) => { setTimeout(resolve,100) });
       this.getSelectedPipeList();
     },
     methods: {
@@ -303,8 +304,10 @@
           taskId: this.taskId
         }).then((data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-          const choosePipe = this.pipeList
+          const choosePipe = data.data
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
+          console.log('getSelectedPipeList----------------',this.$route)
+          console.log('getSelectedPipeList----------------',choosePipe)
           this.handlePipeSelect(choosePipe);
           this.renderPipeLine(data.data);
           this.loading = false;

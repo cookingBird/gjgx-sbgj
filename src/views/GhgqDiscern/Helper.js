@@ -164,7 +164,7 @@ export function nextStepOpr ({
       flag,
       pipeCode,
       pageNo: -1,
-      pageSize: 100
+      pageSize: 1
     }
   }).then(res => {
     if (res.code === 200) {

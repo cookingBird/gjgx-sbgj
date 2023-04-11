@@ -254,8 +254,8 @@
         return this.$route.query.choosePipe
       }
     },
-    created () {
-      console.log('section-------------created----------',this.loading)
+    async created () {
+      // await new Promise((resolve) => { setTimeout(resolve,100) });
       this.getSelectedPipeList();
     },
     methods: {
@@ -270,8 +270,10 @@
           taskId: this.taskId
         }).then((data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-          const choosePipe = this.pipeList
-            .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0]
+          const choosePipe = data.data
+            .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0];
+          console.log('getSelectedPipeList----------------',this.$route,this.selectedPipe)
+          console.log('getSelectedPipeList----------------',choosePipe)
           this.handlePipeSelect(choosePipe)
           this.renderPipeLine(data.data)
           this.loading = false
