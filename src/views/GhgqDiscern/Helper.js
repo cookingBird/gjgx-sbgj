@@ -153,9 +153,7 @@ export function nextStepOpr ({
   taskId,
   nodeId = 0,
   flag = 'next',
-  pipeCode,
-  pageNo,
-  pageSize
+  pipeCode
 } = {}) {
   return Request.request({
     url: '/highconsarea/nextOperate',
@@ -165,8 +163,8 @@ export function nextStepOpr ({
       nodeId,
       flag,
       pipeCode,
-      pageNo,
-      pageSize
+      pageNo: -1,
+      pageSize: 100
     }
   }).then(res => {
     if (res.code === 200) {

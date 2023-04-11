@@ -9,11 +9,15 @@
     frameborder="0"
     :microAppCode="code"
     :state="$route"
-  ></micro-app>
+  >
+  </micro-app>
 </div>
 </template>
-
+  
 <script>
+
+  import qs from 'qs';
+
   export default {
     data () {
       return {
@@ -22,23 +26,25 @@
     },
     computed: {
       src () {
-        return this.$route.meta.iframeSrc
+        return this.$route.meta.iframeSrc + '?' + qs.stringify(this.$route.query)
       },
       code () {
         return this.$store.state.auth.navActiveCode;
       },
       iframe () {
-        console.log('object',this.$refs['iframe'].$refs['window']);
         return this.$refs['iframe'].$refs['window']
       }
     },
-    created () {
-      console.log('created-----------------------------')
-      this.$nextTick(this.onLoaded)
-    },
-    activated () {
-      console.log('activated--------------------------');
-      this.loading = true;
+    watch: {
+      src: {
+        immediate: true,
+        handler (val) {
+          if (val) {
+            this.loading = true;
+            this.$nextTick(this.onLoaded);
+          }
+        }
+      }
     },
     methods: {
       /**
@@ -53,15 +59,16 @@
     }
   };
 </script>
-
+  
 <style lang="css">
   .micro-app-container {
     width: 100%;
     height: 100%;
-  }
+}
 
-  ::v-deep.micro-app-container iframe {
-    width: 100%;
-    height: 100%;
-  }
+::v-deep.micro-app-container iframe {
+  width: 100%;
+  height: 100%;
+}
 </style>
+  

@@ -13,11 +13,11 @@
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="flex-grow overflow-hidden section-content-right">
-      <div
-        class="right-content"
-        v-loading="loading"
-      >
+    <div
+      class="flex-grow overflow-hidden section-content-right"
+      v-loading="loading"
+    >
+      <div class="right-content">
         <mix-table
           ref="table"
           :tableColumns="tableColumns"
@@ -254,10 +254,9 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
+    created () {
+      console.log('section-------------created----------',this.loading)
       this.getSelectedPipeList();
-      await this.syncMixMapLoaded()
-      this.loading = false;
     },
     methods: {
       getSelectedPipeList () {
@@ -275,6 +274,7 @@
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0]
           this.handlePipeSelect(choosePipe)
           this.renderPipeLine(data.data)
+          this.loading = false
         })
       },
       /**@description 一键识别 */
@@ -360,12 +360,17 @@
         const mixMapRef = await this.syncMixMapLoaded()
         mixMapRef.locationByLineString(pipe.wkt)
         this.renderRadius(pipe)
-        this.renderFeatures(pipe)
+        this.renderFeatures(pipe);
+        const populationWkt = pipe.regionDto.populationWkt;
+        const specificWkt = pipe.regionDto.specificWkt;
+        Object.assign(this.pipeAroundTotal,{
+          people: populationWkt.length,
+          place: specificWkt.length
+        })
       },
-
+      /**@description 管段数据改变，重新渲染分段标识 */
       onTableGetData (data) {
-        console.log('onTableGetData--------',data)
-        this.renderSegmentLabel(data)
+        this.renderSegmentLabel(data);
       },
 
       async handleTableRowClick (row) {

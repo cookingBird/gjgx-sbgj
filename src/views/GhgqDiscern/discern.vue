@@ -288,10 +288,8 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
+    created () {
       this.getSelectedPipeList();
-      await this.syncMixMapLoaded()
-      this.loading = false;
     },
     methods: {
       getSelectedPipeList () {
@@ -309,9 +307,26 @@
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
           this.handlePipeSelect(choosePipe);
           this.renderPipeLine(data.data);
+          this.loading = false;
         })
       },
-
+      /**@description 选择管道 */
+      async handlePipeSelect (pipe) {
+        this.choosePipe = pipe
+        this.pipeCode = pipe.pipeSegmentCode
+        const mixTableRef = await this.syncMixTableMounted()
+        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
+        const mixMapRef = await this.syncMixMapLoaded()
+        mixMapRef.locationByLineString(pipe.wkt)
+        this.renderRadius(pipe)
+        this.renderFeatures(pipe)
+        const populationWkt = pipe.regionDto.populationWkt;
+        const specificWkt = pipe.regionDto.specificWkt;
+        Object.assign(this.pipeAroundTotal,{
+          people: populationWkt.length,
+          place: specificWkt.length
+        })
+      },
       /**@description 下一步 */
       handleNext () {
         this.loading = true;
@@ -398,17 +413,7 @@
       togglePlaceVisible (val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
-      /**@description 选择管道 */
-      async handlePipeSelect (pipe) {
-        this.choosePipe = pipe
-        this.pipeCode = pipe.pipeSegmentCode
-        const mixTableRef = await this.syncMixTableMounted()
-        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
-        const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(pipe.wkt)
-        this.renderRadius(pipe)
-        this.renderFeatures(pipe)
-      },
+
     },
   }
 </script>

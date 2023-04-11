@@ -25,35 +25,23 @@ export default function () {
        */
       renderFeatures (pipe, mixMapRef = this.mixMapRef()) {
         const populationWkt = pipe.regionDto.populationWkt
-        if (!this.__populationLayer) {
-          this.__populationLayer = mixMapRef.renderMarkerByType(
-            populationWkt,
-            'population'
-          )
-        } else {
-          this.__populationLayer.update(populationWkt)
-        }
+        this.__populationLayer = mixMapRef.renderMarkerByType(
+          populationWkt,
+          'population'
+        )
         const specificWkt = pipe.regionDto.specificWkt
-        if (!this.__placeLayer) {
-          this.__placeLayer = mixMapRef.renderMarkerByType(
-            specificWkt,
-            'specific'
-          )
-        } else {
-          this.__placeLayer.update(specificWkt)
-        }
+        this.__placeLayer = mixMapRef.renderMarkerByType(
+          specificWkt,
+          'specific'
+        )
         const flammableWkt = pipe.regionDto.flammableWkt
-        if (!this.__boomLayer) {
-          this.__boomLayer = mixMapRef.renderMarkerByType(
-            flammableWkt,
-            'flammable'
-          )
-        } else {
-          this.__boomLayer.update(flammableWkt)
-        }
+        this.__boomLayer = mixMapRef.renderMarkerByType(
+          flammableWkt,
+          'flammable'
+        )
       },
       /**@description 渲染分段标识 */
-      async renderSegmentLabel (data) {
+      renderSegmentLabel (data) {
         const headerList = data
           .map(item => [item.firstPoint, item.lastPoint])
           .flat()
@@ -64,8 +52,8 @@ export default function () {
               return pre.concat(cur)
             }
           }, [])
-        const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.pipeSectionPointRender(headerList)
+        const mixMapRef = this.mixMapRef()
+        return mixMapRef.pipeSectionPointRender(headerList)
       },
       async renderLevel (data) {
         const mixMapRef = await this.syncMixMapLoaded()

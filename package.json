@@ -20,6 +20,7 @@
     "html2canvas": "^1.4.1",
     "js-stack-utility": "^1.0.0",
     "lodash": "^4.17.21",
+    "qs": "^6.11.1",
     "unplugin-vue-components": "^0.24.1",
     "vue": "^2.6.11",
     "vue-grid-layout": "^2.4.0",

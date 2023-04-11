@@ -269,7 +269,7 @@
           }
         }),id);
         this.loadImage(img).then(_ => {
-          map.addLayer({
+          !map.getLayer(id) && map.addLayer({
             id,
             type: 'symbol',
             source: sourceId,
@@ -328,7 +328,7 @@
           station._image = image;
           return this.loadImage(image);
         })).then(() => {
-          map.addLayer({
+          !map.getLayer(id) && map.addLayer({
             id,
             type: 'symbol',
             source: sourceId,

@@ -225,10 +225,8 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
+    created () {
       this.getSelectedPipeList();
-      await this.syncMixMapLoaded()
-      this.loading = false;
     },
     methods: {
       getSelectedPipeList () {
@@ -246,6 +244,7 @@
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0]
           this.handlePipeSelect(choosePipe);
           this.renderPipeLine(data.data);
+          this.loading = false;
         })
       },
       /**@description 一键识别 */
