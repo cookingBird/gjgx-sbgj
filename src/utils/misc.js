@@ -16,7 +16,8 @@ export function arrayDupRemove (array, ...keyFileds) {
 export function requestDom (
   id,
   judgeCb = el => Boolean(el),
-  type = 'requestAnimationFrame'
+  type = 'requestAnimationFrame',
+  timer = 300
 ) {
   function getDom (id, callback, type) {
     if (document && window) {
@@ -30,7 +31,15 @@ export function requestDom (
         if (type === 'setTimeout') {
           setTimeout(() => {
             getDom(id, callback, type)
-          })
+          }, timer)
+        }
+        if (type === 'requestIdleCallback') {
+          requestIdleCallback(
+            () => {
+              getDom(id, callback, type)
+            },
+            { timeout: timer }
+          )
         }
       } else {
         return callback(el)
@@ -45,7 +54,7 @@ export function requestDom (
   })
 }
 
-export function getObjFileds (target, ...fileds) {
+export function pickFileds (target, ...fileds) {
   if (!target) return {}
   if (fileds.length === 0) return target
   const res = {}

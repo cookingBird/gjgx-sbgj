@@ -14,7 +14,10 @@
       </el-scrollbar>
     </div>
     <div class="flex-grow overflow-hidden section-content-right">
-      <div class="right-content">
+      <div
+        class="right-content"
+        v-loading="loading"
+      >
         <mix-table
           ref="table"
           :tableColumns="tableColumns"
@@ -37,13 +40,13 @@
               v-model="populationShow"
               title="人居"
               :number="pipeAroundTotal.people"
-              @change="onPopulationChange"
+              @change="togglePopulationVisible"
             ></LayerSwitcher>
             <LayerSwitcher
               v-model="placeShow"
               :number="pipeAroundTotal.place"
               title="特定场所"
-              @change="onPlaceChange"
+              @change="togglePlaceVisible"
             ></LayerSwitcher>
           </div>
         </mix-table>
@@ -132,8 +135,9 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
-  import { lineAround } from '@/api/analyse';
-
+  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
+  import tableRef from '@/mixins/tableRef';
+  import mapMix from './mapMix';
   import LayerSwitcher from '@/components/LayerSwitcher.vue'
   const CURRENT_NODE_STEP = 2;
 
@@ -143,6 +147,7 @@
       PipeSelector,
       LayerSwitcher
     },
+    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
     data () {
       return {
         pipeList: [
@@ -221,7 +226,8 @@
         pipeAroundTotal: {
           people: 300,
           place: 200
-        }
+        },
+        loading: true
       }
     },
     computed: {
@@ -249,40 +255,27 @@
       }
     },
     async created () {
-      await new Promise((resolve) => { setTimeout(resolve,100) });
       this.getSelectedPipeList();
+      await this.syncMixMapLoaded()
+      this.loading = false;
     },
     methods: {
       getSelectedPipeList () {
-        if (this.choosePipe) {
-          //上一步返回
-          this.handlePipeSelect(this.choosePipe)
-          Helper.queryAllSelected({
-            keyWords: '',
-            pageNo: 1,
-            pageSize: -1,
-            startTime: '',
-            endTime: '',
-            status: 0,
-            taskId: this.taskId
-          }).then((data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-          })
-        } else {
-          //第一次进入
-          Helper.queryAllSelected({
-            keyWords: '',
-            pageNo: 1,
-            pageSize: -1,
-            startTime: '',
-            endTime: '',
-            status: 0,
-            taskId: this.taskId
-          }).then((data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-            this.handlePipeSelect(data.data[0])
-          })
-        }
+        Helper.queryAllSelected({
+          keyWords: '',
+          pageNo: 1,
+          pageSize: -1,
+          startTime: '',
+          endTime: '',
+          status: 0,
+          taskId: this.taskId
+        }).then((data) => {
+          this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          const choosePipe = this.pipeList
+            .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0]
+          this.handlePipeSelect(choosePipe)
+          this.renderPipeLine(data.data)
+        })
       },
       /**@description 一键识别 */
       handleDiscern () {
@@ -301,6 +294,7 @@
       },
       /**@description 下一步 */
       handleNext () {
+        this.loading = true;
         Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -314,6 +308,8 @@
               choosePipe: this.choosePipe
             }
           })
+        }).finally(_ => {
+          this.loading = false
         })
       },
       /**@description 单击打开编辑分段接口 */
@@ -354,61 +350,34 @@
           query: this.$route.query
         })
       },
+
       /**@description 选择管道 */
-      handlePipeSelect (pipe) {
-        this.choosePipe = pipe;
-        this.pipeCode = pipe.pipeSegmentCode;
-        const requestDom = require("@/utils/misc").requestDom;
-        requestDom(() => this.$refs['table']?.$refs['table'])
-          .then((comp) => {
-            comp.refresh({ pipeCode: pipe.pipeSegmentCode })
-          })
-        const pipeAround = require('@/api/analyse').pipeAround;
-        pipeAround({ taskId: this.taskId,pipeCode: pipe.pipeSegmentCode })
-          .then((res) => {
-            this.pipeAroundTotal = {
-              people: res.populationWkt.length,
-              place: res.specificWkt.length
-            }
-          })
-        requestDom(() => this.$refs['table']?.$refs['basemap'])
-          .then((comp) => {
-            this.onTableGetData([pipe])
-          })
+      async handlePipeSelect (pipe) {
+        this.choosePipe = pipe
+        this.pipeCode = pipe.pipeSegmentCode
+        const mixTableRef = await this.syncMixTableMounted()
+        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
+        const mixMapRef = await this.syncMixMapLoaded()
+        mixMapRef.locationByLineString(pipe.wkt)
+        this.renderRadius(pipe)
+        this.renderFeatures(pipe)
       },
+
       onTableGetData (data) {
-        // this.mapRef.pipeRadiusRemove();
-        // this.mapRef.pipeRender(data);
+        console.log('onTableGetData--------',data)
+        this.renderSegmentLabel(data)
       },
+
       async handleTableRowClick (row) {
-        const { code,data } = await lineAround({ id: row.id });
-        if (code === 200) {
-
-          const { regionWkt,flammableWkt,specificWkt,populationWkt } = data;
-          //影响半径
-          regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
-          //人居
-          populationWkt.length && (this.mapRef.renderMarkerByType(populationWkt,1)
-            .then(layer => {
-              this.__populationLayer = layer;
-            }));
-          //特定场所
-          specificWkt.length && (this.mapRef.renderMarkerByType(specificWkt,2)
-            .then(layer => {
-              this.__placeLayer = layer;
-            }));
-          //易燃易爆场所
-          flammableWkt.length && (this.mapRef.renderMarkerByType(flammableWkt,3)
-            .then(layer => {
-              this.__boomLayer = layer;
-            }));
-
-        }
+        const mixMapRef = await this.syncMixMapLoaded()
+        mixMapRef.locationByLineString(row.wkt)
       },
-      onPopulationChange (val) {
+
+      togglePopulationVisible (val) {
         this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
-      onPlaceChange (val) {
+
+      togglePlaceVisible (val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       }
     }

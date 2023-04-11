@@ -53,7 +53,7 @@
     components: {
       BaseMap: Map,
     },
-    inject: ['setRef'],
+    inject: ['setRef','getRef'],
     watch: {
       type (val) {
         this.$nextTick(() => {
@@ -111,7 +111,7 @@
 <style lang="css">
   .mix-table-wrapper {
     --el-spacing-y: 7px;
-    --el-p: 4;
+    --el-p: 8px;
     --action-btn-top: -55;
     --action-btn-right: 4;
     --border-radius: 5px;
@@ -129,7 +129,7 @@
   .mix-table-wrapper> :not(.absolute) {
     flex-grow: 1;
     flex-basis: 0;
-    padding: calc(var(--el-p) * 1px) calc(var(--el-p) * 1px);
+    padding: var(--el-p) var(--el-p);
   }
 
   .mix-table-wrapper> :not(.absolute):not([style*="display: none"])~ :not(.absolute) {

@@ -124,6 +124,7 @@
   import { createXHR } from './MyXHR';
   import Column from './column';
   import pagination from './pagination.vue';
+  import compLifecycleBlock from '@/mixins/compLifecycleBlock';
   export default {
     name: 'common-table',
     inheritAttrs: false,
@@ -131,6 +132,7 @@
       Column,
       pagination,
     },
+    mixins: [compLifecycleBlock()],
     props: {
       // 表头
       tableColumns: {
@@ -308,8 +310,8 @@
 
 <style lang="css">
   .gislife-table-container {
-    --inner-margin-top: 7px;
-    --inner-el-padding: 4;
+    --inner-margin-top: 8px;
+    --inner-el-padding: 8px;
     --inner-border-radius: 4px;
     max-height: 100%;
     min-height: 100%;
@@ -320,7 +322,7 @@
 
   .gislife-table-container>.gislife-table__content {
     flex-grow: 1;
-    padding: calc(var(--el-p, var(--inner-el-padding)) * 1px) calc(var(--el-p, var(--inner-el-padding)) * 1px);
+    padding: var(--el-p, var(--inner-el-padding)) var(--el-p, var(--inner-el-padding));
     background-color: #fff;
     flex-basis: 0;
     overflow: hidden;
@@ -345,6 +347,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: calc(var(--el-p, var(--inner-el-padding)) * 1px) calc(var(--el-p, var(--inner-el-padding)) * 1px);
+    padding: var(--el-p, var(--inner-el-padding)) var(--el-p, var(--inner-el-padding));
   }
 </style>

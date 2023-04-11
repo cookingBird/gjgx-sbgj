@@ -48,10 +48,12 @@ const fillEmptyRow = (function () {
           const fixedEl = tableNode.querySelector(
             '.el-table__fixed-body-wrapper .el-table__body tbody'
           )
-          for (let i = 0; i < rowNum; i++) {
-            const appendingNode = rowElClone.cloneNode(true)
-            appendingNode.style.height = rowNodeHeight + 'px'
-            fixedEl.appendChild(appendingNode)
+          if (fixedEl) {
+            for (let i = 0; i < rowNum; i++) {
+              const appendingNode = rowElClone.cloneNode(true)
+              appendingNode.style.height = rowNodeHeight + 'px'
+              fixedEl.appendChild(appendingNode)
+            }
           }
           resolve(rowNum)
         }

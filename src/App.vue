@@ -8,15 +8,14 @@
 </template>
 
 <script>
-
+  import ref from './mixins/ref';
   import { getToken,isMain } from './message';
 
   export default {
+    mixins: [ref],
     provide () {
       return {
         appCtx: this,
-        setRef: (key,node) => this[key] = node,
-        getRef: (key) => this[key]
       }
     },
     created () {

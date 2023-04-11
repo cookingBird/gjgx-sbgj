@@ -14,7 +14,10 @@
       </el-scrollbar>
     </div>
     <div class="flex-grow overflow-hidden discern-content-right">
-      <div class="right-content">
+      <div
+        class="right-content"
+        v-loading="loading"
+      >
         <mix-table
           ref="table"
           :tableColumns="tableColumns"
@@ -37,13 +40,13 @@
               v-model="populationShow"
               :number="pipeAroundTotal.people"
               title="人居"
-              @change="onPopulationChange"
+              @change="togglePopulationVisible"
             ></LayerSwitcher>
             <LayerSwitcher
               v-model="placeShow"
               :number="pipeAroundTotal.place"
               title="特定场所"
-              @change="onPlaceChange"
+              @change="togglePlaceVisible"
             ></LayerSwitcher>
           </div>
         </mix-table>
@@ -98,8 +101,10 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
-  import { lineAround } from '@/api/analyse';
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
+  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
+  import tableRef from '@/mixins/tableRef';
+  import mapMix from './mapMix';
   import * as Misc from '@/utils/misc'
   const CURRENT_NODE_STEP = 4;
 
@@ -109,6 +114,7 @@
       PipeSelector,
       LayerSwitcher
     },
+    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
     data () {
       return {
         pipeList: [
@@ -250,7 +256,6 @@
           { label: '一级',level: 1 },
           { label: '二级',level: 2 },
           { label: '三级',level: 3 },
-          // { label: '四级',level: 4 },
         ],
         dialogAction: [
           { label: '取消',code: 'cancel' },
@@ -264,7 +269,8 @@
         pipeAroundTotal: {
           people: 300,
           place: 200
-        }
+        },
+        loading: true
       }
     },
     computed: {
@@ -283,45 +289,32 @@
       }
     },
     async created () {
-      await this.$nextTick();
       this.getSelectedPipeList();
+      await this.syncMixMapLoaded()
+      this.loading = false;
     },
     methods: {
       getSelectedPipeList () {
-        console.log('this.$route',this.$route)
-        if (this.choosePipe) {
-          //上一步返回
-          this.handlePipeSelect(this.choosePipe)
-          Helper.queryAllSelected({
-            keyWords: '',
-            pageNo: 1,
-            pageSize: -1,
-            startTime: '',
-            endTime: '',
-            status: 0,
-            taskId: this.taskId
-          }).then((data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-          })
-        } else {
-          //第一次进入
-          Helper.queryAllSelected({
-            keyWords: '',
-            pageNo: 1,
-            pageSize: -1,
-            startTime: '',
-            endTime: '',
-            status: 0,
-            taskId: this.taskId
-          }).then((data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-            this.handlePipeSelect(data.data[0])
-          })
-        }
+        Helper.queryAllSelected({
+          keyWords: '',
+          pageNo: 1,
+          pageSize: -1,
+          startTime: '',
+          endTime: '',
+          status: 0,
+          taskId: this.taskId
+        }).then((data) => {
+          this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          const choosePipe = this.pipeList
+            .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
+          this.handlePipeSelect(choosePipe);
+          this.renderPipeLine(data.data);
+        })
       },
 
       /**@description 下一步 */
       handleNext () {
+        this.loading = true;
         Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -330,6 +323,8 @@
           this.$router.push({
             path: '/GhgqDiscern',
           })
+        }).finally(_ => {
+          this.loading = false;
         })
       },
       /**@description 编辑等级，打开弹窗 */
@@ -378,7 +373,7 @@
           path: '/DiscernSteps/level',
           query: {
             ...this.$route.query,
-            choosePipe: Misc.getObjFileds(
+            choosePipe: Misc.pickFileds(
               this.choosePipe,
               'id',
               'pipeCode',
@@ -389,66 +384,32 @@
         })
       },
       onTableGetData (data) {
-        this.mapRef.pipeRadiusRemove();
-        this.mapRef.pipeRender(data);
+        this.renderSegmentLabel(data);
+        this.renderLevel(data,'hcaLevel');
       },
       async handleTableRowClick (row) {
-        const { code,data } = await lineAround({ id: row.id });
-        if (code === 200) {
-
-          const { regionWkt,flammableWkt,specificWkt,populationWkt } = data;
-          //影响半径
-          regionWkt && this.mapRef.pipeRadiusRender(regionWkt);
-          //人居
-          populationWkt.length && (this.mapRef.renderMarkerByType(populationWkt,1)
-            .then(layer => {
-              this.__populationLayer = layer;
-            }));
-          //特定场所
-          specificWkt.length && (this.mapRef.renderMarkerByType(specificWkt,2)
-            .then(layer => {
-              this.__placeLayer = layer;
-            }));
-          //易燃易爆场所
-          flammableWkt.length && (this.mapRef.renderMarkerByType(flammableWkt,3)
-            .then(layer => {
-              this.__boomLayer = layer;
-            }));
-
-        }
+        const mixMapRef = await this.syncMixMapLoaded()
+        console.log('row click---------------------',row);
+        mixMapRef.locationByLineString(row.wkt)
       },
-      onPopulationChange (val) {
+      togglePopulationVisible (val) {
         this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
-      onPlaceChange (val) {
+      togglePlaceVisible (val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
-      handlePipeSelect (pipe) {
-        const requestDom = require("@/utils/misc").requestDom;
-        this.pipeCode = pipe.pipeSegmentCode;
-        this.choosePipe = pipe;
-        requestDom(() => this.$refs['table']?.$refs['table'])
-          .then((comp) => {
-            comp.refresh({ pipeCode: pipe.pipeSegmentCode })
-          })
-        const pipeAround = require('@/api/analyse').pipeAround;
-        pipeAround({ taskId: this.taskId,pipeCode: pipe.pipeSegmentCode })
-          .then((res) => {
-            this.pipeAroundTotal = {
-              people: res.populationWkt.length,
-              place: res.specificWkt.length
-            }
-          })
-        // requestDom(() => this.$refs['table']?.$refs['basemap']?.$refs['map']?.$refs['map'])
-        //   .then((comp) => {
-        //     console.log('map loaded--------------------------',comp)
-        //   })
-        // setTimeout(() => {
-        //   console.log('pipe-----------------------',pipe)
-        //   this.onTableGetData([pipe])
-        // },1000)
+      /**@description 选择管道 */
+      async handlePipeSelect (pipe) {
+        this.choosePipe = pipe
+        this.pipeCode = pipe.pipeSegmentCode
+        const mixTableRef = await this.syncMixTableMounted()
+        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
+        const mixMapRef = await this.syncMixMapLoaded()
+        mixMapRef.locationByLineString(pipe.wkt)
+        this.renderRadius(pipe)
+        this.renderFeatures(pipe)
       },
-    }
+    },
   }
 </script>
 

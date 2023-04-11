@@ -67,14 +67,6 @@ main {
   .el-step__icon {
     width: 30px;
     height: 30px;
-  }
-
-  .el-step__title {
-    font-weight: normal;
-    color: #333;
-  }
-
-  .el-step__icon {
     border-color: #949494;
 
     .el-step__icon-inner {
@@ -82,10 +74,17 @@ main {
     }
   }
 
-  .is-process {
-    color: #063770;
-    border-color: #063770;
+  .el-step__title {
+    font-weight: normal;
+    color: #333;
+  }
 
+  .el-step__line {
+    color: transparent;
+    border-color: transparent;
+  }
+
+  .is-process {
     .el-step__icon {
       border-color: #3B9CF6;
       background-color: #3B9CF6;
