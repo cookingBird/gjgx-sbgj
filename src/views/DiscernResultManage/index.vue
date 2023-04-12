@@ -12,19 +12,21 @@
 				<el-form-item>
 					<el-button type="primary" @click="handleSearch">查询</el-button>
 					<el-button type="primary" @click="handleReset">重置</el-button>
+					<el-button type="primary" @click="handleTaskContrast" :disabled="taskContrastDisable">对比分析</el-button>
 				</el-form-item>
 			</el-form>
 		</div>
 		<div class="page-content">
 			<div class="page-content-left shadow-content">
 				<el-scrollbar>
-					<pipe-selector :optionsKey="{ title: 'orgName', key: 'id', children: 'children' }" :data="leftTreeData"
-						:defaultOpen="true" @select="handleTreeSelect"></pipe-selector>
+					<pipe-selector :optionsKey="{ title: 'name', key: 'code', children: 'children' }" :data="leftTreeData"
+						:defaultOpen="true" @select="handleTreeSelect" :defaultSelect="selectInfo?.code"></pipe-selector>
 				</el-scrollbar>
 			</div>
 			<div class="page-content-right shadow-content">
-				<MixTable ref="mixTableRef" :url="tableReqUrl" :tableColumns="tableColumns" :config="mixTableCfg"
-					:query="searchForm" @onData="onTableGetData" @handleCommand="tableCommand">
+				<MixTable v-if="loaded" ref="mixTableRef" :url="tableReqUrl" :tableColumns="tableColumns" :config="mixTableCfg"
+					:query="searchForm" @onData="onTableGetData" @handleCommand="tableCommand"
+					@selection-change="handleSelectionChange">
 				</MixTable>
 			</div>
 		</div>
@@ -43,19 +45,24 @@ export default {
 	},
 	data() {
 		return {
+			selectRows: [],
+			loaded: false,
 			leftTreeData: [],
-			tableReqUrl: window.URL_CONFIG.baseUrl + '/task/resultListVo',
+			tableReqUrl: window.URL_CONFIG.baseUrl + '/result/taskList',
 			date: [],
 			total: 0,
+			selectInfo: null,
 			searchForm: {
 				endTime: "",
 				startTime: "",
 				keyWords: "",
-				pipeCode: ""
+				orgCode: "",
+				pipeSegmentCode: "",
 			},
 			mixTableCfg: {
 				switcher: false,
 				index: true,
+				selection: true,
 				class: "my-el-table-ctx",
 				buttons: {
 					fixed: 'right',
@@ -78,86 +85,29 @@ export default {
 				label: '任务名称',
 				prop: 'taskName'
 			}, {
-				label: '识别时间',
-				prop: 'recognitionTime'
+				label: '创建时间',
+				prop: 'createTime'
 			}, {
-				label: '所属管线',
+				label: '管线名称',
 				prop: 'pipeSegmentName'
 			}, {
-				label: '高后果区编号',
-				prop: 'hcaNo'
+				label: '起点',
+				prop: 'beginCode'
 			}, {
-				label: '是否高后果区',
-				prop: 'isHigh',
-				format(val) {
-					if (val === null) {
-						return '-'
-					} else if (val == 0) {
-						return '否'
-					} else if (val == 1) {
-						return '是'
-					}
-				}
+				label: '终点',
+				prop: 'endCode'
 			}, {
-				label: '等级',
-				prop: 'hcaLevel',
-				format: function (val) {
-					if (val == 0) {
-						return '-'
-					} else if (val == 1) {
-						return '一级'
-					} else if (val == 2) {
-						return '二级'
-					} else if (val == 3) {
-						return '三级'
-					} else if (val == 4) {
-						return '四级'
-					} else {
-						return val
-					}
-				}
+				label: '识别成果',
+				prop: 'recognitionResults',
 			}, {
 				label: '长度（m）',
 				prop: 'hcaLength'
 			}, {
-				label: '起始里程（m）',
-				prop: 'beginMileage'
-			}, {
-				label: '终止里程（m）',
-				prop: 'endMileage'
-			}, {
-				label: '地区等级',
-				prop: 'regionLevel',
-				format: function (val) {
-					if (val == 0) {
-						return '-'
-					} else if (val == 1) {
-						return '一级'
-					} else if (val == 2) {
-						return '二级'
-					} else if (val == 3) {
-						return '三级'
-					} else if (val == 4) {
-						return '四级'
-					} else {
-						return val
-					}
-				}
-			}, {
-				label: '影响半径',
+				label: '影响半径(m)',
 				prop: 'impactRadius'
 			}, {
-				label: '暴露半径',
+				label: '暴露半径(m)',
 				prop: 'exposureRadius'
-			}, {
-				label: '人居（户）',
-				prop: 'population'
-			}, {
-				label: '特定场所（个）',
-				prop: 'specificProduction'
-			}, {
-				label: '易燃易爆场所（个）',
-				prop: 'flammableExplosivePlace'
 			}],
 		}
 	},
@@ -176,35 +126,65 @@ export default {
 		mapRef() {
 			return this.$refs['mixTableRef'].$refs['basemap'];
 		},
+		tableRef() {
+			return this.$refs['mixTableRef'].$refs['table'];
+		},
+		taskContrastDisable() {
+			const codes = [...new Set(this.selectRows.map(item => item.pipeSegmentCode))];
+
+			return (codes.length === 0 || codes.length > 1) ? true : false;
+		},
 	},
 	created() {
 		this.getTreeData();
 	},
-
 	methods: {
 		async getTreeData() {
 			const { code, data } = await queryOrgList();
 			if (code === 200) {
 				this.leftTreeData = data;
+				data.length && this.handleTreeSelect(data[0], true);
 			}
 		},
-		handleTreeSelect() {
-
+		//分析对比
+		handleTaskContrast() { },
+		handleTreeSelect({ code, type }, init = false) {
+			this.selectInfo = {
+				code, type
+			}
+			if (type === 1) {
+				this.searchForm.orgCode = code;
+				this.searchForm.pipeSegmentCode = "";
+			} else {
+				this.searchForm.orgCode = "";
+				this.searchForm.pipeSegmentCode = code;
+			}
+			if (init) {
+				this.loaded = true;
+				return;
+			}
+			this.handleSearch();
+		},
+		handleSelectionChange(val) {
+			this.selectRows = val;
 		},
 		onTableGetData(data) {
-			// this.mapRef.pipeRadiusRemove();
-			// this.mapRef.pipeRender(data);
+			this.mapRef.pipeRadiusRemove();
+			this.mapRef.pipeRender(data);
+
+			let ghgqs = [];
+			data.forEach(item => {
+				ghgqs = ghgqs.concat(item.highWkt);
+			})
+			this.mapRef.sectionLevelRender(ghgqs,'higLevel');
 		},
 		handleSearch() {
-			this.$refs['table'].refresh();
+			this.tableRef.refresh();
 		},
 		handleReset() {
-			this.searchForm = {
-				endTime: "",
-				startTime: "",
-				keyWords: "",
-				pipeCode: ""
-			}
+			this.searchForm.endTime = "";
+			this.searchForm.startTime = "";
+			this.searchForm.keyWords = "";
 			this.date = [];
 			this.$nextTick(this.handleSearch);
 		},
@@ -212,6 +192,9 @@ export default {
 			switch (key) {
 				case 'sync':
 					this.handleSync(row);
+					break;
+				case 'info':
+
 					break;
 			}
 		},
@@ -254,7 +237,7 @@ main {
 		display: flex;
 
 		.page-content-left {
-			width: 300px;
+			width: 400px;
 			height: 100%;
 			margin-right: 10px;
 			padding: 8px;

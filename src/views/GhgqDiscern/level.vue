@@ -217,9 +217,6 @@
       taskName () {
         return this.$route.query.taskName
       },
-      mapRef () {
-        return this.$refs['table'].$refs['basemap'];
-      },
       selectedPipe () {
         this.choosePipe = this.$route.query.choosePipe;
         return this.$route.query.choosePipe

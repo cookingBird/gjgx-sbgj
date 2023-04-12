@@ -13,6 +13,7 @@ import '@gislife/micro-message/dist/micro-message.css'
 import Directives from './directive'
 import Table from '@/components/table'
 import Map from '../public/2D/main'
+import request from './utils/request'
 import './error'
 import '@/assets/element_custom/index.css'
 import './assets/style/index.scss'
@@ -29,6 +30,7 @@ Vue.use(ElementUI)
 Vue.component('common-table', Table)
 
 Vue.prototype.$Map = Map
+Vue.prototype.$request = request
 Vue.config.productionTip = false
 
 new Vue({

@@ -1,9 +1,9 @@
 <template>
-<div class="choose-wrapper">
-  <div
-    class="space-x-2 choose-content"
-    v-loading="loading"
-  >
+<div
+  class="choose-wrapper"
+  v-loading="loading"
+>
+  <div class="space-x-2 choose-content">
     <div class="flex-grow-0 flex-shrink-0 w-1/3 rounded">
       <div class="choose-title">作业区所有管线列表</div>
       <div class="my-2 choose-search">

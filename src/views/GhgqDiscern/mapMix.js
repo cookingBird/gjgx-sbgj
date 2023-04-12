@@ -55,9 +55,9 @@ export default function () {
         const mixMapRef = this.mixMapRef()
         return mixMapRef.pipeSectionPointRender(headerList)
       },
-      async renderLevel (data) {
+      async renderLevel (data, field) {
         const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.sectionLevelRender(data)
+        mixMapRef.sectionLevelRender(data, field)
       }
     }
   }

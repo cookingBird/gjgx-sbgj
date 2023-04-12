@@ -87,18 +87,18 @@
         * @description 生成管线source
         * @param {pipes} 管线集合
         * **/
-      createPipeSource (pipes) {
+      createPipeSource (pipes,id) {
         const { map } = this.$refs['map'].map;
-        let source = map.getSource(PIPE_LAYER_ID);
+        let source = map.getSource(id);
         if (!source) {
-          map.addSource(PIPE_LAYER_ID,{
+          map.addSource(id,{
             'type': 'geojson',
             'data': {
               'type': 'FeatureCollection',
               'features': []
             }
           });
-          source = map.getSource(PIPE_LAYER_ID);
+          source = map.getSource(id);
         }
         let data = {
           'type': 'FeatureCollection',
@@ -169,7 +169,7 @@
        * **/
       pipeRender (pipes) {
         const { map } = this.$refs['map'].map;
-        const sourceId = this.createPipeSource(pipes);
+        const sourceId = this.createPipeSource(pipes,PIPE_LAYER_ID);
         //管线图层
         !map.getLayer(PIPE_LAYER_ID) && map.addLayer({
           id: PIPE_LAYER_ID,
@@ -446,7 +446,7 @@
       ) {
         const { map } = this.$refs['map'].map;
         const id = 'section-level';
-        const source = this.createPipeSource(data);
+        const source = this.createPipeSource(data,id);
         !map.getLayer(id) && map.addLayer({
           id,
           type: 'line',
