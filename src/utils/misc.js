@@ -63,3 +63,19 @@ export function pickFileds (target, ...fileds) {
   }
   return res
 }
+
+export function arrayOmit (raw, omit, uniqueKey) {
+  return raw.filter(
+    pipe => omit.findIndex(p => p[uniqueKey] === pipe[uniqueKey]) === -1
+  )
+}
+
+export function rawForEach (raws, picks, uniqueKey, cb) {
+  picks.forEach(
+    pipe => cb && cb(raws.find(p => p[uniqueKey] === pipe[uniqueKey]))
+  )
+}
+
+export function rawMap (raws, picks, uniqueKey) {
+  return picks.map(p => raws.find(raw => raw[uniqueKey] === p[uniqueKey]))
+}

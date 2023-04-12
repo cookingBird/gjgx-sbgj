@@ -4,10 +4,13 @@
   class="micro-app-container"
 >
   <micro-app
-    ref="iframe"
-    :src="src"
+    v-for="item in list"
+    :ref="item.path + 'Ref'"
+    v-show="$route.path === item.path"
+    :key="item.path"
+    :src="src(item.meta.iframeSrc)"
     frameborder="0"
-    :microAppCode="code"
+    :microAppCode="item.name"
     :state="$route"
   >
   </micro-app>
@@ -18,57 +21,62 @@
 
   import qs from 'qs';
 
+  const caches = new WeakMap();
+
   export default {
     data () {
       return {
         loading: true,
       };
     },
+    watch: {
+      '$route.path': {
+        immediate: true,
+        handler: function (val) {
+          this.addOnloadEventListener(val);
+        }
+      }
+    },
     computed: {
       src () {
-        return this.$route.meta.iframeSrc + '?' + qs.stringify(this.$route.query)
+        return function (src) {
+          return src + '?' + qs.stringify(this.$route.query)
+        }
       },
       code () {
         return this.$store.state.auth.navActiveCode;
       },
-      iframe () {
-        return this.$refs['iframe'].$refs['window']
+      list () {
+        return this.$store.state.history.list;
       }
     },
-    watch: {
-      src: {
-        immediate: true,
-        handler (val) {
-          if (val) {
-            this.loading = true;
-            this.$nextTick(this.onLoaded);
-          }
-        }
-      }
-    },
+
     methods: {
-      /**
-       * 
-       * @param {HTMLIFrameElement} el 
-       */
-      onLoaded (el = this.iframe) {
-        el.addEventListener('load',() => {
-          this.loading = false;
+      addOnloadEventListener (val) {
+        this.$nextTick(() => {
+          let iframe = this.$refs[val + 'Ref'][0].$refs['window'];
+          if (!caches.has(iframe)) {
+            this.loading = true;
+            iframe.addEventListener('load',() => {
+              this.loading = false;
+              caches.set(iframe,true);
+            })
+          }
         })
-      }
+      },
     }
   };
 </script>
   
-<style lang="css">
-  .micro-app-container {
-    width: 100%;
-    height: 100%;
-}
-
-::v-deep.micro-app-container iframe {
+<style lang="scss">
+.micro-app-container {
   width: 100%;
   height: 100%;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+  }
 }
 </style>
   

@@ -30,7 +30,7 @@
         type: Number,
         default: 0
       },
-      config: {
+      pagerConfig: {
         type: Object,
         default: () => {
           return {};
@@ -39,13 +39,13 @@
     },
     computed: {
       configCom () {
-        const config = this.config ?? {};
+        const pagerConfig = this.pagerConfig ?? {};
         return {
-          background: config.background ?? true,
-          layout: config.layout ?? 'total, sizes, prev, pager, next, jumper',
-          pageSizes: config.pageSizes ?? [10,30,60,80,100],
-          pagerCount: config.pagerCount || 7,
-          ...config
+          background: pagerConfig.background ?? true,
+          layout: pagerConfig.layout ?? 'total, sizes, prev, pager, next, jumper',
+          pageSizes: pagerConfig.pageSizes ?? [10,30,60,80,100],
+          pagerCount: pagerConfig.pagerCount || 7,
+          ...pagerConfig
         };
       }
     },

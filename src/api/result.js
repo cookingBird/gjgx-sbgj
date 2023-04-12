@@ -10,6 +10,13 @@ export function resultList(params) {
   })
 }
 
+//获取组织机构、管道数据
+export function queryOrgList() {
+  return request({
+    method: 'POST',
+    url: '/result/list'
+  })
+}
 
 //管线集合
 export function pipeListAPI(data) {

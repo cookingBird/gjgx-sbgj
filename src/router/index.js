@@ -11,7 +11,7 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes: [],
+  routes: []
 })
 
 router.beforeEach((to, from, next) => {
@@ -56,7 +56,8 @@ router.createRouter = function (menuList) {
         path: '/DiscernSteps',
         component: () => import('@/views/GhgqDiscern/stepLayout.vue'),
         redirect: '/DiscernSteps/choose',
-        children: [{
+        children: [
+          {
             path: '/DiscernSteps/choose',
             component: () => import('@/views/GhgqDiscern/choose.vue'),
             meta: {
@@ -93,23 +94,18 @@ router.createRouter = function (menuList) {
       {
         path: '/DiscernResultManage',
         component: () => import('@/views/DiscernResultManage')
+      },
+      {
+        path: '/DiscernResultManage/detail',
+        component: () => import('@/views/DiscernResultManage/detail.vue')
       }
-
     ]
   }
 
   const loop = (arr, target) => {
     arr.forEach(item => {
-      const {
-        funCode,
-        route,
-        children,
-        funName,
-        reqPath,
-        funType,
-        openMode
-      } =
-      item
+      const { funCode, route, children, funName, reqPath, funType, openMode } =
+        item
       //按钮类型不创建路由
       if (funType === 1) return
       const option = {
@@ -123,8 +119,7 @@ router.createRouter = function (menuList) {
         children: []
       }
 
-      option.component =
-        openMode === 'iframe' ? Iframe : Layout
+      option.component = openMode === 'iframe' ? Iframe : Layout
       target.push(option)
       if (children instanceof Array) {
         let c = children.filter(item => item.funType !== 1)

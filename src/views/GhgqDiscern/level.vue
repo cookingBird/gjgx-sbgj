@@ -225,8 +225,7 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
-      await new Promise((resolve) => { setTimeout(resolve,100) });
+    created () {
       this.getSelectedPipeList();
     },
     methods: {
@@ -245,8 +244,6 @@
             .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
           this.handlePipeSelect(choosePipe);
           this.renderPipeLine(data.data);
-          console.log('getSelectedPipeList----------------',this.$route,this.selectedPipe)
-          console.log('getSelectedPipeList----------------',choosePipe)
           this.loading = false;
         })
       },

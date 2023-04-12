@@ -173,7 +173,7 @@
           },
           {
             label: '创建时间',
-            prop: 'updateTime',
+            prop: 'createTime',
           },
           {
             label: '识别状态',

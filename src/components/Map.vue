@@ -399,7 +399,7 @@
           map.on('mouseenter',id,(e) => {
             map.getCanvas().style.cursor = 'pointer';
             const coordinates = e.features[0].geometry.coordinates.slice();
-            const description = `<span>${e.features[0].properties.name}</span>`;
+            const description = `<span>${e.features[0].properties.name || '空'}</span>`;
             while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
               coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
             }

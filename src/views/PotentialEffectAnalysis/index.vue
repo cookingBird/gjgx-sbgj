@@ -201,7 +201,6 @@
       handleMapClick() {},
       switchView(type) {
         this.currentActionType = type;
-        console.log('switchView', type);
       },
     },
   };

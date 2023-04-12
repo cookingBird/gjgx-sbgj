@@ -254,8 +254,7 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
-      // await new Promise((resolve) => { setTimeout(resolve,100) });
+    created () {
       this.getSelectedPipeList();
     },
     methods: {
@@ -281,6 +280,7 @@
       },
       /**@description 一键识别 */
       handleDiscern () {
+        this.loading = true;
         Helper.discernOneStep({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP
@@ -292,7 +292,10 @@
               taskName: this.taskName
             }
           })
-        })
+        }).finally(_ => {
+            this.loading = false;
+          })
+
       },
       /**@description 下一步 */
       handleNext () {

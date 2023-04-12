@@ -19,8 +19,9 @@
     v-show="type !== '表格'"
     class="shadow-content mix-table__map"
   >
+    <slot v-if="mapload"></slot>
     <base-map
-      v-ref="(c)=>setRef('mixMap',c)"
+      v-ref="(c)=>setRef(mapRefName,c)"
       ref="basemap"
       @onLoad="mapload = true"
     ></base-map>
@@ -33,7 +34,7 @@
   >
     <common-table
       ref="table"
-      v-ref="(c)=>setRef('mixTable',c)"
+      v-ref="(c)=>setRef(tableRefName,c)"
       @handleCommand="(key, row) => $emit('handleCommand', key, row)"
       @row-click="handleRowClick"
       @onData="(data) => $emit('onData', data)"
@@ -41,7 +42,7 @@
     >
     </common-table>
   </div>
-  <slot v-if="mapload"></slot>
+
 </div>
 </template>
 
@@ -54,20 +55,15 @@
       BaseMap: Map,
     },
     inject: ['setRef','getRef'],
-    watch: {
-      type (val) {
-        this.$nextTick(() => {
-          this.$refs['basemap'].resize();
-          this.$refs.table.$refs.table.doLayout();
-        });
+    props: {
+      mapRefName: {
+        type: String,
+        default: 'mixMap'
       },
-      mapload (val) {
-        if (val) {
-          this.$nextTick(() => {
-            this.$refs['basemap'].resize();
-          });
-        }
-      },
+      tableRefName: {
+        type: String,
+        default: 'mixTable'
+      }
     },
     data () {
       return {
@@ -83,6 +79,21 @@
     computed: {
       configs () {
         return { ...this.defaultConfig,...this.config };
+      },
+    },
+    watch: {
+      type (val) {
+        this.$nextTick(() => {
+          this.$refs['basemap'].resize();
+          this.$refs.table.$refs.table.doLayout();
+        });
+      },
+      mapload (val) {
+        if (val) {
+          this.$nextTick(() => {
+            this.$refs['basemap'].resize();
+          });
+        }
       },
     },
     mounted () {

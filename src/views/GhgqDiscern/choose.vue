@@ -1,9 +1,12 @@
 <template>
 <div class="choose-wrapper">
-  <div class="choose-content">
-    <div class="rounded">
+  <div
+    class="space-x-2 choose-content"
+    v-loading="loading"
+  >
+    <div class="flex-grow-0 flex-shrink-0 w-1/3 rounded">
       <div class="choose-title">作业区所有管线列表</div>
-      <div class="choose-search m-t-10 m-b-10">
+      <div class="my-2 choose-search">
         <el-form
           :inline="true"
           label-width="100px"
@@ -23,23 +26,20 @@
           >
             查询</el-button>
           <el-button
-            class="f-r m-r-10"
+            class="float-right mr-2"
             type="success"
             @click="handleSelectAll"
           >全选</el-button>
         </el-form>
       </div>
       <div class="flex flex-col flex-grow choose-table">
-        <div
-          class="relative flex-grow overflow-hidden choose-table-wrapper"
-          v-observe:tableMaxHeight="onTableMaxHeight"
-        >
+        <div class="flex-grow px-1">
           <el-table
             ref="leftTableRef"
             height="100%"
+            border
             :data="pipeList"
-            :max-height="leftMaxHeight"
-            @selection-change="handleSelectionChange"
+            @selection-change="(val)=>handleSelectionChange(val,'left')"
           >
             <el-table-column
               type="selection"
@@ -49,6 +49,7 @@
             <el-table-column
               type="index"
               width="55"
+              :index="calcIndex"
               label="序号"
               align="center"
             ></el-table-column>
@@ -58,13 +59,8 @@
               align="center"
             ></el-table-column>
             <el-table-column
-              label="类型"
-              prop="pipeType"
-              align="center"
-            ></el-table-column>
-            <el-table-column
-              label="规格"
-              prop="specification"
+              label="传输介质"
+              prop="transferMaterial"
               align="center"
             ></el-table-column>
           </el-table>
@@ -73,7 +69,7 @@
           <el-pagination
             layout="total,sizes, prev, pager, next, jumper"
             :total="leftPageCfg.total"
-            :current-page.sync="leftPageCfg.currentPage"
+            :current-page.sync="leftPageCfg.pageNo"
             :page-size.sync="leftPageCfg.pageSize"
             @size-change="queryPipeList"
             @current-change="queryPipeList"
@@ -84,9 +80,9 @@
         </div>
       </div>
     </div>
-    <div class="rounded">
+    <div class="flex-grow rounded">
       <div class="choose-title">已选择管线列表</div>
-      <div class="choose-search m-t-10 m-b-10">
+      <div class="my-2 choose-search">
         <el-form
           :inline="true"
           label-width="100px"
@@ -104,41 +100,68 @@
             type="primary"
             @click="getSelectedPipeList()"
           >
-            查询</el-button>
+            查询
+          </el-button>
           <el-button
-            class="f-r m-r-10"
+            class="float-right mr-2 border-0 bg-[#3097cf] hover:bg-[##39aeed]"
             type="primary"
             @click="handleSelectClear"
-          >清空</el-button>
+          >
+            取消选择
+          </el-button>
         </el-form>
       </div>
       <div class="choose-table">
-        <div class="choose-table-wrapper">
+        <div class="absolute inset-0 px-1 pb-1">
           <el-table
             height="100%"
             ref="rightTableRef"
             :data="selectedListFiltered"
+            border
+            @selection-change="(val)=>handleSelectionChange(val,'right')"
           >
-            <el-table-column
-              type="index"
-              width="55"
-              label="序号"
-            ></el-table-column>
-            <el-table-column
-              label="管线"
-              prop="pipeName"
-              align="center"
-            ></el-table-column>
-            <el-table-column
-              label="类型"
-              prop="pipeType"
-              align="center"
-            ></el-table-column>
-            <el-table-column
-              label="规格"
-              prop="specification"
-              align="center"
-            ></el-table-column>
+            <template v-for="(item, index) in rightCols">
+              <el-table-column
+                v-if="item.formatter"
+                :key="index"
+                v-bind="item"
+              >
+                <template v-slot:default="{row}">
+                  {{ item.formatter(row[item.prop]) }}
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-else-if="item.slotIs === 'input'"
+                :key="index"
+                v-bind="item"
+              >
+                <template v-slot:default="scope">
+                  <el-input
+                    v-model="scope.row[item.prop]"
+                    v-bind="item.slotProps&&item.slotProps(scope)"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-else-if="item.slotIs === 'button' || item.slotIs === 'btn'"
+                :key="index"
+                v-bind="item"
+              >
+                <template v-slot:default="scope">
+                  <el-button
+                    v-bind="slotProps&&slotProps(scope)"
+                    v-on="mapListeners(item.listeners,(val)=>val(scope))"
+                  >
+                    {{item.slotProps&&item.slotProps(scope).label}}
+                  </el-button>
+                </template>
+              </el-table-column>
+              <el-table-column
+                v-else
+                :key="index"
+                v-bind="item"
+              />
+            </template>
           </el-table>
         </div>
       </div>
@@ -165,6 +188,7 @@
 
 <script>
   import * as Helper from './Helper';
+  import * as Misc from '@/utils/misc'
   const CURRENT_NODE_STEP = 1;
 
   export default {
@@ -177,9 +201,82 @@
         leftMaxHeight: 300,
         leftPageCfg: {
           total: 0,
-          currentPage: 1,
+          pageNo: 1,
           pageSize: 10,
         },
+        rightCols: [
+          { width: 55,type: 'selection',align: 'center' },
+          { width: 55,type: 'index',align: 'center',index: this.calcIndex,label: '序号' },
+          { width: 150,align: 'center',prop: 'pipeName',label: '管线' },
+          { width: 120,align: 'center',prop: 'transferMaterial',label: '传输介质' },
+          {
+            width: 120,align: 'center',prop: 'hydrogenSulfideConcentration',label: '硫化氢浓度',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 120,align: 'center',prop: 'hydrogenSulfideMolPercent',label: '硫化氢百分比',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 136,align: 'center',prop: 'mediumMolecularMass',label: '介质相对分子质量',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 120,align: 'center',prop: 'operatingPressure',label: '介质运行压力',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 120,align: 'center',prop: 'mediumMolecularMass',label: '介质运行温度',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 120,align: 'center',prop: 'leakEstimate',label: '泄露管段管容',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+        ],
+        loading: true
       };
     },
     computed: {
@@ -199,10 +296,10 @@
     },
     methods: {
       queryPipeList () {
-        const { currentPage,pageSize } = this.leftPageCfg;
+        const { pageNo,pageSize } = this.leftPageCfg;
         return Helper.queryAll({
           keyWords: this.leftKeyword,
-          pageNo: currentPage,
+          pageNo: pageNo,
           pageSize: pageSize,
           startTime: '',
           endTime: '',
@@ -213,6 +310,13 @@
             total: data.totalCount,
           };
           this.pipeList = data.data;
+          // this.pipeList = new Array(50).fill({
+          //   id: Math.random(),
+          //   pipeName: "平籍线A",
+          //   pipeCode: null,
+          //   pipeSegmentCode: "GE0401050300000282",
+          //   pipeType: "净化气",
+          // }).map((item,index) => ({ ...item,id: index }))
           this.syncItemStatus();
         });
       },
@@ -227,23 +331,28 @@
           taskId: this.taskId,
         }).then((data) => {
           this.selectedPipeList = data.data;
-        });
+          // this.selectedPipeList = new Array(50).fill({
+          //   id: Math.random(),
+          //   pipeName: "平籍线A",
+          //   pipeCode: null,
+          //   pipeSegmentCode: "GE0401050300000282",
+          //   pipeType: "净化气",
+          // }).map((item,index) => ({ ...item,id: index }))
+        })
       },
       syncItemStatus (uniqueKey = 'pipeSegmentCode') {
         this.$nextTick(() => {
-          const findKey = uniqueKey;
-          this.selectedPipeList.forEach((pipe) => {
-            const findPipe = this.pipeList.find((p) => p[findKey] == pipe[findKey]);
-            this.$refs['leftTableRef'].toggleRowSelection(findPipe,true);
-          });
+          Misc.rawForEach(this.pipeList,this.selectedPipeList,uniqueKey,(item) => {
+            this.$refs['leftTableRef'].toggleRowSelection(item,true);
+          })
           // sync pipeList中最新的匹配数据
-          this.selectedPipeList = this.selectedPipeList
-            .map(pipe => this.pipeList.find(p => p[uniqueKey] === pipe[uniqueKey]))
+          this.selectedPipeList = Misc.rawMap(this.pipeList,this.selectedPipeList,uniqueKey)
         });
       },
       async bootstrap () {
         await this.getSelectedPipeList();
         await this.queryPipeList();
+        this.loading = false
       },
       handleSelectAll () {
         this.pipeList.forEach((pipe) => {
@@ -252,20 +361,26 @@
       },
       handleSelectClear () {
         const findKey = 'pipeSegmentCode';
-        this.selectedPipeList.forEach((pipe) => {
-          const findPipe = this.pipeList.find((p) => p[findKey] === pipe[findKey]);
-          this.$refs['leftTableRef'].toggleRowSelection(findPipe,false);
-        });
-        this.selectedPipeList = [];
+        Misc.rawForEach(this.pipeList,this.selectChooseList,findKey,(item) => {
+          this.$refs['leftTableRef'].toggleRowSelection(item,false);
+        })
+        this.selectedPipeList = Misc.arrayOmit(this.selectedPipeList,this.selectChooseList,findKey)
       },
-      handleSelectionChange (rows) {
-        this.selectedPipeList = rows;
+      handleSelectionChange (rows,type) {
+        if (type === 'left') {
+          this.selectedPipeList = rows;
+        }
+        if (type === 'right') {
+          this.selectChooseList = rows;
+        }
       },
       handleBack () {
         this.$router.push('/GhgqDiscern');
       },
       /**@description 下一步 */
       handleNext () {
+        this.loading = true;
+        console.log('handleNext-------------',this.selectedPipeList)
         Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
@@ -286,10 +401,14 @@
                 taskName: this.taskName,
               },
             });
-          });
+          })
+          .finally(() => {
+            this.loading = false;
+          })
       },
       /**@description 一键识别 */
       handleDiscern () {
+        this.loading = true;
         Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
@@ -309,11 +428,28 @@
                 taskName: this.taskName,
               },
             });
-          });
+          })
+          .finally(_ => {
+            this.loading = false;
+          })
       },
       onTableMaxHeight (value,tar = 'left') {
         this.leftMaxHeight = value;
       },
+      calcIndex (index,pgCfg = 'leftPageCfg') {
+        const { pageNo,pageSize } = this[pgCfg]
+        return index + (pageNo - 1) * pageSize + 1
+      },
+      mapListeners (listeners,cb) {
+        const res = {}
+        for (const key in listeners) {
+          if (Object.hasOwnProperty.call(listeners,key)) {
+            const element = object[key];
+            res[key] = (cb && cb(element)) || element
+          }
+        }
+        return res
+      }
     },
   };
 </script>
@@ -353,8 +489,6 @@
 
         .choose-table-wrapper {
           position: absolute;
-          height: 100%;
-          width: 100%;
 
           .el-table {
             margin: 0;

@@ -1,4 +1,5 @@
 // tailwind.config.js
+const plugin = require('tailwindcss/plugin')
 module.exports = {
   mode: 'jit',
   purge: ['./public/index.html', './src/**/*.{vue,js,css,scss}'],
@@ -10,5 +11,20 @@ module.exports = {
   variants: {
     extend: {}
   },
-  plugins: []
+  plugins: [
+    plugin(function ({ addVariant, e }) {
+      addVariant('el-input', ({ modifySelectors, separator }) => {
+        modifySelectors(({ className }) => {
+          return `.el-input${e(`${separator}${className}`)} .el-input__inner`
+        })
+      })
+    }),
+    plugin(function ({ addVariant, e }) {
+      addVariant('el-input:hover', ({ modifySelectors, separator }) => {
+        modifySelectors(({ className }) => {
+          return `.el-input${e(`${separator}${className}`)} .el-input__inner:hover`
+        })
+      })
+    })
+  ]
 }

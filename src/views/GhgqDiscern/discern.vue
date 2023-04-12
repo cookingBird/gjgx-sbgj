@@ -14,11 +14,12 @@
       </el-scrollbar>
     </div>
     <div
-      class="flex-grow discern-content-right"
       v-loading="loading"
+      class="flex-grow discern-content-right"
     >
-      <div class="right-content">
+      <div class="relative right-content">
         <mix-table
+          class="absolute inset-0"
           ref="table"
           :tableColumns="tableColumns"
           :config="tableConfig"
@@ -288,8 +289,7 @@
         return this.$route.query.choosePipe
       }
     },
-    async created () {
-      // await new Promise((resolve) => { setTimeout(resolve,100) });
+    created () {
       this.getSelectedPipeList();
     },
     methods: {
@@ -306,8 +306,6 @@
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
           const choosePipe = data.data
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
-          console.log('getSelectedPipeList----------------',this.$route)
-          console.log('getSelectedPipeList----------------',choosePipe)
           this.handlePipeSelect(choosePipe);
           this.renderPipeLine(data.data);
           this.loading = false;
@@ -407,7 +405,6 @@
       },
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
-        console.log('row click---------------------',row);
         mixMapRef.locationByLineString(row.wkt)
       },
       togglePopulationVisible (val) {
@@ -461,7 +458,6 @@
       .right-content {
         flex: 1;
         position: relative,
-        
       }
 
       .right-footer {

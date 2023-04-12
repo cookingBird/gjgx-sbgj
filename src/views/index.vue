@@ -1,30 +1,28 @@
 <template>
-<main>
-  <div class="main-left">
-    <Menu />
-  </div>
-  <div class="main-right">
-    <HistoryBar />
-    <div class="main-content">
-      <keep-alive>
-        <router-view></router-view>
-      </keep-alive>
+  <main>
+    <div class="main-left">
+      <Menu />
     </div>
-  </div>
-</main>
+    <div class="main-right">
+      <HistoryBar />
+      <div class="main-content">
+        <router-view></router-view>
+      </div>
+    </div>
+  </main>
 </template>
 
 <script>
-  import Menu from "@/components/menu.vue";
-  import HistoryBar from "@/components/historyBar.vue";
+import Menu from "@/components/menu.vue";
+import HistoryBar from "@/components/historyBar.vue";
 
-  export default {
-    name: "Home",
-    components: {
-      Menu,
-      HistoryBar,
-    },
-  };
+export default {
+  name: "Home",
+  components: {
+    Menu,
+    HistoryBar,
+  },
+};
 </script>
 
 <style lang="scss" scoped>

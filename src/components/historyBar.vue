@@ -26,6 +26,7 @@ export default {
   },
   computed: {
     list() {
+      console.log(this.$store.state.history.list);
       return this.$store.state.history.list;
     }
   },

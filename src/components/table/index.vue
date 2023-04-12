@@ -33,6 +33,7 @@
         v-if="initCom.index"
         type="index"
         :label="initCom.indexName || '序号'"
+        :index="calcIndex"
         width="80px"
         align="center"
       >
@@ -106,9 +107,10 @@
   >
     <pagination
       class="gislife-table-pagination"
-      :pageParams.sync="pageCfg"
+      :pageParams.sync="pageState"
       :total="total"
-      :config="paginationConfig"
+      :pagerConfig="paginationConfig"
+      @size-change="refresh()"
       @current-change="refresh()"
       @prev-click="refresh()"
       @next-click="refresh()"
@@ -224,7 +226,7 @@
         loading: false,
         tableData: this.data,
         maxHeight: 300,
-        pageCfg: this.pageParams
+        pageState: this.pageParams
       };
     },
     computed: {
@@ -238,7 +240,7 @@
       },
       queryData: {
         get () {
-          return { ...this.query,...this.pageParams };
+          return { ...this.query,...this.pageState };
         },
         set (val) {
           this.$emit('changeQuery',val);
@@ -304,6 +306,18 @@
       onMaxHeight (maxHeight) {
         this.maxHeight = Math.floor(maxHeight);
       },
+
+      calcIndex (index,pgCfg = 'pageState') {
+        if (this.isPagination) {
+          const { pageNo,pageSize } = this[pgCfg]
+          return index + (pageNo - 1) * pageSize + 1
+        } else {
+          return index + 1
+        }
+      },
+      sizeChange (val) {
+        console.log('sizeChange',val)
+      }
     },
   };
 </script>
