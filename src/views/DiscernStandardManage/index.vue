@@ -34,6 +34,7 @@
         v-observe:tableWrapperFix
         class="my-el-table-ctx"
         :data="data"
+        height="100%"
         border
       >
         <el-table-column

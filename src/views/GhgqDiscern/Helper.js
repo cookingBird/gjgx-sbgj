@@ -234,3 +234,19 @@ export function pipeSplitSegment ({
     }
   })
 }
+
+export function mergePipeSegments (segments, filedKey = 'id') {
+  return Request.request({
+    url: '/highconsarea/segmentMerge',
+    methods: 'get',
+    params: {
+      ids: segments.map(seg => seg[filedKey]).join(',')
+    }
+  }).then(res => {
+    if (res.code === 200) {
+      return res.data
+    } else {
+      return Promise.reject(res.msg)
+    }
+  })
+}

@@ -2,9 +2,8 @@ export default function () {
   return {
     methods: {
       /**@description 渲染所有管线 */
-      async renderPipeLine (pipeList) {
-        const mixMapRef = await this.syncMixMapLoaded()
-        await mixMapRef.mapLoadReady()
+      renderPipeLine (pipeList) {
+        const mixMapRef = this.mixMapRef()
         mixMapRef.pipeRender(pipeList)
       },
       /**
@@ -55,9 +54,10 @@ export default function () {
         const mixMapRef = this.mixMapRef()
         return mixMapRef.pipeSectionPointRender(headerList)
       },
-      async renderLevel (data, field) {
-        const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.sectionLevelRender(data, field)
+      /**@description 渲染地区等级 */
+      renderLevel (data, field, colorMap) {
+        const mixMapRef = this.mixMapRef()
+        return mixMapRef.sectionLevelRender(data, field, void 0, colorMap)
       }
     }
   }

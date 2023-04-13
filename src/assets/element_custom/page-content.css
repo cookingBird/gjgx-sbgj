@@ -1,4 +1,4 @@
 .page-content {
-  --margin-top: 7px;
+  --margin-top: 8px;
 	margin-top: var(--margin-top);
 }

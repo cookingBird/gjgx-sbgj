@@ -1,37 +1,37 @@
 <template>
 <div class="flex flex-col w-full h-full space-y-2">
-  <div class="flex items-center flex-grow-0 flex-shrink-0 w-auto h-12 space-x-2 bg-white rounded shadow-content mr-52">
+  <div class="relative flex-grow-0 flex-shrink-0 w-auto h-12 p-1 pr-56 space-x-2 bg-white rounded shadow-content">
     <el-select v-model="queryModel.higLevel">
       <el-option
-        v-for="item in pipeList"
+        v-for="item in highLevelOptions"
         :key="item.id"
+        :label="item.label"
+        :value="item.value"
       >
-        {{ item.label }}
       </el-option>
     </el-select>
     <el-button @click="onSearch">查询</el-button>
     <el-button @click="onRest">重置</el-button>
     <el-button
       class="float-right"
-      @click="$route.go(-1)"
+      @click="$router.go(-1)"
     >
       返回
     </el-button>
   </div>
   <div
     class="relative flex-grow"
-    v-loading="loading"
+    v-loading="loading.tableLoading"
   >
     <mix-table
       ref="table"
       :tableColumns="tableColumns"
       :config="tableConfig"
+      :pageParams="{ pageNo:1,pageSize:10 }"
+      :fetch="fetchData"
+      :parseTableData="(data)=>({data:data.data,total:data.totalCount})"
       @onData="onTableGetData"
       @row-click="handleTableRowClick"
-      reqMethods="POST"
-      url="/result/resultListVo"
-      :query="query"
-      :pageParams="{ pageNo:-1,pageSize:10 }"
     >
       <div class="absolute map-layer-switcher-group">
         <LayerSwitcher
@@ -55,10 +55,17 @@
 <script>
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
-  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
-  import tableRef from '@/mixins/tableRef';
+  import * as Refs from '@/mixins/Refs';
   import mapMix from '../GhgqDiscern/mapMix';
-  import LayerSwitcher from '@/components/LayerSwitcher.vue'
+  import LayerSwitcher from '@/components/LayerSwitcher.vue';
+  import { queryPipesDetail } from './Helper'
+  import * as Misc from '@/utils/misc';
+  const HCA_LEVEL = {
+    '0': '非高后果区',
+    '1': 'Ⅰ级',
+    '2': 'Ⅱ级',
+    '3': 'Ⅲ级',
+  }
 
   export default {
     components: {
@@ -66,10 +73,10 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
+    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
       return {
-        pipeList: [],
+        highLevelOptions: [],
         queryModel: {},
         tableConfig: {
           isPagination: true
@@ -122,34 +129,38 @@
           people: 300,
           place: 200
         },
-        loading: true,
+        loading: {
+          tableLoading: true,
+        }
       }
     },
     computed: {
       taskId () {
         return this.$route.query.id
       },
-      taskName () {
-        return this.$route.query.taskName
-      },
       pipeSegmentCode () {
         return this.$route.query.pipeSegmentCode
       },
-      query () {
-        return {
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
-          taskId: this.taskId,
-          higLevel: this.queryModel.higLevel,
-          pipeSegmentCode: this.pipeSegmentCode
-        }
-      }
+    },
+    created () {
+      this.fetchData = Misc.bindLoading('loading.tableLoading',this.fetchData).bind(this);
     },
     methods: {
+      async fetchData (query) {
+        const pipe = {
+          id: this.taskId,
+          pipeSegmentCode: this.pipeSegmentCode
+        }
+        const res = await queryPipesDetail(pipe,{ ...this.queryModel,...query })
+        console.log('statisticFiled',Misc.statisticFiled(res.data,'hcaLevel'))
+        this.highLevelOptions = Misc.statisticFiled(res.data,'hcaLevel')
+          .map(node => ({
+            value: node[0],
+            label: HCA_LEVEL[node[0]],
+            contains: node[1]
+          }))
+        return Promise.resolve(res)
+      },
       /**@description 选择管道 */
       async handlePipeSelect (pipe) {
         this.choosePipe = pipe
@@ -167,15 +178,24 @@
           place: specificWkt.length
         })
       },
-      /**@description 渲染所有管段、渲染分段标识 */
-      onTableGetData (data) {
+      /**@description 渲染所有管段、渲染地区等级、缓冲区、人居 */
+      async onTableGetData (data) {
         // todo 渲染管段
-        this.renderSegmentLabel(data);
+        // this.renderSegmentLabel(data);
+        const mapRef = await this.syncMixMapLoaded();
+        //渲染管线
+        this.renderPipeLine(data);
+        //渲染地区等级
+        this.renderLevel(data,'higLevel');
       },
-
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(row.wkt)
+        mixMapRef.locationByLineString(row.wkt);
+        const pipe = row;
+        //渲染缓冲区
+        this.renderRadius(pipe)
+        //渲染人居
+        this.renderFeatures(pipe);
       },
 
       togglePopulationVisible (val) {
@@ -197,3 +217,8 @@
     }
   }
 </script>
+<style lang="css" scoped>
+  ::v-deep.mix-table-wrapper>.mix-table__action {
+    top: -52px;
+  }
+</style>

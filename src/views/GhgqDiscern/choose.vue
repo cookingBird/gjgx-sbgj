@@ -113,56 +113,12 @@
       </div>
       <div class="choose-table">
         <div class="absolute inset-0 px-1 pb-1">
-          <el-table
-            height="100%"
-            ref="rightTableRef"
+          <MyTable
             :data="selectedListFiltered"
-            border
             @selection-change="(val)=>handleSelectionChange(val,'right')"
+            :columns="rightCols"
           >
-            <template v-for="(item, index) in rightCols">
-              <el-table-column
-                v-if="item.formatter"
-                :key="index"
-                v-bind="item"
-              >
-                <template v-slot:default="{row}">
-                  {{ item.formatter(row[item.prop]) }}
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-else-if="item.slotIs === 'input'"
-                :key="index"
-                v-bind="item"
-              >
-                <template v-slot:default="scope">
-                  <el-input
-                    v-model="scope.row[item.prop]"
-                    v-bind="item.slotProps&&item.slotProps(scope)"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-else-if="item.slotIs === 'button' || item.slotIs === 'btn'"
-                :key="index"
-                v-bind="item"
-              >
-                <template v-slot:default="scope">
-                  <el-button
-                    v-bind="slotProps&&slotProps(scope)"
-                    v-on="mapListeners(item.listeners,(val)=>val(scope))"
-                  >
-                    {{item.slotProps&&item.slotProps(scope).label}}
-                  </el-button>
-                </template>
-              </el-table-column>
-              <el-table-column
-                v-else
-                :key="index"
-                v-bind="item"
-              />
-            </template>
-          </el-table>
+          </MyTable>
         </div>
       </div>
     </div>
@@ -188,10 +144,12 @@
 
 <script>
   import * as Helper from './Helper';
-  import * as Misc from '@/utils/misc'
+  import * as Misc from '@/utils/misc';
+  import MyTable from '@/components/MyTable.vue';
   const CURRENT_NODE_STEP = 1;
 
   export default {
+    components: { MyTable },
     data () {
       return {
         pipeList: [],

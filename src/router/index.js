@@ -98,6 +98,10 @@ router.createRouter = function (menuList) {
       {
         path: '/DiscernResultManage/detail',
         component: () => import('@/views/DiscernResultManage/detail.vue')
+      },
+      {
+        path: '/DiscernResultManage/contrast',
+        component: () => import('@/views/DiscernResultManage/contrast.vue')
       }
     ]
   }

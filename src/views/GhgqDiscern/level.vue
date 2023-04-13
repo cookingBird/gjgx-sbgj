@@ -1,6 +1,12 @@
 <template>
-<div class="level-wrapper">
-  <div class="bg-white rounded level-top shadow-content"></div>
+<div class="h-full space-y-2 level-wrapper">
+  <div class="flex justify-end items-center min-h-[50px] bg-white rounded shadow-content">
+    <el-button
+      type="primary"
+      class="mr-56"
+      @click="onMerge"
+    >合并</el-button>
+  </div>
   <div class="level-content">
     <div class="flex-grow-0 flex-shrink-0 bg-white rounded level-content-left shadow-content">
       <el-scrollbar>
@@ -24,6 +30,7 @@
           :config="tableConfig"
           @onData="onTableGetData"
           @row-click="handleTableRowClick"
+          @selection-change="(val)=>handleSelectionChange(val)"
           reqMethods="GET"
           url="/highconsarea/nextOperate"
           :isPagination="false"
@@ -99,11 +106,10 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper'
+  import * as Refs from '@/mixins/Refs';
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
   import * as Misc from '@/utils/misc';
   import mapMix from './mapMix';
-  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
-  import tableRef from '@/mixins/tableRef';
   const CURRENT_NODE_STEP = 3;
 
   export default {
@@ -112,7 +118,7 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
+    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
       return {
         pipeList: [{
@@ -123,6 +129,7 @@
         }],
         tableConfig: {
           isPagination: false,
+          selection: true,
           buttons: {
             fixed: 'right',
             list: [
@@ -224,6 +231,7 @@
     },
     created () {
       this.getSelectedPipeList();
+      this.onMerge = Misc.bindLoading('loading',this.onMerge).bind(this)
     },
     methods: {
       getSelectedPipeList () {
@@ -235,12 +243,13 @@
           endTime: '',
           status: 0,
           taskId: this.taskId
-        }).then((data) => {
+        }).then(async (data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
           const choosePipe = data.data
             .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
           this.handlePipeSelect(choosePipe);
-          this.renderPipeLine(data.data);
+          await this.syncMixMapLoaded();
+          this.renderPipeLine(data.data)
           this.loading = false;
         })
       },
@@ -347,7 +356,11 @@
         const mixTableRef = await this.syncMixTableMounted()
         mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
         const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(pipe.wkt)
+        if (pipe.wkt) {
+          mixMapRef.locationByLineString(pipe.wkt)
+        } else {
+          this.$message.error('管线wkt为null')
+        }
         this.renderRadius(pipe)
         this.renderFeatures(pipe)
         const populationWkt = pipe.regionDto.populationWkt;
@@ -358,8 +371,8 @@
         })
       },
 
-      onTableGetData (data) {
-        console.log('onTableGetData--------',data)
+      async onTableGetData (data) {
+        await this.syncMixMapLoaded();
         this.renderSegmentLabel(data);
         this.renderLevel(data);
       },
@@ -376,6 +389,16 @@
       togglePlaceVisible (val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
+      handleSelectionChange (val) {
+        this.selectPipeSegments = val;
+      },
+      onMerge () {
+        console.log('onMerge------------------',this,this.selectPipeSegments)
+        Helper.mergePipeSegments(this.selectPipeSegments).then(_ => {
+          this.$message.success('合并成功');
+          this.$refs.table.$refs.table.refresh();
+        })
+      }
     }
   }
 </script>

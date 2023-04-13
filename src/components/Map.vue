@@ -14,7 +14,7 @@
 </template>
 
 <script>
-  import mapLifecycle from '@/mixins/mapLifecycle';
+  import mapLifecycle from '@/mixins/mapLifecycleBlock';
 
   const PIPE_LAYER_ID = 'pipe-line';
   const STATION_IMG_MAP = {
@@ -55,8 +55,7 @@
       },
       /**
        * @description 删除管线图层
-       * 
-       * **/
+       **/
       removePipeLayer () {
         const { map } = this.$refs['map'].map;
         map.getLayer(PIPE_LAYER_ID) && this.removeLayer(PIPE_LAYER_ID);
@@ -436,6 +435,7 @@
       sectionLevelRender (
         data,
         levelKey = 'regionLevel',
+        id = 'section-level',
         colorMap = [
           '0','#00B725',
           '1','#F7A830',
@@ -445,7 +445,7 @@
         ]
       ) {
         const { map } = this.$refs['map'].map;
-        const id = 'section-level';
+        // const id = 'section-level';
         const source = this.createPipeSource(data,id);
         !map.getLayer(id) && map.addLayer({
           id,
@@ -466,7 +466,16 @@
           },
           filter: ['==','$type','LineString']
         },'pipe-name')
-        console.log('sectionLevelRender----------',data);
+        return {
+          id,
+          toggleVisibility (val) {
+            if (val) {
+              map && map.setLayoutProperty(id,'visibility','visible')
+            } else {
+              map && map.setLayoutProperty(id,'visibility','none')
+            }
+          },
+        }
       },
       resize () {
         this.$refs['map'].resize();

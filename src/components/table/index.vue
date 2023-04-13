@@ -1,23 +1,20 @@
 <template>
-<div class="gislife-table-container">
+<div
+  class="gislife-table-container"
+  v-loading="loading"
+>
   <slot name="top"></slot>
-  <div
-    class="gislife-table__content"
-    v-observe:tableMaxHeight="onMaxHeight"
-  >
+  <div class="gislife-table__content">
     <el-table
       ref="table"
       class="gislife-table"
       v-bind="$attrs"
       v-on="$listeners"
-      v-loading="loading"
-      v-observe:tableWrapperFix
       v-observe:tableEmptyRow
       :data="tableData"
       :border="initCom.border"
       :class="config.class"
-      :max-height="maxHeight"
-      :height="maxHeight"
+      height="100%"
       style="width: 100%"
     >
       <!-- 表格前部插槽 -->
@@ -25,6 +22,7 @@
       <!-- 多选 -->
       <el-table-column
         type="selection"
+        align="center"
         v-if="initCom.selection"
       >
       </el-table-column>
@@ -110,7 +108,7 @@
       :pageParams.sync="pageState"
       :total="total"
       :pagerConfig="paginationConfig"
-      @size-change="refresh()"
+      @size-change="onSizeChange"
       @current-change="refresh()"
       @prev-click="refresh()"
       @next-click="refresh()"
@@ -164,12 +162,10 @@
       // 表格查询参数
       pageParams: {
         type: Object,
-        default: () => {
-          return {
-            pageNo: 1,
-            pageSize: 10,
-          };
-        },
+        default: () => ({
+          pageNo: 1,
+          pageSize: 10,
+        }),
       },
       // 分页配置
       paginationConfig: {
@@ -219,6 +215,7 @@
         Type: String,
         default: 'pageSize',
       },
+      fetch: Function
     },
     data () {
       return {
@@ -251,6 +248,7 @@
     created () {
       this.refresh();
     },
+
     methods: {
       // 按钮组操作
       handleCommand (key,row) {
@@ -277,34 +275,25 @@
       },
       // 获取数据
       async getData (query) {
-        if (!this.url) {
+        if (!this.url && !this.fetch) {
           return;
         }
-        if (!this.__xhr) {
-          this.__xhr = createXHR({
+        if (this.fetch) {
+          return this.fetch(query)
+        } else {
+          const params = {
             baseURL: this.baseURL,
             url: this.url,
-            method: this.reqMethods.trim().toUpperCase(),
-            headers: {
-              token: () => sessionStorage.getItem('token'),
-            },
-          });
+            method: this.reqMethods,
+            params: query,
+            data: query
+          };
+          return request(params);
         }
-        let params = { baseURL: this.baseURL,url: this.url,method: this.reqMethods };
-        if (this.reqMethods === 'GET') {
-          params = { ...params,params: query };
-        } else {
-          params = { ...params,data: query };
-        }
-        return request(params);
         // return this.__xhr.send({
         //   params: query,
         //   data: query
         // }).then(res => res.data)
-      },
-
-      onMaxHeight (maxHeight) {
-        this.maxHeight = Math.floor(maxHeight);
       },
 
       calcIndex (index,pgCfg = 'pageState') {
@@ -315,8 +304,10 @@
           return index + 1
         }
       },
-      sizeChange (val) {
-        console.log('sizeChange',val)
+
+      onSizeChange (val) {
+        console.log('sizeChange',val);
+        this.refresh()
       }
     },
   };
@@ -334,6 +325,13 @@
     width: 100%;
   }
 
+  .gislife-table-container>* {
+    flex-grow: 0;
+    flex-shrink: 0;
+    background-color: #fff;
+    flex-basis: 0;
+  }
+
   .gislife-table-container>.gislife-table__content {
     flex-grow: 1;
     padding: var(--el-p, var(--inner-el-padding)) var(--el-p, var(--inner-el-padding));
@@ -346,12 +344,7 @@
     border-radius: var(--border-radius, var(--inner-border-radius));
   }
 
-  .gislife-table-container>.gislife-table__footer {
-    flex-grow: 0;
-    flex-shrink: 0;
-    background-color: #fff;
-    flex-basis: auto;
-  }
+
 
   .gislife-table-container> :not([hidden])~ :not([hidden]) {
     margin-top: var(--el-spacing-y, var(--inner-margin-top));

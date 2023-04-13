@@ -6,7 +6,7 @@ export default function () {
       this.lifecycle = {
         created: new Block(),
         mounted: new Block(),
-        beforeDestory: new Block()
+        beforeDestroy: new Block()
       }
       this.lifecycle.created.setReady()
     },
@@ -14,18 +14,7 @@ export default function () {
       this.lifecycle.mounted.setReady()
     },
     beforeDestroy () {
-      this.lifecycle.beforeDestory.setReady()
+      this.lifecycle.beforeDestroy.setReady()
     },
-    methods: {
-      createdReady () {
-        return this.lifecycle.created.ready()
-      },
-      mountedReady () {
-        return this.lifecycle.mounted.ready()
-      },
-      beforeDestoryReady () {
-        return this.lifecycle.beforeDestory.ready()
-      }
-    }
   }
 }

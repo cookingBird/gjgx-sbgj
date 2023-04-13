@@ -2,10 +2,10 @@
 <div class="mix-table-wrapper">
   <div
     v-if="configs.switcher"
-    class="absolute mix-table__action-btn"
+    class="absolute mix-table__action"
   >
     <el-button
-      :class="{ 'mix-table__action-btn-item': true, 'selected': type === item }"
+      :class="{ 'mix-table__action-item': true, 'selected': type === item }"
       v-for="item in ['混合', '表格', '地图']"
       :key="item"
       @click="type = item"
@@ -39,6 +39,7 @@
       @row-click="handleRowClick"
       @onData="(data) => $emit('onData', data)"
       v-bind="$attrs"
+      v-on="$listeners"
     >
     </common-table>
   </div>
@@ -123,7 +124,7 @@
   .mix-table-wrapper {
     --el-spacing-y: 7px;
     --el-p: 8px;
-    --action-btn-top: -55;
+    --action-btn-top: -54;
     --action-btn-right: 4;
     --border-radius: 5px;
     width: 100%;
@@ -147,7 +148,7 @@
     margin-top: var(--el-spacing-y, var(--margin-top));
   }
 
-  .mix-table__action-btn {
+  .mix-table__action {
     --bgc: #306fcf;
     --f: #ffffff;
     position: absolute;
@@ -156,30 +157,30 @@
     z-index: 10;
   }
 
-  .mix-table__action-btn> :not([hidden])+ :not([hidden]) {
+  .mix-table__action> :not([hidden])+ :not([hidden]) {
     margin-left: 0;
     border-left: none;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
 
-  .mix-table__action-btn> :not([hidden]):not(:last-child) {
+  .mix-table__action> :not([hidden]):not(:last-child) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
 
-  .mix-table__action-btn>.mix-table__action-btn-item {
+  .mix-table__action>.mix-table__action-item {
     background-color: var(--f);
     color: var(--bgc);
     border-color: var(--bgc);
   }
 
-  .mix-table__action-btn>.mix-table__action-btn-item:hover {
+  .mix-table__action>.mix-table__action-item:hover {
     border-color: var(--bgc);
     border-width: 1px;
   }
 
-  .mix-table__action-btn>.mix-table__action-btn-item.selected {
+  .mix-table__action>.mix-table__action-item.selected {
     background-color: var(--bgc);
     color: var(--f);
   }

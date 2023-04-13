@@ -1,5 +1,5 @@
 <template>
-<div class="section-wrapper">
+<div class="space-y-2 section-wrapper">
   <div class="bg-white rounded section-top shadow-content"></div>
   <div class="section-content">
     <div class="flex-grow-0 flex-shrink-0 bg-white rounded section-content-left shadow-content">
@@ -28,7 +28,7 @@
           url="/highconsarea/nextOperate"
           :isPagination="false"
           :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
-          :pageParams="{ pageNo:-1,pageSize:10 }"
+          :pageParams="{ pageNo:1,pageSize:-1 }"
         >
           <!-- <template v-slot:operator>
             <el-button>
@@ -135,8 +135,7 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
-  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
-  import tableRef from '@/mixins/tableRef';
+  import * as Refs from '@/mixins/Refs';
   import mapMix from './mapMix';
   import LayerSwitcher from '@/components/LayerSwitcher.vue'
   const CURRENT_NODE_STEP = 2;
@@ -147,7 +146,7 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
+    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
       return {
         pipeList: [
@@ -267,13 +266,12 @@
           endTime: '',
           status: 0,
           taskId: this.taskId
-        }).then((data) => {
+        }).then(async (data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
           const choosePipe = data.data
             .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0];
-          console.log('getSelectedPipeList----------------',this.$route,this.selectedPipe)
-          console.log('getSelectedPipeList----------------',choosePipe)
           this.handlePipeSelect(choosePipe)
+          await this.syncMixMapLoaded();
           this.renderPipeLine(data.data)
           this.loading = false
         })
@@ -293,8 +291,8 @@
             }
           })
         }).finally(_ => {
-            this.loading = false;
-          })
+          this.loading = false;
+        })
 
       },
       /**@description 下一步 */
@@ -363,7 +361,11 @@
         const mixTableRef = await this.syncMixTableMounted()
         mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
         const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(pipe.wkt)
+        if (pipe.wkt) {
+          mixMapRef.locationByLineString(pipe.wkt)
+        } else {
+          this.$message.error('管线wkt为null')
+        }
         this.renderRadius(pipe)
         this.renderFeatures(pipe);
         const populationWkt = pipe.regionDto.populationWkt;
@@ -395,6 +397,10 @@
 </script>
 
 <style lang="scss" scoped>
+::v-deep.mix-table-wrapper .mix-table__action {
+  top: -54px;
+}
+
 .section-wrapper {
   width: 100%;
   height: 100%;

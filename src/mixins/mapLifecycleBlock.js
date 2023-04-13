@@ -11,9 +11,6 @@ export default function () {
       setMapLoaded () {
         this.mapLifecycle.loaded.setReady()
       },
-      mapLoadReady () {
-        return this.mapLifecycle.loaded.ready()
-      }
     }
   }
 }

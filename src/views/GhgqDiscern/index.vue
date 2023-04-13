@@ -221,6 +221,10 @@
         pdf: null,
         statusOptions: [
           {
+            value: 0,
+            label: '还未开始',
+          },
+          {
             value: 1,
             label: '分段',
           },

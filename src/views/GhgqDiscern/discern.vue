@@ -102,9 +102,8 @@
   import MixTable from '@/components/mixTable';
   import PipeSelector from '@/components/pipeSelector';
   import * as Helper from './Helper';
+  import * as Refs from '@/mixins/Refs';
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
-  import mapLifecycleRef from '@/mixins/mapLifecycleRef';
-  import tableRef from '@/mixins/tableRef';
   import mapMix from './mapMix';
   import * as Misc from '@/utils/misc'
   const CURRENT_NODE_STEP = 4;
@@ -115,7 +114,7 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [mapLifecycleRef(),tableRef(),mapMix()],
+    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
       return {
         pipeList: [
@@ -156,7 +155,7 @@
             width: 150,
             format (val) {
               if (val === null) {
-                return '-'
+                return '否'
               } else if (val == 0) {
                 return '否'
               } else if (val == 1) {
@@ -170,7 +169,7 @@
             width: 120,
             format: function (val) {
               if (val == 0) {
-                return '-'
+                return '非高后果区'
               } else if (val == 1) {
                 return '一级'
               } else if (val == 2) {
@@ -302,12 +301,13 @@
           endTime: '',
           status: 0,
           taskId: this.taskId
-        }).then((data) => {
+        }).then(async (data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
           const choosePipe = data.data
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
           this.handlePipeSelect(choosePipe);
-          this.renderPipeLine(data.data);
+          await this.syncMixMapLoaded();
+          this.renderPipeLine(data.data)
           this.loading = false;
         })
       },
@@ -318,7 +318,11 @@
         const mixTableRef = await this.syncMixTableMounted()
         mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
         const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(pipe.wkt)
+        if (pipe.wkt) {
+          mixMapRef.locationByLineString(pipe.wkt)
+        } else {
+          this.$message.error('管线wkt为null')
+        }
         this.renderRadius(pipe)
         this.renderFeatures(pipe)
         const populationWkt = pipe.regionDto.populationWkt;
@@ -399,7 +403,8 @@
           }
         })
       },
-      onTableGetData (data) {
+      async onTableGetData (data) {
+        await this.syncMixMapLoaded();
         this.renderSegmentLabel(data);
         this.renderLevel(data,'hcaLevel');
       },
