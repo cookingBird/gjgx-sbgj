@@ -2,8 +2,7 @@ export default function () {
   return {
     methods: {
       /**@description 渲染所有管线 */
-      renderPipeLine (pipeList) {
-        const mixMapRef = this.mixMapRef()
+      renderPipeLine (pipeList, mixMapRef = this.mixMapRef()) {
         mixMapRef.pipeRender(pipeList)
       },
       /**
@@ -11,7 +10,7 @@ export default function () {
        * @param { * } pipe
        */
       renderRadius (pipe, mixMapRef = this.mixMapRef()) {
-        const regionWkt = pipe?.regionDto?.regionWkt || pipe;
+        const regionWkt = pipe.regionDto.regionWkt
         if (!this.__radiusRange) {
           this.__radiusRange = mixMapRef.pipeRadiusRender(regionWkt)
         } else {
@@ -49,10 +48,7 @@ export default function () {
         }
         const specificWkt = wkts
         if (type === 'specific') {
-          this.__placeLayer = mapRef.renderMarkerByType(
-            specificWkt,
-            'specific'
-          )
+          this.__placeLayer = mapRef.renderMarkerByType(specificWkt, 'specific')
         }
         const flammableWkt = wkts
         if (type === 'flammable') {

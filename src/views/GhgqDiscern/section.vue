@@ -358,6 +358,7 @@
 
       /**@description 选择管道 */
       async handlePipeSelect (pipe) {
+    
         this.choosePipe = pipe
         this.pipeCode = pipe.pipeSegmentCode
         const mixTableRef = await this.syncMixTableMounted()
@@ -368,6 +369,7 @@
         } else {
           this.$message.error('管线wkt为null')
         }
+        console.log('renderRadius',pipe)
         this.renderRadius(pipe)
         this.renderFeatures(pipe);
         const populationWkt = pipe.regionDto.populationWkt;

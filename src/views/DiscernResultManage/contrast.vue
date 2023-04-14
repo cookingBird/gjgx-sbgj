@@ -4,7 +4,7 @@
 		<span class="px-2 text-2xl font-bold text-black"> 对比分析</span>
 		<el-button
 			class="absolute right-0 mr-56"
-			@click="$router.go(-1)"
+			@click="$router.push('/DiscernResultManage')"
 		>
 			返回
 		</el-button>
@@ -175,16 +175,19 @@
 						const pipesObj = statisticFiled(this.pipeSegmentList,'taskId','obj')
 						const populationWkt = mergeFiled(this.pipeSegmentList,'regionDto.populationWkt');
 						const specificWkt = mergeFiled(this.pipeSegmentList,'regionDto.specificWkt');
-						const regionWkt = mergeFiled(this.pipeSegmentList,'regionDto.regionWkt');
+
 						this.pipeAroundTotal = {
 							people: populationWkt.length,
 							place: specificWkt.length,
 						}
 						const mixMapRef = await this.syncMapLoaded();
 						this.renderFeatureByType(populationWkt,'population',mixMapRef);
-						this.renderFeatureByType(specificWkt,'specific',mixMapRef)
+						this.renderFeatureByType(specificWkt,'specific',mixMapRef);
+						this.renderPipeLine([this.pipes[0]],mixMapRef)
 						this.renderPipes(pipesObj);
-						this.renderRadius(regionWkt.map(wkt => ({ wkt })),mixMapRef)
+						//!未返回管线缓冲区wkt
+						console.log('this.pipes[0].regionDto',this.pipes)
+						// this.renderRadius(this.pipes[0].regionDto.regionWkt,mixMapRef);
 						const tableRef = await this.syncTableMounted();
 						tableRef.$refs['ElTable'].toggleAllSelection();
 					})

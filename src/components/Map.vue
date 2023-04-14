@@ -110,6 +110,7 @@
           const { name,wkt } = pipe;
           //线数据
           const geometry = window.Terraformer.WKT.parse(wkt);
+          // console.log('createPipeSource----------',geometry);
           data.features.push({
             type: 'Fetaure',
             geometry,
@@ -214,8 +215,7 @@
       /**
        * @description 删除管线影响半径
        * **/
-      async pipeRadiusRemove (id = 'pipe-radius') {
-        await this.mapLifecycle.loaded.ready();
+      pipeRadiusRemove (id = 'pipe-radius') {
         const { map } = this.$refs['map'].map;
         try {
           if (map.getLayer(id)) {
@@ -232,21 +232,17 @@
         const { map } = this.$refs['map'].map;
         const id = 'pipe-radius';
         if (!Array.isArray(wkt)) {
-          wkt = [wkt]
+          if (wkt.wkt) {
+            wkt = [wkt]
+          } else {
+            wkt = [{ wkt }]
+          }
         }
-        // const geometry = window.Terraformer.WKT.parse(wkt);
         const sourceId = this.createPipeSource(wkt,id);
         map.addLayer({
           id,
           type: 'fill',
           source: sourceId,
-          // source: {
-          //   type: 'geojson',
-          //   data: {
-          //     'type': 'Feature',
-          //     'geometry': geometry
-          //   }
-          // },
           paint: {
             'fill-color': '#ffff00',
             'fill-opacity': 0.3,
