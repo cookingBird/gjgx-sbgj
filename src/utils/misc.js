@@ -1,14 +1,25 @@
+export function validateFileds (source, target, ...fileds) {
+  fileds = fileds.flat()
+  return fileds.reduce((pre, curF) => {
+    return pre && source[curF] === target[curF]
+  }, true)
+}
+
 export function arrayDupRemove (array, ...keyFileds) {
-  function validateFileds (source, target, fileds = keyFileds) {
-    return fileds.reduce((pre, curF) => {
-      return pre && source[curF] === target[curF]
-    }, true)
-  }
+  keyFileds = keyFileds.flat()
   return array.reduce((pre, curr) => {
-    if (pre.findIndex(n => validateFileds(n, curr, keyFileds)) > -1) {
-      return pre
+    if (keyFileds.length) {
+      if (pre.findIndex(n => validateFileds(n, curr, keyFileds)) > -1) {
+        return pre
+      } else {
+        return pre.concat(curr)
+      }
     } else {
-      return pre.concat(curr)
+      if (pre.include(curr)) {
+        return pre
+      } else {
+        return pre.concat(curr)
+      }
     }
   }, [])
 }
@@ -56,18 +67,18 @@ export function requestDom (
 
 export function pickFileds (target, ...fileds) {
   if (!target) return {}
-  if (fileds.length === 0) return target
-  const res = {}
   const f = fileds.flat()
+  if (f.length === 0) return target
+  const res = {}
   for (const key of f) {
     res[key] = target[key]
   }
   return res
 }
 
-export function arrayOmit (raw, omit, uniqueKey) {
-  return raw.filter(
-    pipe => omit.findIndex(p => p[uniqueKey] === pipe[uniqueKey]) === -1
+export function arrayOmit (array, omits, uniqueKey) {
+  return array.filter(
+    pipe => omits.findIndex(p => p[uniqueKey] === pipe[uniqueKey]) === -1
   )
 }
 
@@ -89,8 +100,8 @@ export function toArray (tar) {
   }
 }
 
-export function getCtxValueSetter (ctx, filedString) {
-  const fileds = filedString.split('.')
+export function getCtxValueSetter (ctx, filedLike) {
+  const fileds = filedLike.split('.')
   const length = fileds.length
   return value => {
     let context = ctx
@@ -103,6 +114,16 @@ export function getCtxValueSetter (ctx, filedString) {
     })
   }
 }
+
+export function getCtxValue (ctx, filedLike) {
+  const fileds = filedLike.split('.')
+  let val = ctx
+  fileds.forEach(key => {
+    val = val[key]
+  })
+  return val
+}
+
 export function bindLoading (loadingFiled, loadingFn) {
   if (!loadingFn) {
     throw Error('bindLoading error, callback is null')
@@ -111,20 +132,20 @@ export function bindLoading (loadingFiled, loadingFn) {
   return function (...params) {
     const setValue = getCtxValueSetter(this, loadingFiled)
     setValue(true)
-    try {
-      return loadingFn(...params).then(
-        res => {
-          setValue(false)
-          return res
-        },
-        err => {
-          setValue(false)
-          return Promise.reject(err)
-        }
-      )
-    } catch (error) {
-      setValue(false)
+    const result = loadingFn(...params)
+    if (!result.then) {
+      throw Error('bindLoading must return a promise')
     }
+    return result.then(
+      res => {
+        setValue(false)
+        return res
+      },
+      err => {
+        setValue(false)
+        return Promise.reject(err)
+      }
+    )
   }
 }
 
@@ -162,7 +183,7 @@ export function statisticFiled (array, Filed, resultType = 'array') {
   )
 }
 
-export function isFiledValEqual (array, filed = 'id') {
+export function reduceFiledEqual (array, filed = 'id') {
   if (Array.isArray(array) && array.length > 0) {
     return array.slice(1).reduce(
       (pre, cur) => {
@@ -179,22 +200,162 @@ export function isFiledValEqual (array, filed = 'id') {
   }
 }
 
-export function pickAttrs (obj, ...attrs) {
+export function pickAttrs (obj, prefix = val => val, ...attrs) {
   attrs = attrs.flat()
   return attrs.reduce((pre, cur) => {
     return {
       ...pre,
-      [cur]: obj[cur]
+      [prefix(cur)]: obj[cur]
     }
   }, {})
 }
 
 export function pickDataAttrs (obj, ...attrs) {
-  attrs = attrs.flat()
-  return attrs.reduce((pre, cur) => {
+  return pickAttrs(obj, key => 'data-' + key, attrs)
+}
+
+export function statisticArray (array, sFiled = 'id') {
+  return array.reduce((pre, curr) => {
+    const fVal = curr[sFiled]
     return {
       ...pre,
-      [`data-${cur}`]: obj[cur]
+      [fVal]: pre[fVal] ? pre[fVal].concat(curr) : [curr]
     }
   }, {})
+}
+
+export function debounce (fn, timeGutter = 300, immediate = false) {
+  let timer
+  return function (...params) {
+    if (!timer) {
+      timer = setTimeout(() => {
+        fn(...params)
+        timer = void 0
+      }, timeGutter)
+      if (immediate) {
+        fn(...params)
+      }
+    } else {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        fn(...params)
+        timer = null
+      })
+    }
+  }
+}
+
+/**
+ * !警告,该函数的回调不可打印执行
+ * @description
+ * @param {*} mergeFiled
+ * @param {*} statisticKey
+ * @returns
+ */
+export function createTableSpanMethods (mergeFiled, statisticKey) {
+  let mergeRecord = null
+  let mergeRecordClear = null
+  let mergeStatistic = null
+  let mergeStatisticClear = null
+  statisticKey = statisticKey || mergeFiled
+  return function (scope, tableData) {
+    const { row, column } = scope
+
+    if (!mergeRecord) {
+      mergeRecord = {}
+      mergeRecordClear = debounce(() => {
+        mergeRecord = null
+      }, 1000)
+    } else {
+      mergeRecordClear()
+    }
+
+    if (!mergeStatistic) {
+      mergeStatistic = statisticArray(tableData, statisticKey)
+      mergeStatisticClear = debounce(() => {
+        mergeStatistic = null
+      }, 1000)
+    } else {
+      mergeStatisticClear()
+    }
+    if (column.property === mergeFiled) {
+      if (!mergeRecord[row[statisticKey]]) {
+        mergeRecord[row[statisticKey]] = true
+        return {
+          rowspan: mergeStatistic[row[statisticKey]].length,
+          colspan: 1
+        }
+      } else {
+        return {}
+      }
+    }
+  }
+}
+
+export function createFiledRecordCtx (fallback, filedKey) {
+  const ctx = {}
+  if (typeof fallback === 'string') {
+    switch (fallback) {
+      case 'randomColor': {
+        fallback = randomColor
+        break
+      }
+    }
+  }
+  return function (filedOrItem, isGetCtx = false) {
+    if (isGetCtx) {
+      return ctx
+    }
+    if (!filedKey) {
+      if (!ctx[filedOrItem]) {
+        ctx[filedOrItem] = fallback()
+        return ctx[filedOrItem]
+      } else {
+        return ctx[filedOrItem]
+      }
+    } else {
+      if (!ctx[filedOrItem[filedKey]]) {
+        ctx[filedOrItem[filedKey]] = fallback()
+        return ctx[filedOrItem[filedKey]]
+      } else {
+        return ctx[filedOrItem[filedKey]]
+      }
+    }
+  }
+}
+
+export function randomColor () {
+  return (
+    '#' + ('00000' + ((Math.random() * 0x1000000) << 0).toString(16)).substr(-6)
+  )
+}
+
+export function mergeFiled (array, filedLike) {
+  return array.map(item => getCtxValue(item, filedLike)).flat()
+}
+
+export function createArrayContrast (raw, ...contrastFiled) {
+  let history = raw || []
+  contrastFiled = contrastFiled.flat()
+  return function contrast (curr) {
+    const isAdd = curr.length > history.length
+    let list = []
+    if (isAdd) {
+      list = curr.filter(
+        cur =>
+          history.findIndex(his => validateFileds(cur, his, contrastFiled)) ===
+          -1
+      )
+    } else {
+      list = history.filter(
+        cur =>
+          curr.findIndex(his => validateFileds(cur, his, contrastFiled)) === -1
+      )
+    }
+    history = curr
+    return {
+      isAdd: isAdd,
+      list: list
+    }
+  }
 }

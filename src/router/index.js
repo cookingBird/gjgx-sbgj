@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import store from '../store'
 import ViewRouter from '@/views/viewRouter'
 import Iframe from '@/views/iframe'
 import Layout from '@/views/index'
@@ -16,9 +15,15 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.query.token) {
-    sessionStorage.token = to.query.token
+    sessionStorage.token = to.query.token;
+    delete to.query.token;
+    next({
+      path:to.path,
+      query:to.query
+    })
+  }else{
+    next()
   }
-  next()
 })
 
 router.createRouter = function (menuList) {
@@ -56,8 +61,7 @@ router.createRouter = function (menuList) {
         path: '/DiscernSteps',
         component: () => import('@/views/GhgqDiscern/stepLayout.vue'),
         redirect: '/DiscernSteps/choose',
-        children: [
-          {
+        children: [{
             path: '/DiscernSteps/choose',
             component: () => import('@/views/GhgqDiscern/choose.vue'),
             meta: {
@@ -108,8 +112,16 @@ router.createRouter = function (menuList) {
 
   const loop = (arr, target) => {
     arr.forEach(item => {
-      const { funCode, route, children, funName, reqPath, funType, openMode } =
-        item
+      const {
+        funCode,
+        route,
+        children,
+        funName,
+        reqPath,
+        funType,
+        openMode
+      } =
+      item
       //按钮类型不创建路由
       if (funType === 1) return
       const option = {

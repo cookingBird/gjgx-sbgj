@@ -4,7 +4,7 @@ module.exports = {
   mode: 'jit',
   purge: ['./public/index.html', './src/**/*.{vue,js,css,scss}'],
   darkMode: false, // or 'media' or 'class'
-  important: true,
+  important: false,
   theme: {
     extend: {}
   },

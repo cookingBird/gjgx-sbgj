@@ -1,14 +1,14 @@
 <template>
 <main>
-  <div class="px-2 py-1 page-top shadow-content bg-fff">
+  <div class="px-2 py-1 rounded page-top shadow-content bg-fff">
     <div class="font16 inline_div l-h-24rem fw_600">详情</div>
     <el-button
       class="f-r"
       @click="$emit('back')"
     >返回</el-button>
   </div>
-  <div class="page-content bg-fff shadow-content">
-    <section>
+  <div class="rounded page-content bg-fff shadow-content">
+    <section class="px-1">
       <div class="content-title">基础信息</div>
       <el-descriptions
         border
@@ -74,7 +74,7 @@
         <el-descriptions-item label="备注">{{ info.Note || null}}</el-descriptions-item>
       </el-descriptions>
     </section>
-    <section>
+    <section class="px-1">
       <div class="content-title">潜在影响范围</div>
       <div class="descriptions-wrapper">
         <el-descriptions

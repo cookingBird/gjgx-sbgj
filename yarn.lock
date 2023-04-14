@@ -9365,6 +9365,13 @@ qs@6.11.0:
   dependencies:
     side-channel "^1.0.4"
 
+qs@^6.11.1:
+  version "6.11.1"
+  resolved "http://94.191.8.73:7015/repository/npm-group/qs/-/qs-6.11.1.tgz#6c29dff97f0c0060765911ba65cbc9764186109f"
+  integrity sha512-0wsrzgTz/kAVIeuxSjnpGC56rzYtr6JT/2BwEvMaPhFIoYa1aGO8LbzuU1R0uUYQkLpWBTOj0l/CLAJB64J6nQ==
+  dependencies:
+    side-channel "^1.0.4"
+
 qs@~6.5.2:
   version "6.5.3"
   resolved "http://94.191.8.73:7015/repository/npm-group/qs/-/qs-6.5.3.tgz#3aeeffc91967ef6e35c0e488ef46fb296ab76aad"
@@ -11370,7 +11377,7 @@ vue-resize-sensor@^2.0.0:
   resolved "http://94.191.8.73:7015/repository/npm-group/vue-resize-sensor/-/vue-resize-sensor-2.0.0.tgz#3a587fd6802e1688709cf2c5aadae7a0075952bf"
   integrity sha512-W+y2EAI/BxS4Vlcca9scQv8ifeBFck56DRtSwWJ2H4Cw1GLNUYxiZxUHHkuzuI5JPW/cYtL1bPO5xPyEXx4LmQ==
 
-vue-router@^3.2.0:
+vue-router@3.x:
   version "3.6.5"
   resolved "http://94.191.8.73:7015/repository/npm-group/vue-router/-/vue-router-3.6.5.tgz#95847d52b9a7e3f1361cb605c8e6441f202afad8"
   integrity sha512-VYXZQLtjuvKxxcshuRAwjHnciqZVoXAjTjcqBTz4rKc8qih9g9pI3hbDjmqXaHdgL3v8pV6P8Z335XvHzESxLQ==

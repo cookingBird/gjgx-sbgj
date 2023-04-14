@@ -20,53 +20,55 @@
       </el-scrollbar>
     </div>
     <div
-      class="flex-grow level-content-right"
+      class="relative flex-grow level-content-right"
       v-loading="loading"
     >
-      <div class="right-content">
-        <mix-table
-          ref="table"
-          :tableColumns="tableColumns"
-          :config="tableConfig"
-          @onData="onTableGetData"
-          @row-click="handleTableRowClick"
-          @selection-change="(val)=>handleSelectionChange(val)"
-          reqMethods="GET"
-          url="/highconsarea/nextOperate"
-          :isPagination="false"
-          :query="{ taskId:taskId,nodeId: 2,flag: '',pipeCode: pipeCode}"
-          :pageParams="{pageNo:1,pageSize:-1}"
-        >
-          <div class="absolute map-layer-switcher-group">
-            <LayerSwitcher
-              v-model="populationShow"
-              :number="pipeAroundTotal.people"
-              title="人居"
-              @change="togglePopulationVisible"
-            ></LayerSwitcher>
-            <LayerSwitcher
-              v-model="placeShow"
-              :number="pipeAroundTotal.place"
-              title="特定场所"
-              @change="togglePlaceVisible"
-            ></LayerSwitcher>
-          </div>
-        </mix-table>
-      </div>
-      <div class="mt-2 rounded right-footer shadow-content">
-        <el-button
-          type="primary"
-          @click="onPrev"
-        >上一步</el-button>
-        <el-button
-          type="primary"
-          @click="handleDiscern"
-        >一键识别</el-button>
-        <el-button
-          type="primary"
-          @click="handleNext"
-        >下一步</el-button>
+      <div class="absolute inset-0 flex flex-col">
+        <div class="right-content">
+          <mix-table
+            ref="table"
+            :tableColumns="tableColumns"
+            :config="tableConfig"
+            @onData="onTableGetData"
+            @row-click="handleTableRowClick"
+            @selection-change="(val)=>handleSelectionChange(val)"
+            reqMethods="GET"
+            url="/highconsarea/nextOperate"
+            :isPagination="false"
+            :query="{ taskId:taskId,nodeId: 2,flag: '',pipeCode: pipeCode}"
+            :pageParams="{pageNo:1,pageSize:-1}"
+          >
+            <div class="absolute map-layer-switcher-group">
+              <LayerSwitcher
+                v-model="populationShow"
+                :number="pipeAroundTotal.people"
+                title="人居"
+                @change="togglePopulationVisible"
+              ></LayerSwitcher>
+              <LayerSwitcher
+                v-model="placeShow"
+                :number="pipeAroundTotal.place"
+                title="特定场所"
+                @change="togglePlaceVisible"
+              ></LayerSwitcher>
+            </div>
+          </mix-table>
+        </div>
+        <div class="mt-2 rounded right-footer shadow-content">
+          <el-button
+            type="primary"
+            @click="onPrev"
+          >上一步</el-button>
+          <el-button
+            type="primary"
+            @click="handleDiscern"
+          >一键识别</el-button>
+          <el-button
+            type="primary"
+            @click="handleNext"
+          >下一步</el-button>
 
+        </div>
       </div>
     </div>
   </div>

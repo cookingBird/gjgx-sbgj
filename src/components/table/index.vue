@@ -15,7 +15,7 @@
       :border="initCom.border"
       :class="config.class"
       height="100%"
-      style="width: 100%"
+      style="max-width: 100%;"
     >
       <!-- 表格前部插槽 -->
       <slot name="prepend"></slot>
@@ -330,6 +330,10 @@
     flex-shrink: 0;
     background-color: #fff;
     flex-basis: 0;
+  }
+
+  .gislife-table {
+    overflow: hidden;
   }
 
   .gislife-table-container>.gislife-table__content {

@@ -168,10 +168,8 @@
 				return this.$refs['mixTableRef'].$refs['table'];
 			},
 			taskContrastDisable () {
-				// const codes = [...new Set(this.selectRows.map(item => item.pipeSegmentCode))];
-				// return (codes.length === 0 || codes.length > 1) ? true : false;
 				const uniqueField = 'pipeSegmentCode';
-				return !(this.selectRows.length > 1 && Misc.isFiledValEqual(this.selectRows,uniqueField));
+				return !(this.selectRows.length > 1 && Misc.reduceFiledEqual(this.selectRows,uniqueField));
 			},
 		},
 		created () {

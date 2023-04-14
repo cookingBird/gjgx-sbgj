@@ -11,7 +11,7 @@ export default function () {
        * @param { * } pipe
        */
       renderRadius (pipe, mixMapRef = this.mixMapRef()) {
-        const regionWkt = pipe.regionDto.regionWkt
+        const regionWkt = pipe?.regionDto?.regionWkt || pipe;
         if (!this.__radiusRange) {
           this.__radiusRange = mixMapRef.pipeRadiusRender(regionWkt)
         } else {
@@ -23,21 +23,44 @@ export default function () {
        * @param {*} pipe
        */
       renderFeatures (pipe, mixMapRef = this.mixMapRef()) {
-        const populationWkt = pipe.regionDto.populationWkt
+        const populationWkt = pipe?.regionDto?.populationWkt || pipe
         this.__populationLayer = mixMapRef.renderMarkerByType(
           populationWkt,
           'population'
         )
-        const specificWkt = pipe.regionDto.specificWkt
+        const specificWkt = pipe?.regionDto?.specificWkt || pipe
         this.__placeLayer = mixMapRef.renderMarkerByType(
           specificWkt,
           'specific'
         )
-        const flammableWkt = pipe.regionDto.flammableWkt
+        const flammableWkt = pipe?.regionDto?.flammableWkt || pipe
         this.__boomLayer = mixMapRef.renderMarkerByType(
           flammableWkt,
           'flammable'
         )
+      },
+      renderFeatureByType (wkts, type, mapRef) {
+        const populationWkt = wkts
+        if (type === 'population') {
+          this.__populationLayer = mapRef.renderMarkerByType(
+            populationWkt,
+            'population'
+          )
+        }
+        const specificWkt = wkts
+        if (type === 'specific') {
+          this.__placeLayer = mapRef.renderMarkerByType(
+            specificWkt,
+            'specific'
+          )
+        }
+        const flammableWkt = wkts
+        if (type === 'flammable') {
+          this.__boomLayer = mapRef.renderMarkerByType(
+            flammableWkt,
+            'flammable'
+          )
+        }
       },
       /**@description 渲染分段标识 */
       renderSegmentLabel (data) {

@@ -14,57 +14,59 @@
       </el-scrollbar>
     </div>
     <div
-      class="flex-grow section-content-right"
+      class="relative flex-grow section-content-right"
       v-loading="loading"
     >
-      <div class="right-content">
-        <mix-table
-          ref="table"
-          :tableColumns="tableColumns"
-          :config="tableConfig"
-          @onData="onTableGetData"
-          @row-click="handleTableRowClick"
-          reqMethods="GET"
-          url="/highconsarea/nextOperate"
-          :isPagination="false"
-          :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
-          :pageParams="{ pageNo:1,pageSize:-1 }"
-        >
-          <!-- <template v-slot:operator>
+      <div class="absolute inset-0 flex flex-col">
+        <div class="right-content">
+          <mix-table
+            ref="table"
+            :tableColumns="tableColumns"
+            :config="tableConfig"
+            @onData="onTableGetData"
+            @row-click="handleTableRowClick"
+            reqMethods="GET"
+            url="/highconsarea/nextOperate"
+            :isPagination="false"
+            :query="{ taskId:taskId,nodeId: 1,flag: '',pipeCode:pipeCode}"
+            :pageParams="{ pageNo:1,pageSize:-1 }"
+          >
+            <!-- <template v-slot:operator>
             <el-button>
               分段
             </el-button>
           </template> -->
-          <div class="absolute map-layer-switcher-group">
-            <LayerSwitcher
-              v-model="populationShow"
-              title="人居"
-              :number="pipeAroundTotal.people"
-              @change="togglePopulationVisible"
-            ></LayerSwitcher>
-            <LayerSwitcher
-              v-model="placeShow"
-              :number="pipeAroundTotal.place"
-              title="特定场所"
-              @change="togglePlaceVisible"
-            ></LayerSwitcher>
+            <div class="absolute map-layer-switcher-group">
+              <LayerSwitcher
+                v-model="populationShow"
+                title="人居"
+                :number="pipeAroundTotal.people"
+                @change="togglePopulationVisible"
+              ></LayerSwitcher>
+              <LayerSwitcher
+                v-model="placeShow"
+                :number="pipeAroundTotal.place"
+                title="特定场所"
+                @change="togglePlaceVisible"
+              ></LayerSwitcher>
+            </div>
+          </mix-table>
+        </div>
+        <div class="flex-grow-0 flex-shrink-0 p-2 mt-2 bg-white rounded shadow-content">
+          <div class="flex justify-center">
+            <el-button
+              type="primary"
+              @click="onPrev"
+            >上一步</el-button>
+            <el-button
+              type="primary"
+              @click="handleDiscern"
+            >一键识别</el-button>
+            <el-button
+              type="primary"
+              @click="handleNext"
+            >下一步</el-button>
           </div>
-        </mix-table>
-      </div>
-      <div class="flex-grow-0 flex-shrink-0 p-2 mt-2 bg-white rounded shadow-content">
-        <div class="flex justify-center">
-          <el-button
-            type="primary"
-            @click="onPrev"
-          >上一步</el-button>
-          <el-button
-            type="primary"
-            @click="handleDiscern"
-          >一键识别</el-button>
-          <el-button
-            type="primary"
-            @click="handleNext"
-          >下一步</el-button>
         </div>
       </div>
     </div>

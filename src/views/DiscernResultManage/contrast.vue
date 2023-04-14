@@ -8,7 +8,7 @@
 		>
 			返回
 		</el-button>
-		<div class="relative mix-table__action">
+		<div class="!relative mix-table__action">
 			<el-button
 				:class="{'selected': type === item }"
 				class="mix-table__action-item"
@@ -21,17 +21,42 @@
 		</div>
 	</div>
 	<div class="relative flex-grow rounded">
-		<BaseMap ref="map"></BaseMap>
-		<section class="absolute top-0 bottom-0 left-0 flex flex-col w-[675px] p-2 my-2 ml-1 rounded-lg table-wrapper">
+		<BaseMap ref="map">
+			<div class="absolute map-layer-switcher-group">
+				<LayerSwitcher
+					v-model="visible.populationShow"
+					:number="pipeAroundTotal.people"
+					title="人居"
+					@change="(val)=>toggleVisible(val,'people')"
+				></LayerSwitcher>
+				<LayerSwitcher
+					v-model="visible.placeShow"
+					:number="pipeAroundTotal.place"
+					title="特定场所"
+					@change="(val)=>toggleVisible(val,'place')"
+				></LayerSwitcher>
+			</div>
+		</BaseMap>
+		<section
+			v-show="type == '表格' || type == '混合'"
+			class="absolute flex-col p-2 m-2 rounded-lg table-wrapper"
+			:class="[ type == '表格' ? 'inset-0' : 'top-0 bottom-0 left-0 w-[675px]']"
+		>
 			<div class="flex justify-between flex-grow-0 flex-shrink-0 w-auto py-2">
 				<span class="text-2xl font-bold text-white"> 对比分析</span>
-				<i class="text-2xl text-white cursor-pointer el-icon-close"></i>
+				<i
+					class="text-2xl text-white cursor-pointer el-icon-close"
+					@click="type='地图'"
+				></i>
 			</div>
-			<div class="flex-grow">
+			<div class="flex-grow overflow-hidden">
 				<MyTable
 					ref="table"
+					height="100%"
 					:data="pipeSegmentList"
 					:columns="tableCols"
+					:span-method="objectSpanMethod"
+					@row-click="handleRowClick"
 					@selection-change="handleSelectionChange"
 				>
 				</MyTable>
@@ -47,19 +72,31 @@
 	import MyTable from '@/components/MyTable.vue';
 	import * as Refs from '@/mixins/Refs';
 	import mapMix from '../GhgqDiscern/mapMix';
-	import { pickDataAttrs } from '@/utils/misc';
+	import {
+		arrayOmit,
+		createTableSpanMethods,
+		createFiledRecordCtx,
+		mergeFiled,
+		statisticFiled,
+		createArrayContrast
+	} from '@/utils/misc';
+	import LayerSwitcher from "@/components/LayerSwitcher.vue";
+	import { v4 as uuidv4 } from 'uuid';
+	const UNIQUE_KEY = 'taskId';
+
 	export default {
 		name: "contrast",
 		components: {
 			BaseMap: Map,
-			MyTable
+			MyTable,
+			LayerSwitcher
 		},
 		mixins: [Refs.createMap('map','refs'),Refs.createTable('table','refs'),mapMix()],
 		props: {},
 		data () {
 			return {
 				tableCols: [
-					{ width: 55,type: 'selection',align: 'center' },
+					{ width: 55,type: 'selection',prop: 'selection',align: 'center' },
 					{
 						width: 55,prop: 'color',align: 'center',label: '顔色',slotIs: 'div',
 						dataAttrs: ['colorHex'],
@@ -97,7 +134,15 @@
 					{ width: void 0,prop: 'endMileage',align: 'center',label: '终止里程(m)' },
 				],
 				pipeSegmentList: [],
-				type: '混合'
+				type: '混合',
+				visible: {
+					populationShow: true,
+					placeShow: true,
+				},
+				pipeAroundTotal: {
+					people: 0,
+					place: 0
+				}
 			};
 		},
 		computed: {
@@ -105,98 +150,96 @@
 				return this.$route.query.pipes
 			},
 		},
-
+		created () {
+			this.__getTaskColor = createFiledRecordCtx('randomColor','taskId');
+			this.__mergeTaskName = createTableSpanMethods('taskName','taskId')
+			this.__mergeColor = createTableSpanMethods('color','taskId')
+			this.__mergeSelection = createTableSpanMethods('selection','taskId')
+		},
 		mounted () {
-			this.getPipesList()
+			this.getPipesList();
 		},
 		updated () { },
 		beforeDestroy () { },
 		methods: {
-			pickDataAttrs,
 			getPipesList () {
 				Helper.queryPipesDetail(this.pipes,{ pageNo: 1,pageSize: -1 })
 					.then(async (res) => {
-						console.log('queryPipesDetail res.data',res.data)
-						const getRandomColor = function () {
-							return '#' + ('00000' + (Math.random() * 0x1000000 << 0).toString(16)).substr(-6);
+						this.pipeSegmentList = res.data.map(item => {
+							return {
+								...item,
+								colorHex: this.__getTaskColor(item),
+								_id: uuidv4()
+							}
+						})
+						const pipesObj = statisticFiled(this.pipeSegmentList,'taskId','obj')
+						const populationWkt = mergeFiled(this.pipeSegmentList,'regionDto.populationWkt');
+						const specificWkt = mergeFiled(this.pipeSegmentList,'regionDto.specificWkt');
+						const regionWkt = mergeFiled(this.pipeSegmentList,'regionDto.regionWkt');
+						this.pipeAroundTotal = {
+							people: populationWkt.length,
+							place: specificWkt.length,
 						}
-						this.pipeSegmentList = res.data.map(item => ({
-							...item,
-							_id: item.pipeSegmentCode + item.taskId,
-							colorHex: getRandomColor(),
-						}))
+						const mixMapRef = await this.syncMapLoaded();
+						this.renderFeatureByType(populationWkt,'population',mixMapRef);
+						this.renderFeatureByType(specificWkt,'specific',mixMapRef)
+						this.renderPipes(pipesObj);
+						this.renderRadius(regionWkt.map(wkt => ({ wkt })),mixMapRef)
 						const tableRef = await this.syncTableMounted();
 						tableRef.$refs['ElTable'].toggleAllSelection();
-						console.log('this----------------',this)
-						this.renderPipes(this.pipeSegmentList);
 					})
 			},
+			// 控制管线显隐
 			handleSelectionChange (rows) {
-				console.log('handleSelectionChange--------------',rows)
+				if (!this.__selectContrast) {
+					this.__selectContrast = createArrayContrast(this.pipeSegmentList,'_id')
+				}
+				const { isAdd,list } = this.__selectContrast(rows);
+				if (isAdd) {
+					const visibleItem = list[0];
+					const controller =
+						this.__renderedPipes.find(p => p.id === visibleItem[UNIQUE_KEY]);
+					controller.toggleVisibility(true);
+				} else if (list.length > 0) {
+					const hiddenItems = list[0];
+					const controller =
+						this.__renderedPipes.find(p => p.id === hiddenItems[UNIQUE_KEY]);
+					controller.toggleVisibility(false);
+				}
 			},
-			async renderPipes (pipes) {
-				const uniqueKey = '_id';
-				const colorKey = 'colorHex'
+			async renderPipes (pipesMap) {
 				const mapRef = await this.syncMapLoaded();
 				if (!this.__pipesColorMap) {
-					this.__pipesColorMap = pipes.reduce((pre,cur) => {
-						return pre.concat(cur[uniqueKey],cur[colorKey])
-					},[])
+					this.__pipesColorMap = Object.entries(this.__getTaskColor(null,true))
+						.flat()
+						.concat('yellow');
 				}
-				console.log('this.__pipesColorMap',this.__pipesColorMap)
-				// this.__renderedPipes = pipes
-				// 	.map(pipe =>
-				// 		mapRef.sectionLevelRender(
-				// 			[pipe],
-				// 			uniqueKey,
-				// 			pipe[uniqueKey],
-				// 			this.__pipesColorMap.concat('#ccc'))
-				// 	)
+				this.__renderedPipes = Object.entries(pipesMap)
+					.map(
+						([taskId,pipeSegments]) =>
+							mapRef.sectionLevelRender(pipeSegments,UNIQUE_KEY,taskId,this.__pipesColorMap)
+					);
 			},
-			objectSpanMethod (scope) {
-				function mergeRow (
-					scope,
-					dataList,
-					statisticFiled = 'taskId',
-					mergeShowField = 'name'
-				) {
-					const { row,column,rowIndex,columnIndex } = scope;
-					const mergeRecord = `__${mergeShowField}MergeRecord`
-					const mergeStatistic = `__${mergeShowField}MergeStatistic`
-					if (!this[mergeRecord]) {
-						this[mergeRecord] = {}
-					}
-					if (!this[mergeStatistic]) {
-						this[mergeStatistic] = statisticArray(dataList,statisticFiled);
-					}
-					console.log('this[mergeStatistic]',mergeStatistic,this[mergeStatistic])
-					console.log('this[mergeRecord]',mergeRecord,this[mergeRecord])
-					if (column.property == mergeShowField) {
-						if (!this[mergeRecord][row[statisticFiled]]) {
-							this[mergeRecord][row[statisticFiled]] = true;
-							return {
-								rowspan: this[mergeStatistic][row[statisticFiled]].length,
-								colspan: 1
-							};
-						} else {
-							return {
-								rowspan: 0,
-								colspan: 0
-							};
-						}
-					}
-					function statisticArray (array,sFiled = 'id') {
-						return array.reduce((pre,curr) => {
-							const fVal = curr[sFiled];
-							return {
-								...pre,
-								[fVal]: pre[fVal] ? pre[fVal].concat(curr) : [curr],
-							}
-						},{});
-					}
-				}
 
-				return mergeRow.bind(this)(scope,this.pipeSegmentList,'taskId','taskName')
+			objectSpanMethod (scope) {
+				return this.__mergeTaskName(scope,this.pipeSegmentList)
+					|| this.__mergeColor(scope,this.pipeSegmentList)
+					|| this.__mergeSelection(scope,this.pipeSegmentList)
+			},
+
+			async handleRowClick (row) {
+				const mixMapRef = await this.syncMapLoaded()
+				mixMapRef.locationByLineString(row.wkt);
+			},
+
+			toggleVisible (val,type) {
+				if (type === 'people') {
+					this.__populationLayer && this.__populationLayer.toggleVisibility(val)
+				}
+				if (type === 'place') {
+					this.__placeLayer && this.__placeLayer.toggleVisibility(val)
+					this.__boomLayer && this.__boomLayer.toggleVisibility(val)
+				}
 			}
 		},
 	}
@@ -226,5 +269,9 @@
 	::v-deep.el-table th.el-table__cell {
 		background-color: transparent;
 		color: #ffffff;
+	}
+
+	.table-wrapper {
+		display: flex;
 	}
 </style>

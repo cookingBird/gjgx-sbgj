@@ -10,6 +10,7 @@
     @onLoad="handleMapLoad"
     @onMapClick="handleMapClick"
   />
+  <slot v-if="mapLoaded"></slot>
 </div>
 </template>
 
@@ -39,7 +40,8 @@
         requestHeader: {
           token: sessionStorage.token
         },
-        appConfig: window.URL_CONFIG
+        appConfig: window.URL_CONFIG,
+        mapLoaded: false,
       }
     },
     created () {
@@ -52,6 +54,7 @@
       handleMapLoad () {
         this.$emit('onLoad');
         this.setMapLoaded();
+        this.mapLoaded = true;
       },
       /**
        * @description 删除管线图层
@@ -94,7 +97,7 @@
             'type': 'geojson',
             'data': {
               'type': 'FeatureCollection',
-              'features': []
+              'features': [],
             }
           });
           source = map.getSource(id);
@@ -115,14 +118,14 @@
             }
           })
           //中心点数据
-          const centerGeometry = turf.center(geometry);
-          data.features.push({
-            type: 'Fetaure',
-            geometry: centerGeometry.geometry,
-            properties: {
-              name,
-            },
-          })
+          // const centerGeometry = turf.center(geometry);
+          // data.features.push({
+          //   type: 'Fetaure',
+          //   geometry: centerGeometry.geometry,
+          //   properties: {
+          //     name,
+          //   },
+          // })
         })
         source.setData(data);
         return source.id;
@@ -211,7 +214,8 @@
       /**
        * @description 删除管线影响半径
        * **/
-      pipeRadiusRemove (id = 'pipe-radius') {
+      async pipeRadiusRemove (id = 'pipe-radius') {
+        await this.mapLifecycle.loaded.ready();
         const { map } = this.$refs['map'].map;
         try {
           if (map.getLayer(id)) {
@@ -227,17 +231,22 @@
       pipeRadiusRender (wkt) {
         const { map } = this.$refs['map'].map;
         const id = 'pipe-radius';
-        const geometry = window.Terraformer.WKT.parse(wkt);
+        if (!Array.isArray(wkt)) {
+          wkt = [wkt]
+        }
+        // const geometry = window.Terraformer.WKT.parse(wkt);
+        const sourceId = this.createPipeSource(wkt,id);
         map.addLayer({
           id,
           type: 'fill',
-          source: {
-            type: 'geojson',
-            data: {
-              'type': 'Feature',
-              'geometry': geometry
-            }
-          },
+          source: sourceId,
+          // source: {
+          //   type: 'geojson',
+          //   data: {
+          //     'type': 'Feature',
+          //     'geometry': geometry
+          //   }
+          // },
           paint: {
             'fill-color': '#ffff00',
             'fill-opacity': 0.3,
@@ -246,7 +255,7 @@
         });
         return {
           update: (wkt) => {
-            this.pipeRadiusRemove();
+            this.pipeRadiusRemove(id);
             this.pipeRadiusRender(wkt)
           },
           remove: () => {
@@ -297,6 +306,7 @@
        * @param {img} 
        * **/
       async loadImage (img) {
+        await this.mapLifecycle.loaded.ready();
         const { map } = this.$refs['map'].map;
         return new Promise((resolve,reject) => {
           if (map.hasImage(img)) {
@@ -358,7 +368,6 @@
        * **/
 
       renderMarkerByType (data,type) {
-        let layer;
         const { map } = this.$refs['map'].map;
         if (!this.MARKER_MAP) {
           this.MARKER_MAP = {
@@ -375,7 +384,7 @@
         const img = MARKER_MAP[type];
         const sourceId = this.createPointSource(data,id);
         this.loadImage(img).then(_ => {
-          !map.getLayer(id) && (layer = map.addLayer({
+          !map.getLayer(id) && (map.addLayer({
             id,
             type: 'symbol',
             source: sourceId,
@@ -413,9 +422,9 @@
         return {
           toggleVisibility (val) {
             if (val) {
-              layer && map.setLayoutProperty(id,'visibility','visible')
+              map.setLayoutProperty(id,'visibility','visible')
             } else {
-              layer && map.setLayoutProperty(id,'visibility','none')
+              map.setLayoutProperty(id,'visibility','none')
             }
           },
           update (data) {
@@ -425,7 +434,7 @@
           destory () {
             map.removeLayer(id)
           },
-          layer
+          id
         }
       },
       /**
@@ -446,11 +455,11 @@
       ) {
         const { map } = this.$refs['map'].map;
         // const id = 'section-level';
-        const source = this.createPipeSource(data,id);
+        const sourceId = this.createPipeSource(data,id);
         !map.getLayer(id) && map.addLayer({
           id,
           type: 'line',
-          source: source,
+          source: sourceId,
           layout: {
             'line-cap': 'round',
             'line-join': 'round'
@@ -465,7 +474,7 @@
             'line-width': 5
           },
           filter: ['==','$type','LineString']
-        },'pipe-name')
+        })
         return {
           id,
           toggleVisibility (val) {
