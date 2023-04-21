@@ -106,57 +106,6 @@ button::-moz-focus-inner {
   border: 1px solid #df0100 !important;
 }
 
-// textarea,
-// input {
-//   background: none;
-//   padding: 0;
-//   -webkit-border-radius: 0;
-//   -moz-border-radius: 0;
-//   border-radius: 0;
-// }
-
-// input[type=number] {
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
-// input[type=search] {
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
-// input[type=text] {
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
-// input[type=tel] {
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
-// input[type=button] {
-//   appearance: none;
-//   -webkit-appearance: none;
-// }
-
-// input[type=password] {
-//   -webkit-text-security: disc;
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
-// input[type=submit] {
-//   appearance: none;
-//   -webkit-appearance: none;
-//   border: 0;
-// }
-
 textarea:focus,
 input:focus,
 button:focus {
@@ -182,11 +131,6 @@ body {
 
 [v-cloak] {
   opacity: 0 !important;
-}
-
-.w-1200 {
-  width: 1200px;
-  margin: 0 auto;
 }
 
 .inline_div {

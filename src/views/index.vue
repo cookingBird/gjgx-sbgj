@@ -1,28 +1,28 @@
 <template>
-  <main>
-    <div class="main-left">
-      <Menu />
+<main>
+  <div class="main-left">
+    <Menu />
+  </div>
+  <div class="main-right">
+    <HistoryBar />
+    <div class="main-content">
+      <router-view></router-view>
     </div>
-    <div class="main-right">
-      <HistoryBar />
-      <div class="main-content">
-        <router-view></router-view>
-      </div>
-    </div>
-  </main>
+  </div>
+</main>
 </template>
 
 <script>
-import Menu from "@/components/menu.vue";
-import HistoryBar from "@/components/historyBar.vue";
+  import Menu from "@/components/menu.vue";
+  import HistoryBar from "@/components/historyBar.vue";
 
-export default {
-  name: "Home",
-  components: {
-    Menu,
-    HistoryBar,
-  },
-};
+  export default {
+    name: "Home",
+    components: {
+      Menu,
+      HistoryBar,
+    },
+  };
 </script>
 
 <style lang="scss" scoped>
@@ -37,6 +37,8 @@ main {
 
   .main-right {
     margin-left: 10px;
+    // margin-top: 10px;
+    // margin-bottom: 10px;
     flex: 1;
     min-width: 0;
     display: flex;

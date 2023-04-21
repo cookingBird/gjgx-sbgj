@@ -11,7 +11,6 @@
     :src="src(item.meta.iframeSrc)"
     frameborder="0"
     :microAppCode="item.name"
-    :state="$route"
   >
   </micro-app>
 </div>

@@ -52,7 +52,7 @@
       <el-button
         type="primary"
         class="absolute inline-block right-2"
-        @click="dialogType = 1;formData = {};"
+        @click="dialogType = 1; formData = {};"
       >新增</el-button>
     </el-form>
   </div>
@@ -79,7 +79,7 @@
         >编辑任务</el-button>
         <el-button
           type="text"
-          v-show="taskIsFinish(row)"
+          v-show="hasSyncButton(row)"
           @click="onSync(row)"
         >数据同步</el-button>
         <el-button
@@ -156,6 +156,8 @@
 <script>
   import * as Helper from './Helper';
   import pdf from 'vue-pdf';
+  import createLoading from '@/utils/Loading/loading';
+  import * as Misc from "@/utils/misc";
   export default {
     components: { pdf },
     inject: ['appCtx'],
@@ -222,11 +224,11 @@
         statusOptions: [
           {
             value: 0,
-            label: '还未开始',
+            label: '管道选择',
           },
           {
             value: 1,
-            label: '分段',
+            label: '管道分段',
           },
           {
             value: 2,
@@ -241,6 +243,7 @@
             label: '已完成',
           },
         ],
+        loading: true
       };
     },
     computed: {
@@ -276,25 +279,51 @@
       taskIsFinish () {
         return (task) => task.status === 1;
       },
+      hasSyncButton () {
+        return (row) => row.hasSyncButton === 1 && row.node === 4;
+      }
     },
-
+    watch: {
+      loading: {
+        immediate: true,
+        handler (val) {
+          if (!this.loadingMask) {
+            this.loadingMask = createLoading.call(this,document.body);
+          }
+          console.log("loading watch----------------",val);
+          if (val) {
+            this.loadingMask.start()
+          } else {
+            this.loadingMask.end();
+          }
+        }
+      }
+    },
+    created () {
+      const loadingFuncs = ['onPreview','onDelete','onSubmit','onSync','onContinue'];
+      loadingFuncs.forEach((key) => {
+        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+      })
+    },
+    mounted () {
+      this.loading = false;
+    },
     methods: {
       /**
-       * @description 成果预览
-       */
+      * @description 成果预览
+      */
       onPreview (row) {
-        console.log('row',row)
         const pdfPath = row.pdfPath;
         if (!pdfPath) {
           return this.$message.error('预览路径为空')
         }
-        this.loadPdf(pdfPath)
+        return this.loadPdf(pdfPath)
       },
       /**
        * @description 删除任务
        */
       onDelete ({ id }) {
-        Helper.remove(id).then(
+        return Helper.remove(id).then(
           (_) => {
             this.$refs.table.refresh();
             this.$message.success('删除成功');
@@ -302,37 +331,64 @@
           (_) => {
             this.$message.error('删除失败');
           }
-        );
+        )
       },
       /**
        * @description 新增、编辑任务
        */
       onSubmit () {
-        this.$refs.addForm.validate().then((res) => {
-          Helper.addOrUpdateTask(this.formData).then((res) => {
-            this.$router.push({
-              path: '/DiscernSteps/choose',
-              query: res,
+        return this.$refs.addForm.validate().then((res) => {
+          return Helper.addOrUpdateTask(this.formData)
+            .then((res) => {
+              if (this.dialogType === 1) {
+                this.$router.push({
+                  path: '/DiscernSteps/choose',
+                  query: {
+                    taskId: res.id,
+                    taskName: res.taskName,
+                  },
+                });
+                this.formData = null;
+              };
+              return this.formData = null;
             });
-          });
         });
       },
       /**
        * @description 同步数据
        */
       onSync (row) {
-        Helper.syncData(row).then(
-          (_) => {
-            this.$message.success('同步成功');
+        return Helper.syncPrompt([row]).then(
+          () => {
+            return Helper.syncData([row]).then(
+              (_) => {
+                this.$message.success('同步成功');
+              },
+              (_) => {
+                this.$message.error('同步失败');
+              }
+            );
           },
-          (_) => {
-            this.$message.error('同步失败');
-          }
-        );
+          (msg) => {
+            return this.$confirm(msg,'操作提示',{
+              type: 'warning',
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+            }).then(() => {
+              Helper.syncData([row]).then(
+                (_) => {
+                  this.$message.success('同步成功');
+                },
+                (_) => {
+                  this.$message.error('同步失败');
+                }
+              );
+            }).catch(() => { })
+          })
       },
       /**
-       * @description 继续识别，跳转到识别阶段
-       */
+     * @description 继续识别，跳转到识别阶段
+     */
       onContinue (row) {
         const step = row.node;
         let path;
@@ -358,10 +414,10 @@
             break;
           }
         }
-        this.$router.push({
+        return this.$router.push({
           path: path,
           query: {
-            id: row.id,
+            taskId: row.id,
             taskName: row.taskName,
           },
         });
@@ -383,43 +439,43 @@
       },
       loadPdf (src) {
         this.pdf = pdf.createLoadingTask(src);
-        this.pdf.promise.then((pdf) => {
+        return this.pdf.promise.then((pdf) => {
           this.pdfPages = pdf.numPages;
         });
       },
-    },
-  };
+    }
+  }
 </script>
 
 <style lang="scss" scoped>
-main {
-  width: 100%;
-  height: 100%;
+  main {
+    width: 100%;
+    height: 100%;
 
-  .search-bar {
-    padding: 8px;
-    background-color: #fff;
+    .search-bar {
+      padding: 8px;
+      background-color: #fff;
 
-    .el-form-item {
-      margin-bottom: 0;
+      .el-form-item {
+        margin-bottom: 0;
 
-      .el-input {
-        width: 200px;
+        .el-input {
+          width: 200px;
+        }
       }
+    }
+
+    .page-content {
+      height: calc(100% - 66px);
+      // background-color: #fff;
     }
   }
 
-  .page-content {
-    height: calc(100% - 66px);
-    // background-color: #fff;
+  ::v-deep.gislife-table-container>.gislife-table__content {
+    border-radius: 4px;
   }
-}
 
-::v-deep.gislife-table-container>.gislife-table__content {
-  border-radius: 4px;
-}
-
-::v-deep.gislife-table-container>.gislife-table__footer {
-  border-radius: 4px;
-}
+  ::v-deep.gislife-table-container>.gislife-table__footer {
+    border-radius: 4px;
+  }
 </style>

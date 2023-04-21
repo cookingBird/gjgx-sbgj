@@ -126,6 +126,7 @@ export function getToken () {
     })
     .then(token => {
       sessionStorage.setItem('token', token)
+      return token
     })
 }
 
@@ -133,18 +134,10 @@ export function isMain () {
   return connector.isMain()
 }
 
-export function sendRoute (path) {
-  return connector.$send({
-    target: 'main',
-    type: 'router',
-    data: {
-      to: path
-    }
-  })
-}
 
 function getFiledValue (origin, ...fileds) {
   const result = {}
+  fileds = fileds.flat();
   for (const key of fileds) {
     result[key] = origin[key]
   }

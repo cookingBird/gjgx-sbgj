@@ -147,12 +147,11 @@
     },
     methods: {
       async fetchData (query) {
-        const pipe = {
-          id: this.taskId,
-          pipeSegmentCode: this.pipeSegmentCode
-        }
-        const res = await queryPipesDetail(pipe,{ ...this.queryModel,...query })
-        console.log('statisticFiled',Misc.statisticFiled(res.data,'hcaLevel'))
+        const res = await queryPipesDetail(
+          this.taskId,
+          this.pipeSegmentCode,
+          { ...this.queryModel,...query }
+        )
         this.highLevelOptions = Misc.statisticFiled(res.data,'hcaLevel')
           .map(node => ({
             value: node[0],
@@ -186,7 +185,7 @@
         //渲染管线
         this.renderPipeLine(data);
         //渲染地区等级
-        this.renderLevel(data,'higLevel');
+        this.renderLevel(data,'higLevel',mapRef);
       },
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()

@@ -12,7 +12,7 @@ export default function () {
       renderRadius (pipe, mixMapRef = this.mixMapRef()) {
         const regionWkt = pipe.regionDto.regionWkt
         if (!this.__radiusRange) {
-          this.__radiusRange = mixMapRef.pipeRadiusRender(regionWkt)
+          this.__radiusRange = mixMapRef.pipeRadiusRender({ wkt: regionWkt })
         } else {
           this.__radiusRange.update(regionWkt)
         }
@@ -59,7 +59,8 @@ export default function () {
         }
       },
       /**@description 渲染分段标识 */
-      renderSegmentLabel (data) {
+      renderSegmentLabel (data, mixMapRef = this.mixMapRef()) {
+        if (!data) return
         const headerList = data
           .map(item => [item.firstPoint, item.lastPoint])
           .flat()
@@ -70,12 +71,10 @@ export default function () {
               return pre.concat(cur)
             }
           }, [])
-        const mixMapRef = this.mixMapRef()
         return mixMapRef.pipeSectionPointRender(headerList)
       },
       /**@description 渲染地区等级 */
-      renderLevel (data, field, colorMap) {
-        const mixMapRef = this.mixMapRef()
+      renderLevel (data, field, mixMapRef = this.mixMapRef(), colorMap = void 0) {
         return mixMapRef.sectionLevelRender(data, field, void 0, colorMap)
       }
     }

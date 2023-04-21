@@ -38,3 +38,11 @@ export const toHump = (name) => {
     return letter.toUpperCase();
   });
 };
+
+/**
+ * @description 判断数组内是否有重复的值
+ * **/
+export const arrHasRepeatValue = (arr) => {
+  console.log(arr.length,[...new Set(arr)].length);
+  return arr.length === [...new Set(arr)].length;
+}

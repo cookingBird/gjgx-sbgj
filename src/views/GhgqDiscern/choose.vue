@@ -1,8 +1,5 @@
 <template>
-<div
-  class="choose-wrapper"
-  v-loading="loading"
->
+<div class="choose-wrapper">
   <div class="space-x-2 choose-content">
     <div class="flex-grow-0 flex-shrink-0 w-1/3 rounded">
       <div class="choose-title">作业区所有管线列表</div>
@@ -71,6 +68,7 @@
             :total="leftPageCfg.total"
             :current-page.sync="leftPageCfg.pageNo"
             :page-size.sync="leftPageCfg.pageSize"
+            :pager-count="5"
             @size-change="queryPipeList"
             @current-change="queryPipeList"
             @prev-click="queryPipeList"
@@ -117,6 +115,8 @@
             :data="selectedListFiltered"
             @selection-change="(val)=>handleSelectionChange(val,'right')"
             :columns="rightCols"
+            :pagination="{}"
+            :autoPage="true"
           >
           </MyTable>
         </div>
@@ -146,6 +146,7 @@
   import * as Helper from './Helper';
   import * as Misc from '@/utils/misc';
   import MyTable from '@/components/MyTable.vue';
+  import createLoading from '@/utils/Loading/loading';
   const CURRENT_NODE_STEP = 1;
 
   export default {
@@ -179,7 +180,10 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'hydrogenSulfideMolPercent',label: '硫化氢百分比',
+            width: 160,
+            align: 'center',
+            prop: 'hydrogenSulfideMolPercent',
+            label: '硫化氢(mol)百分比',
             slotIs: 'input',
             slotProps ({ row }) {
               return {
@@ -223,7 +227,18 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'leakEstimate',label: '泄露管段管容',
+            width: 120,align: 'center',prop: 'leakPipeCapacity',label: '泄露管段管容',
+            slotIs: 'input',
+            slotProps ({ row }) {
+              return {
+                // class: 'el-input:border-0 el-input:hover:bg-transparent'
+                class: 'el-input:border-0 el-input:bg-transparent',
+                disabled: row.sulfurContain === 0
+              }
+            }
+          },
+          {
+            width: 120,align: 'center',prop: 'leakEstimate',label: '泄露时间估算',
             slotIs: 'input',
             slotProps ({ row }) {
               return {
@@ -239,7 +254,7 @@
     },
     computed: {
       taskId () {
-        return this.$route.query.id;
+        return this.$route.query.taskId;
       },
       taskName () {
         return this.$route.query.taskName;
@@ -248,6 +263,30 @@
         return this.selectedPipeList
           .filter((node) => node.pipeName.includes(this.rightKeyword));
       },
+    },
+    watch: {
+      loading: {
+        immediate: true,
+        handler (val) {
+          if (!this.loadingMask) {
+            this.loadingMask = createLoading.call(this,document.body);
+          }
+          if (val) {
+            this.loadingMask.start()
+          } else {
+            this.loadingMask.end();
+          }
+        }
+      }
+    },
+    created () {
+      const loadingFuncs = [
+        'bootstrap',
+        'handleDiscern',
+        'handleNext'];
+      loadingFuncs.forEach((key) => {
+        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+      })
     },
     mounted () {
       this.bootstrap();
@@ -262,21 +301,22 @@
           startTime: '',
           endTime: '',
           status: '',
-        }).then((data) => {
-          this.leftPageCfg = {
-            ...this.leftPageCfg,
-            total: data.totalCount,
-          };
-          this.pipeList = data.data;
-          // this.pipeList = new Array(50).fill({
-          //   id: Math.random(),
-          //   pipeName: "平籍线A",
-          //   pipeCode: null,
-          //   pipeSegmentCode: "GE0401050300000282",
-          //   pipeType: "净化气",
-          // }).map((item,index) => ({ ...item,id: index }))
-          this.syncItemStatus();
-        });
+        })
+          .then((data) => {
+            this.leftPageCfg = {
+              ...this.leftPageCfg,
+              total: data.totalCount,
+            };
+            this.pipeList = data.data;
+            // this.pipeList = new Array(50).fill({
+            //   id: Math.random(),
+            //   pipeName: "平籍线A",
+            //   pipeCode: null,
+            //   pipeSegmentCode: "GE0401050300000282",
+            //   pipeType: "净化气",
+            // }).map((item,index) => ({ ...item,id: index }))
+            this.syncItemStatus();
+          });
       },
       getSelectedPipeList () {
         return Helper.queryAllSelected({
@@ -289,13 +329,6 @@
           taskId: this.taskId,
         }).then((data) => {
           this.selectedPipeList = data.data;
-          // this.selectedPipeList = new Array(50).fill({
-          //   id: Math.random(),
-          //   pipeName: "平籍线A",
-          //   pipeCode: null,
-          //   pipeSegmentCode: "GE0401050300000282",
-          //   pipeType: "净化气",
-          // }).map((item,index) => ({ ...item,id: index }))
         })
       },
       syncItemStatus (uniqueKey = 'pipeSegmentCode') {
@@ -310,7 +343,6 @@
       async bootstrap () {
         await this.getSelectedPipeList();
         await this.queryPipeList();
-        this.loading = false
       },
       handleSelectAll () {
         this.pipeList.forEach((pipe) => {
@@ -337,9 +369,7 @@
       },
       /**@description 下一步 */
       handleNext () {
-        this.loading = true;
-        console.log('handleNext-------------',this.selectedPipeList)
-        Helper.pipeAddOrUpdate({
+        return Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
           taskName: this.taskName,
@@ -355,19 +385,15 @@
             this.$router.push({
               path: '/DiscernSteps/section',
               query: {
-                id: this.taskId,
+                taskId: this.taskId,
                 taskName: this.taskName,
               },
             });
           })
-          .finally(() => {
-            this.loading = false;
-          })
       },
       /**@description 一键识别 */
       handleDiscern () {
-        this.loading = true;
-        Helper.pipeAddOrUpdate({
+        return Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
           taskName: this.taskName,
@@ -382,13 +408,10 @@
             this.$router.push({
               path: '/DiscernSteps/discern',
               query: {
-                id: this.taskId,
+                taskId: this.taskId,
                 taskName: this.taskName,
               },
             });
-          })
-          .finally(_ => {
-            this.loading = false;
           })
       },
       onTableMaxHeight (value,tar = 'left') {
@@ -413,59 +436,59 @@
 </script>
 
 <style lang="scss" scoped>
-.choose-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-
-  .choose-content {
-    flex: 1;
+  .choose-wrapper {
+    width: 100%;
+    height: 100%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
 
-    >div {
-      background-color: #fff;
-      height: 100%;
-      width: calc(50% - 5px);
+    .choose-content {
+      flex: 1;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
 
-      .choose-title {
-        color: #333;
-        font-weight: 600;
-        font-size: 16px;
-        height: 40px;
-        line-height: 40px;
-        text-indent: 16px;
-        border-bottom: 1px solid #bbb;
-      }
+      >div {
+        background-color: #fff;
+        height: 100%;
+        // width: calc(50% - 5px);
+        display: flex;
+        flex-direction: column;
 
-      .choose-table {
-        flex: 1;
-        position: relative;
+        .choose-title {
+          color: #333;
+          font-weight: 600;
+          font-size: 16px;
+          height: 40px;
+          line-height: 40px;
+          text-indent: 16px;
+          border-bottom: 1px solid #bbb;
+        }
 
-        .choose-table-wrapper {
-          position: absolute;
+        .choose-table {
+          flex: 1;
+          position: relative;
 
-          .el-table {
-            margin: 0;
+          .choose-table-wrapper {
+            position: absolute;
+
+            .el-table {
+              margin: 0;
+            }
           }
         }
       }
     }
-  }
 
-  .choose-footer {
-    // height: 70px;
-    background-color: #fff;
-    text-align: center;
-    display: flex;
-    align-items: center;
+    .choose-footer {
+      // height: 70px;
+      background-color: #fff;
+      text-align: center;
+      display: flex;
+      align-items: center;
 
-    >div {
-      margin: 0 auto;
+      >div {
+        margin: 0 auto;
+      }
     }
   }
-}
 </style>

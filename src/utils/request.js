@@ -1,8 +1,8 @@
 import axios from 'axios'
 import Message from 'element-ui/packages/message/index.js'
-import {
-  connector
-} from '@gislife/micro-message'
+import { connector } from '@gislife/micro-message'
+import { getTreeTravels } from '@/utils/misc'
+
 const service = axios.create({
   baseURL: window.URL_CONFIG.baseUrl
 })
@@ -19,29 +19,6 @@ service.interceptors.request.use(
   }
 )
 
-function alertMsg(data) {
-  if (data.code != 200) {
-    if (data.code == 401) {
-      //token失效
-      Message.error('用户信息已过期，请重新登录')
-      window.location.replace(data.data)
-      try {
-        connector.$send({
-          target: 'main',
-          type: 'logout'
-        })
-      } catch (e) {
-        console.error(e)
-      }
-    } else {
-      if (data.msg == 'ok') {
-        return
-      } else {
-        Message.error(data.msg)
-      }
-    }
-  }
-}
 //响应拦截器
 service.interceptors.response.use(
   response => {
@@ -63,16 +40,14 @@ service.interceptors.response.use(
       let type = typeof response.data
       if (type == 'string') {
         let data = JSON.parse(response.data)
-        alertMsg(data)
         return Promise.resolve(data)
       } else if (type == 'object' && !(response.data instanceof Blob)) {
-        alertMsg(response.data)
         return Promise.resolve(response.data)
       } else {
         return Promise.resolve(response.data)
       }
     } else {
-      Message.error(response.data.msg)
+      Message.error(response.statusText)
       return Promise.reject(response.data)
     }
   },
@@ -85,10 +60,53 @@ service.interceptors.response.use(
       Message.error('网络异常,请稍后再试')
       return Promise.reject(error)
     } else {
-      Message.error(error.message)
+      // Message.error(error.message)
       return Promise.reject(error) // reject这个错误信息
     }
   }
 )
+//开发环境本地地址转换
+service.interceptors.response.use(transform)
+//500、401
+service.interceptors.response.use(responseData => {
+  const data = responseData
+  if (data.code === 500) {
+    Message.error(data.msg)
+    return Promise.reject(responseData)
+  }
+  if (data.code == 401) {
+    //token失效
+    Message.error('用户信息已过期，请重新登录')
+    window.location.replace(data.data + process.env.VUE_APP_SERVICE_URL)
+    if (!connector.isMain()) {
+      connector.$send({
+        target: 'main',
+        type: 'logout'
+      })
+    }
+    return Promise.reject(responseData)
+  }
+  return responseData
+})
 
 export default service
+
+const funTransform = getTreeTravels({
+  every (node) {
+    if (node.reqPath) {
+      node.reqPath = node.reqPath.replace(
+        process.env.VUE_APP_IFRAME_SRC_URL,
+        process.env.VUE_APP_IFRAME_TAR_URL
+      )
+    }
+  }
+})
+function transform (response) {
+  const { data, code } = response
+  if (code === 200 && data?.fun && process.env.NODE_ENV === 'development') {
+    data.fun.forEach(element => {
+      funTransform(element)
+    })
+  }
+  return response
+}

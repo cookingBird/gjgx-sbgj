@@ -15,13 +15,13 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.query.token) {
-    sessionStorage.token = to.query.token;
-    delete to.query.token;
+    sessionStorage.token = to.query.token
+    delete to.query.token
     next({
-      path:to.path,
-      query:to.query
+      path: to.path,
+      query: to.query
     })
-  }else{
+  } else {
     next()
   }
 })
@@ -43,27 +43,30 @@ router.createRouter = function (menuList) {
       //业务页面静态路由
       {
         path: '/DiscernStandardManage',
-        component: () => import('@/views/DiscernStandardManage')
-      },
-      {
-        path: '/PotentialEffectAnalysis',
-        component: () => import('@/views/PotentialEffectAnalysis')
+        component: () =>
+          import(
+            /* webpackChunkName: "DiscernStandardManage" */ '@/views/DiscernStandardManage'
+          )
       },
       {
         path: '/GhgqDiscern',
-        component: () => import('@/views/GhgqDiscern')
-      },
-      {
-        path: '/detail',
-        component: () => import('@/views/detail.vue')
+        component: () =>
+          import(/* webpackChunkName: "GhgqDiscern" */ '@/views/GhgqDiscern')
       },
       {
         path: '/DiscernSteps',
-        component: () => import('@/views/GhgqDiscern/stepLayout.vue'),
+        component: () =>
+          import(
+            /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/stepLayout.vue'
+          ),
         redirect: '/DiscernSteps/choose',
-        children: [{
+        children: [
+          {
             path: '/DiscernSteps/choose',
-            component: () => import('@/views/GhgqDiscern/choose.vue'),
+            component: () =>
+              import(
+                /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/choose.vue'
+              ),
             meta: {
               step: 1,
               name: '管道选择'
@@ -71,7 +74,10 @@ router.createRouter = function (menuList) {
           },
           {
             path: '/DiscernSteps/section',
-            component: () => import('@/views/GhgqDiscern/section.vue'),
+            component: () =>
+              import(
+                /* webpackChunkName: "section" */ '@/views/GhgqDiscern/section.vue'
+              ),
             meta: {
               step: 2,
               name: '管道分段'
@@ -79,7 +85,10 @@ router.createRouter = function (menuList) {
           },
           {
             path: '/DiscernSteps/level',
-            component: () => import('@/views/GhgqDiscern/level.vue'),
+            component: () =>
+              import(
+                /* webpackChunkName: "level" */ '@/views/GhgqDiscern/level.vue'
+              ),
             meta: {
               step: 3,
               name: '管道等级划分'
@@ -87,7 +96,10 @@ router.createRouter = function (menuList) {
           },
           {
             path: '/DiscernSteps/discern',
-            component: () => import('@/views/GhgqDiscern/discern.vue'),
+            component: () =>
+              import(
+                /* webpackChunkName: "discern" */ '@/views/GhgqDiscern/discern.vue'
+              ),
             meta: {
               step: 4,
               name: '高后果区识别'
@@ -96,32 +108,46 @@ router.createRouter = function (menuList) {
         ]
       },
       {
+        path: '/PotentialEffectAnalysis',
+        component: () =>
+          import(
+            /* webpackChunkName: "PotentialEffectAnalysis" */ '@/views/PotentialEffectAnalysis'
+          )
+      },
+      {
+        path: '/detail',
+        component: () =>
+          import(/* webpackChunkName: "detail" */ '@/views/detail.vue')
+      },
+
+      {
         path: '/DiscernResultManage',
-        component: () => import('@/views/DiscernResultManage')
+        component: () =>
+          import(
+            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage'
+          )
       },
       {
         path: '/DiscernResultManage/detail',
-        component: () => import('@/views/DiscernResultManage/detail.vue')
+        component: () =>
+          import(
+            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/detail.vue'
+          )
       },
       {
         path: '/DiscernResultManage/contrast',
-        component: () => import('@/views/DiscernResultManage/contrast.vue')
+        component: () =>
+          import(
+            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/contrast.vue'
+          )
       }
     ]
   }
 
   const loop = (arr, target) => {
     arr.forEach(item => {
-      const {
-        funCode,
-        route,
-        children,
-        funName,
-        reqPath,
-        funType,
-        openMode
-      } =
-      item
+      const { funCode, route, children, funName, reqPath, funType, openMode } =
+        item
       //按钮类型不创建路由
       if (funType === 1) return
       const option = {

@@ -76,13 +76,13 @@
        * @description 线定位
        * @param {wkt}  
        * **/
-      locationByLineString (wkt) {
+      locationByLineString (wkt,options = {}) {
         const { map } = this.$refs['map'].map;
         const geometry = window.Terraformer.WKT.parse(wkt);
         const bbox = turf.bbox(geometry);
         map.fitBounds(bbox,{
           duration: 1 * 1000,
-          padding: { top: 10,bottom: 25,left: 15,right: 5 },
+          padding: Object.assign({ top: 10,bottom: 25,left: 15,right: 5 },options.padding),
         })
       },
       /**
@@ -110,7 +110,6 @@
           const { name,wkt } = pipe;
           //线数据
           const geometry = window.Terraformer.WKT.parse(wkt);
-          // console.log('createPipeSource----------',geometry);
           data.features.push({
             type: 'Fetaure',
             geometry,
@@ -229,16 +228,17 @@
        * @param {wkt} 影响半径wkt
        * **/
       pipeRadiusRender (wkt) {
+        if (!wkt) return;
         const { map } = this.$refs['map'].map;
         const id = 'pipe-radius';
-        if (!Array.isArray(wkt)) {
-          if (wkt.wkt) {
-            wkt = [wkt]
-          } else {
-            wkt = [{ wkt }]
-          }
+        let sourceId;
+        if (wkt.wkt) {
+          sourceId = this.createPipeSource([wkt],id);
         }
-        const sourceId = this.createPipeSource(wkt,id);
+        if (Array.isArray(wkt)) {
+          sourceId = this.createPipeSource(wkt,id);
+        }
+
         map.addLayer({
           id,
           type: 'fill',

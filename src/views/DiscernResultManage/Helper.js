@@ -1,15 +1,12 @@
 import request from '@/utils/request'
-import * as Misc from '@/utils/misc'
 
 /**@description 获取单个或多个任务某条管道的分析详情 */
-export function queryPipesDetail (task, query = {}) {
-  const tasks = Misc.toArray(task)
-  const pipeSegmentCode = tasks[0].pipeSegmentCode
+export function queryPipesDetail (taskIds,pipeSegmentCode, query = {}) {
   return request({
     url: '/result/resultListVo',
     method: 'post',
     data: {
-      taskIds: tasks.map(task => task.id).join(','),
+      taskIds: taskIds,
       startTime: '',
       endTime: '',
       higLevel: query.higLevel || '',
@@ -18,6 +15,26 @@ export function queryPipesDetail (task, query = {}) {
       pageNo: query.pageNo,
       pageSize: query.pageSize,
       pipeSegmentCode: pipeSegmentCode
+    }
+  })
+  .then(res => {
+    if (res.code === 200) {
+      return res.data
+    } else {
+      return Promise.reject(res)
+    }
+  })
+}
+
+/**@description 获取单个或多个任务某条管道的分析详情 */
+export function queryPipeRegion (taskId, pipeSegmentCode) {
+
+  return request({
+    url: '/highconsarea/getPipeRegion',
+    method: 'get',
+    params: {
+      taskId: taskId,
+      code: pipeSegmentCode
     }
   })
   .then(res => {

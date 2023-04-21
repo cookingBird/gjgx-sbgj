@@ -49,6 +49,7 @@
         var includes = (targetScript.getAttribute('include') || '').split(',');
         var excludes = (targetScript.getAttribute('exclude') || '').split(',');
         if (!inArray(includes, 'mapbox-gl-enhance')) {			
+            inputScript(header+'mapbox-gl.js');
             inputCSS(header+'mapbox-gl.css');
 			inputCSS(header+'mapbox-gl-enhance.css');
 			inputScript(header+'mapbox-gl-enhance.js');

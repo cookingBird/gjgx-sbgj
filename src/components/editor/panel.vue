@@ -62,7 +62,8 @@
 
 <script>
 import { GridLayout, GridItem } from "vue-grid-layout";
-import _ from "lodash";
+import cloneDeep from "lodash/cloneDeep";
+import uniqueId from "lodash/uniqueId";
 import { getPageConfig, savePageConfig } from "@/api/index";
 import { srceenshot } from '@/utils/tool';
 import PagePreview from '../homePageConfig/Preview.vue';
@@ -106,7 +107,7 @@ export default {
           this.layout = data.map((item) => {
             return {
               ...item,
-              i: _.uniqueId(),
+              i: uniqueId(),
             };
           });
           console.log(this.layout);
@@ -126,10 +127,10 @@ export default {
     handleDrop({ target }) {
       let component;
       if (dragStartIndex !== null) {
-        component = _.cloneDeep(this.layout[dragStartIndex].component);
+        component = cloneDeep(this.layout[dragStartIndex].component);
         this.layout[dragStartIndex].component = null;
       } else {
-        component = _.cloneDeep(this.$parent.dragingComponent);
+        component = cloneDeep(this.$parent.dragingComponent);
       }
       const layoutIndex =
         target.tagName === "IMG"
@@ -228,7 +229,7 @@ export default {
         if (w > 1) {
           for (let i = 1; i <= w - 1; i++) {
             newLayout.push({
-              i: _.uniqueId(),
+              i: uniqueId(),
               x: x + i,
               w: 1,
               h,
@@ -239,7 +240,7 @@ export default {
         } else if (h > 1) {
           for (let i = 1; i <= h - 1; i++) {
             newLayout.push({
-              i: _.uniqueId(),
+              i: uniqueId(),
               x,
               w,
               h: 1,

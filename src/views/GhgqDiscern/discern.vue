@@ -14,7 +14,7 @@
       </el-scrollbar>
     </div>
     <div
-      v-loading="loading"
+      ref="loadingMask"
       class="relative flex-grow discern-content-right"
     >
       <div class="absolute inset-0 flex flex-col">
@@ -24,6 +24,7 @@
             class="!w-auto"
             :tableColumns="tableColumns"
             :config="tableConfig"
+            @onData="onTableGetData"
             @row-click="handleTableRowClick"
             reqMethods="GET"
             url="/highconsarea/nextOperate"
@@ -57,11 +58,15 @@
           <div>
             <el-button
               type="primary"
+              @click="onExit"
+            >退出</el-button>
+            <el-button
+              type="primary"
               @click="onPrev"
             >上一步</el-button>
             <el-button
               type="primary"
-              @click="handleNext"
+              @click="handleFinish"
             >完成</el-button>
           </div>
         </div>
@@ -107,7 +112,9 @@
   import * as Refs from '@/mixins/Refs';
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
   import mapMix from './mapMix';
-  import * as Misc from '@/utils/misc'
+  import qs from 'qs';
+  import * as Misc from '@/utils/misc';
+  import createLoading from '@/utils/Loading/loading';
   const CURRENT_NODE_STEP = 4;
 
   export default {
@@ -255,6 +262,7 @@
         ],
         dialogVisible: false,
         levelGroup: [
+          { label: '非高后果区',level: 0 },
           { label: '一级',level: 1 },
           { label: '二级',level: 2 },
           { label: '三级',level: 3 },
@@ -277,7 +285,7 @@
     },
     computed: {
       taskId () {
-        return this.$route.query.id
+        return this.$route.query.taskId
       },
       taskName () {
         return this.$route.query.taskName
@@ -288,14 +296,56 @@
       selectedPipe () {
         this.choosePipe = this.$route.query.choosePipe;
         return this.$route.query.choosePipe
+      },
+      isOneStep () {
+        return this.$route.query.step === 'one'
+      },
+      uniQuery () {
+        return this.isOneStep
+          ? qs.parse(this.$route.fullPath.split('?')[1])
+          : this.$route.query
+      },
+      isFromOuter () {
+        return Boolean(this.uniQuery.message)
+      },
+    },
+    watch: {
+      loading: {
+        immediate: true,
+        handler (val) {
+          if (!this.loadingMask) {
+            this.loadingMask = createLoading.call(this,document.body);
+          }
+          if (val) {
+            this.loadingMask.start()
+          } else {
+            this.loadingMask.end();
+          }
+        }
       }
     },
-    created () {
+    async created () {
+      console.log('discern created-----------------',this.$route);
+      const loadingFuncs = ['getSelectedPipeList','handleFinish','onDialogAction'];
+      loadingFuncs.forEach((key) => {
+        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+      })
+      if (this.isOneStep) {
+        await Helper.pipeAddOrUpdate({
+          pipeLineVos: this.uniQuery.pipeLineVos,
+          taskId: this.taskId,
+          taskName: this.taskName,
+        })
+        await Helper.discernOneStep({
+          taskId: this.taskId,
+          nodeId: 1,
+        });
+      }
       this.getSelectedPipeList();
     },
     methods: {
       getSelectedPipeList () {
-        Helper.queryAllSelected({
+        return Helper.queryAllSelected({
           keyWords: '',
           pageNo: 1,
           pageSize: -1,
@@ -310,7 +360,6 @@
           this.handlePipeSelect(choosePipe);
           await this.syncMixMapLoaded();
           this.renderPipeLine(data.data)
-          this.loading = false;
         })
       },
       /**@description 选择管道 */
@@ -334,20 +383,53 @@
           place: specificWkt.length
         })
       },
-      /**@description 下一步 */
-      handleNext () {
-        this.loading = true;
-        Helper.nextStepOpr({
+      /**@description 完成 */
+      handleFinish () {
+        return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
           flag: 'next'
-        }).then(() => {
-          this.$router.push({
-            path: '/GhgqDiscern',
-          })
-        }).finally(_ => {
-          this.loading = false;
         })
+          .then(() => {
+            if (this.isFromOuter) {
+              this.$connector.$send(this.uniQuery.message)
+            } else {
+              this.$router.push({
+                path: '/GhgqDiscern',
+              })
+            }
+          })
+      },
+      /**@description 上一步 */
+      onPrev () {
+        const back = () => {
+          this.$router.push({
+            path: '/DiscernSteps/level',
+            query: {
+              ...this.$route.query,
+              choosePipe: Misc.pickFileds(
+                this.choosePipe,
+                'id',
+                'pipeCode',
+                'pipeSegmentCode',
+                'pipeName'
+              )
+            }
+          })
+        }
+        if (this.isOneStep) {
+          this.$connector.$send(this.uniQuery.message)
+        } else {
+          back()
+        }
+      },
+      /**@description 退出 */
+      onExit () {
+        if (this.isFromOuter) {
+          this.$connector.$send(this.uniQuery.message)
+        } else {
+          this.$router.push('/GhgqDiscern')
+        }
       },
       /**@description 编辑等级，打开弹窗 */
       onEdit (row) {
@@ -366,11 +448,11 @@
         switch (aBtn.code) {
           case 'cancel': {
             this.edittingRow = null;
-            break;
+            return Promise.resolve();
           }
           case 'submit': {
             const { level,label,code,id,pipeSegmentCode } = this.edittingRow
-            Helper.pipeLevelMutation({
+            return Helper.pipeLevelMutation({
               code,
               id,
               levelName: label,
@@ -383,32 +465,17 @@
               this.$refs.table.$refs.table.refresh();
               this.edittingRow = null;
             })
-            break;
           }
           default: {
             throw Error(`unCapture action type ${aBtn.code}`)
           }
         }
       },
-      onPrev () {
-        this.$router.push({
-          path: '/DiscernSteps/level',
-          query: {
-            ...this.$route.query,
-            choosePipe: Misc.pickFileds(
-              this.choosePipe,
-              'id',
-              'pipeCode',
-              'pipeSegmentCode',
-              'pipeName'
-            )
-          }
-        })
-      },
+
       async onTableGetData (data) {
-        await this.syncMixMapLoaded();
-        this.renderSegmentLabel(data);
-        this.renderLevel(data,'hcaLevel');
+        const mapRef = await this.syncMixMapLoaded();
+        this.renderSegmentLabel(data,mapRef);
+        this.renderLevel(data,'hcaLevel',mapRef);
       },
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
@@ -426,56 +493,56 @@
 </script>
 
 <style lang="scss" scoped>
-.discern-wrapper {
-  width: 100%;
-  height: 100%;
-
-  .discern-top {
-    height: 50px;
-    margin-bottom: 10px;
-  }
-
-  .discern-content {
-    height: calc(100% - 60px);
+  .discern-wrapper {
     width: 100%;
-    display: flex;
+    height: 100%;
 
-    .discern-content-left {
-      width: 300px;
-      height: 100%;
-      margin-right: 10px;
-      padding: 8px;
+    .discern-top {
+      height: 50px;
+      margin-bottom: 10px;
+    }
 
-      ::v-deep .el-scrollbar {
+    .discern-content {
+      height: calc(100% - 60px);
+      width: 100%;
+      display: flex;
+
+      .discern-content-left {
+        width: 300px;
         height: 100%;
-        background-color: #EEF2F6;
+        margin-right: 10px;
+        padding: 8px;
 
-        .el-scrollbar__wrap {
-          overflow-x: hidden;
+        ::v-deep .el-scrollbar {
+          height: 100%;
+          background-color: #EEF2F6;
+
+          .el-scrollbar__wrap {
+            overflow-x: hidden;
+          }
+        }
+      }
+
+      .discern-content-right {
+        flex: 1;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+
+        .right-content {
+          flex: 1;
+          position: relative,
+        }
+
+        .right-footer {
+          background-color: #fff;
+          display: flex;
+          justify-content: center;
+          padding-top: 6px;
+          padding-bottom: 6px;
         }
       }
     }
 
-    .discern-content-right {
-      flex: 1;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-
-      .right-content {
-        flex: 1;
-        position: relative,
-      }
-
-      .right-footer {
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        padding-top: 6px;
-        padding-bottom: 6px;
-      }
-    }
   }
-
-}
 </style>

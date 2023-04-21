@@ -11,10 +11,11 @@ export function resultList(params) {
 }
 
 //获取组织机构、管道数据
-export function queryOrgList() {
+export function queryOrgList(params) {
   return request({
     method: 'POST',
-    url: '/result/list'
+    url: '/result/list',
+    params
   })
 }
 
@@ -31,7 +32,15 @@ export function pipeListAPI(data) {
 export function syncData(data) {
   return request({
     method: 'POST',
-    url: '/task/synData',
+    url: '/result/hgcResultSync',
+    data
+  })
+}
+
+export function hgcResultSyncPrompt(data) {
+  return request({
+    method: 'POST',
+    url: '/result/hgcResultSyncPrompt',
     data
   })
 }

@@ -79,6 +79,7 @@
         <template v-slot="scope">
           <el-button
             v-for="(btn, index) in initCom.buttons.list"
+            v-show="typeof btn.show === 'function' ? btn.show(scope.row) : true"
             :key="index"
             :type="btn.type || 'text'"
             :size="btn.size"
@@ -104,7 +105,7 @@
     class="gislife-table__footer"
   >
     <pagination
-      class="gislife-table-pagination"
+      class="gislife-table__pagination"
       :pageParams.sync="pageState"
       :total="total"
       :pagerConfig="paginationConfig"
@@ -354,7 +355,7 @@
     margin-top: var(--el-spacing-y, var(--inner-margin-top));
   }
 
-  .gislife-table-pagination.el-pagination {
+  .gislife-table__pagination.el-pagination {
     display: flex;
     justify-content: center;
     align-items: center;

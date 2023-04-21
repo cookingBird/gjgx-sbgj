@@ -1,7 +1,8 @@
 /** @type {import('@vue/cli-service').ProjectOptions} */
 const path = require('path')
 const { ElementUiResolver } = require('unplugin-vue-components/resolvers')
-const CDN = require('./config/cdn')
+const CDN = require('./config/cdn')('2d')
+const transform = require('./config/dataTransform')
 module.exports = {
   publicPath: '/',
   lintOnSave: false,
@@ -26,12 +27,24 @@ module.exports = {
       // require('unplugin-vue-components/webpack')({
       //   resolvers: [ElementUiResolver()],
       //   dts: false,
-      //   include: [/\.vue$/, /\.vue\?vue/, /\.md$/]
+      //   include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+      //   importStyle: false
       // })
     ]
+    // externals:
+    // process.env.NODE_ENV === 'production'
+    //   ? {
+    //       'element-ui': 'ElementUI'
+    //     }
+    //   : {}
   },
   devServer: {
-    host: '0.0.0.0',
-    port: 8091
+    port: 8091,
+    proxy: {
+      '/': {
+        target: 'http://192.168.3.53:17878/',
+        bypass: transform,
+      }
+    }
   }
 }

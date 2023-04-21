@@ -1,6 +1,6 @@
 import { getPermission } from '@/api/base'
 import router from '@/router'
-import _ from 'lodash'
+import cloneDeep from 'lodash/cloneDeep'
 import { getMainPath, treeTravels, isMain } from '@/message'
 
 export default {
@@ -32,7 +32,6 @@ export default {
       state.navActiveCode = data
     },
     SET_MAIN_LOCATION (state, data) {
-      console.log(data)
       Object.assign(state.mainLocation, data)
     }
   },
@@ -54,7 +53,6 @@ export default {
                 travel({
                   every (node) {
                     if (node.route === pathname) {
-                      console.log('every node === pathname', node)
                       let children = node.children || []
                       children.forEach(cn => {
                         if (cn.funType === 1) {
@@ -71,7 +69,6 @@ export default {
                     }
                   }
                 })
-                console.log('state.mainBtnAuthed', state.mainBtnAuthed)
               })
           }
         }
@@ -81,7 +78,7 @@ export default {
   getters: {
     subnavMenu: state => {
       let { menuData, navActiveCode } = state
-      menuData = _.cloneDeep(menuData)
+      menuData = cloneDeep(menuData)
       let res = []
       while (menuData.length) {
         const node = menuData.shift()

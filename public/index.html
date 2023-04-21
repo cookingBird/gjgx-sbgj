@@ -17,7 +17,10 @@
 
   <!-- 使用 CDN 的 JS 文件 -->
   <% for (var i in htmlWebpackPlugin.options.CDN && htmlWebpackPlugin.options.CDN.js) { %>
-    <link href="<%= htmlWebpackPlugin.options.CDN.js[i] %>" rel="preload" as="script" />
+    <link href="<%= htmlWebpackPlugin.options.CDN.js[i] %>" 
+    crossorigin="anonymous" 
+    rel="preload" 
+    as="script" />
   <% } %>
   <!-- 使用 CDN 的 JS 文件 end -->
 </head>
@@ -31,10 +34,12 @@
   <div id="app"></div>
   <!-- built files will be auto injected -->
   <% for (var i in htmlWebpackPlugin.options.CDN && htmlWebpackPlugin.options.CDN.js) { %>
-    <script src="<%= htmlWebpackPlugin.options.CDN.js[i] %>" defer></script>
+    <script src="<%= htmlWebpackPlugin.options.CDN.js[i] %>" 
+      crossorigin="anonymous"
+      defer></script>
   <% } %>
   <script src="/config.js"></script>
-  <script src="/2D/mapboxgl/include-mapboxgl.js"></script>
+  <script src="/2D/mapboxgl/include-mapboxgl.js" defer></script>
 </body>
 
 </html>

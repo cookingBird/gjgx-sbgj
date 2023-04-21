@@ -1,0 +1,17 @@
+.gislife-uploading {
+  --progress: 0;
+  --color: rgb(220, 50, 50);
+  --thickness: 1;
+  --ease-time: 0.2s;
+  position: relative;
+}
+.gislife-uploading::after {
+  content: '';
+  border: calc(clamp(0, var(--progress), var(--thickness)) * 1px) solid var(--color);
+  width: calc(var(--progress) * 100%);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-radius: 2px;
+  transition: all var(--ease-time) ease-in-out;
+}

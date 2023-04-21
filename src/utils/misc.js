@@ -1,3 +1,5 @@
+import * as Validator from './validator'
+
 export function validateFileds (source, target, ...fileds) {
   fileds = fileds.flat()
   return fileds.reduce((pre, curF) => {
@@ -83,7 +85,7 @@ export function arrayOmit (array, omits, uniqueKey) {
 }
 
 export function rawForEach (raws, picks, uniqueKey, cb) {
-  picks.forEach(
+  picks?.forEach(
     pipe => cb && cb(raws.find(p => p[uniqueKey] === pipe[uniqueKey]))
   )
 }
@@ -128,24 +130,28 @@ export function bindLoading (loadingFiled, loadingFn) {
   if (!loadingFn) {
     throw Error('bindLoading error, callback is null')
   }
-
-  return function (...params) {
-    const setValue = getCtxValueSetter(this, loadingFiled)
-    setValue(true)
-    const result = loadingFn(...params)
-    if (!result.then) {
-      throw Error('bindLoading must return a promise')
-    }
-    return result.then(
-      res => {
-        setValue(false)
-        return res
-      },
-      err => {
-        setValue(false)
-        return Promise.reject(err)
+  const setValue = getCtxValueSetter(this, loadingFiled)
+  return (...params) => {
+    try {
+      setValue(true)
+      const result = loadingFn.bind(this)(...params)
+      if (!result.then) {
+        throw Error('bindLoading must return a promise')
       }
-    )
+      return result.then(
+        res => {
+          setValue(false)
+          return res
+        },
+        err => {
+          setValue(false)
+          return Promise.reject(err)
+        }
+      )
+    } catch (error) {
+      console.log('exec loading error', error)
+      setValue(false)
+    }
   }
 }
 
@@ -258,35 +264,77 @@ export function createTableSpanMethods (mergeFiled, statisticKey) {
   let mergeStatistic = null
   let mergeStatisticClear = null
   statisticKey = statisticKey || mergeFiled
-  return function (scope, tableData) {
-    const { row, column } = scope
+  const isA = Array.isArray(mergeFiled)
+  if (!isA) {
+    return function (scope, tableData) {
+      const { row, column } = scope
 
-    if (!mergeRecord) {
-      mergeRecord = {}
-      mergeRecordClear = debounce(() => {
-        mergeRecord = null
-      }, 1000)
-    } else {
-      mergeRecordClear()
-    }
-
-    if (!mergeStatistic) {
-      mergeStatistic = statisticArray(tableData, statisticKey)
-      mergeStatisticClear = debounce(() => {
-        mergeStatistic = null
-      }, 1000)
-    } else {
-      mergeStatisticClear()
-    }
-    if (column.property === mergeFiled) {
-      if (!mergeRecord[row[statisticKey]]) {
-        mergeRecord[row[statisticKey]] = true
-        return {
-          rowspan: mergeStatistic[row[statisticKey]].length,
-          colspan: 1
-        }
+      if (!mergeRecord) {
+        mergeRecord = {}
+        mergeRecordClear = debounce(() => {
+          mergeRecord = null
+        }, 1000)
       } else {
-        return {}
+        mergeRecordClear()
+      }
+
+      if (!mergeStatistic) {
+        mergeStatistic = statisticArray(tableData, statisticKey)
+        mergeStatisticClear = debounce(() => {
+          mergeStatistic = null
+        }, 1000)
+      } else {
+        mergeStatisticClear()
+      }
+      if (column.property === mergeFiled) {
+        if (!mergeRecord[row[statisticKey]]) {
+          mergeRecord[row[statisticKey]] = true
+          return {
+            rowspan: mergeStatistic[row[statisticKey]].length,
+            colspan: 1
+          }
+        } else {
+          return {}
+        }
+      }
+    }
+  } else {
+    return function (scope, tableData) {
+      const { row, column } = scope
+      if (!mergeRecord) {
+        mergeRecord = {}
+        mergeRecordClear = debounce(() => {
+          mergeRecord = null
+        }, 1000)
+      } else {
+        mergeRecordClear()
+      }
+
+      if (!mergeStatistic) {
+        mergeStatistic = statisticArray(tableData, statisticKey)
+        mergeStatisticClear = debounce(() => {
+          mergeStatistic = null
+        }, 1000)
+      } else {
+        mergeStatisticClear()
+      }
+      if (mergeFiled.includes(column.property)) {
+        if (
+          !mergeRecord[row[statisticKey]] ||
+          !mergeRecord[row[statisticKey]].includes(column.property)
+        ) {
+          if (!mergeRecord[row[statisticKey]]) {
+            mergeRecord[row[statisticKey]] = [column.property]
+          } else {
+            mergeRecord[row[statisticKey]].push(column.property)
+          }
+          return {
+            rowspan: mergeStatistic[row[statisticKey]].length,
+            colspan: 1
+          }
+        } else {
+          return {}
+        }
       }
     }
   }
@@ -356,6 +404,82 @@ export function createArrayContrast (raw, ...contrastFiled) {
     return {
       isAdd: isAdd,
       list: list
+    }
+  }
+}
+
+export function getTreeTravels (visitor, childrenKey = 'children') {
+  const { firstEnter, every } = visitor || {}
+  return target => {
+    function travel (tar, isFirst = true) {
+      if (isFirst) {
+        firstEnter && firstEnter(tar)
+      }
+      if (Object.prototype.toString.call(tar) === '[object Object]') {
+        every && every(tar)
+        if (tar[childrenKey] && tar[childrenKey].length) {
+          travel(tar[childrenKey], false)
+        }
+      }
+      if (Object.prototype.toString.call(tar) === '[object Array]') {
+        tar.forEach(element => {
+          travel(element, false)
+        })
+      }
+    }
+    travel(target)
+  }
+}
+
+export function getObjTravels (visitor, maxDepth = 3) {
+  const { every } = visitor || {}
+  return target => {
+    const result = {}
+    function travel (object, res, depth = 1) {
+      if (depth < maxDepth) {
+        for (const key in object) {
+          const isTravel = every && every(key, object[key], res)
+          const tar = object[key]
+          if (
+            Object.prototype.toString.call(tar) === '[object Object]' &&
+            isTravel &&
+            depth < maxDepth
+          ) {
+            res[key] = res[key] || {}
+            travel(tar, res[key], depth + 1)
+          }
+          if (
+            Object.prototype.toString.call(tar) === '[object Array]' &&
+            isTravel &&
+            depth < maxDepth
+          ) {
+            res[key] = res[key] || []
+            tar.forEach(element => {
+              travel(element, res[key], depth + 1)
+            })
+          }
+        }
+      }
+    }
+    travel(target, result)
+    return result
+  }
+}
+
+export function downloadURL (url, name = '默认名称') {
+  const link = document.createElement('a')
+  link.download = name
+  link.href = url
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+export function forIn (obj, cb) {
+  for (const key in obj) {
+    if (Object.hasOwnProperty.call(obj, key)) {
+      const element = obj[key]
+      cb && cb(key, element)
     }
   }
 }

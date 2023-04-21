@@ -1,11 +1,6 @@
 <template>
 <div class="h-full space-y-2 level-wrapper">
-  <div class="flex justify-end items-center min-h-[50px] bg-white rounded shadow-content">
-    <el-button
-      type="primary"
-      class="mr-56"
-      @click="onMerge"
-    >合并</el-button>
+  <div class="min-h-[50px] bg-white rounded shadow-content">
   </div>
   <div class="level-content">
     <div class="flex-grow-0 flex-shrink-0 bg-white rounded level-content-left shadow-content">
@@ -19,10 +14,7 @@
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div
-      class="relative flex-grow level-content-right"
-      v-loading="loading"
-    >
+    <div class="relative flex-grow level-content-right">
       <div class="absolute inset-0 flex flex-col">
         <div class="right-content">
           <mix-table
@@ -31,7 +23,6 @@
             :config="tableConfig"
             @onData="onTableGetData"
             @row-click="handleTableRowClick"
-            @selection-change="(val)=>handleSelectionChange(val)"
             reqMethods="GET"
             url="/highconsarea/nextOperate"
             :isPagination="false"
@@ -55,6 +46,10 @@
           </mix-table>
         </div>
         <div class="mt-2 rounded right-footer shadow-content">
+          <el-button
+            type="primary"
+            @click="onExit"
+          >退出</el-button>
           <el-button
             type="primary"
             @click="onPrev"
@@ -110,6 +105,7 @@
   import * as Helper from './Helper'
   import * as Refs from '@/mixins/Refs';
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
+  import createLoading from '@/utils/Loading/loading';
   import * as Misc from '@/utils/misc';
   import mapMix from './mapMix';
   const CURRENT_NODE_STEP = 3;
@@ -131,7 +127,6 @@
         }],
         tableConfig: {
           isPagination: false,
-          selection: true,
           buttons: {
             fixed: 'right',
             list: [
@@ -221,7 +216,7 @@
     },
     computed: {
       taskId () {
-        return this.$route.query.id
+        return this.$route.query.taskId
       },
       taskName () {
         return this.$route.query.taskName
@@ -229,15 +224,37 @@
       selectedPipe () {
         this.choosePipe = this.$route.query.choosePipe;
         return this.$route.query.choosePipe
+      },
+      isFromOuter () {
+        return this.$route.query.message
+      },
+    },
+    watch: {
+      loading: {
+        immediate: true,
+        handler (val) {
+          if (!this.loadingMask) {
+            this.loadingMask = createLoading.call(this,document.body);
+          }
+          if (val) {
+            this.loadingMask.start()
+          } else {
+            this.loadingMask.end();
+          }
+        }
       }
     },
     created () {
+      console.log('level--------------',this.$route);
+      const loadingFuncs = ['getSelectedPipeList','handleDiscern','handleNext','onDialogAction'];
+      loadingFuncs.forEach((key) => {
+        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+      })
       this.getSelectedPipeList();
-      this.onMerge = Misc.bindLoading('loading',this.onMerge).bind(this)
     },
     methods: {
       getSelectedPipeList () {
-        Helper.queryAllSelected({
+        return Helper.queryAllSelected({
           keyWords: '',
           pageNo: 1,
           pageSize: -1,
@@ -245,56 +262,75 @@
           endTime: '',
           status: 0,
           taskId: this.taskId
-        }).then(async (data) => {
-          this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
-          const choosePipe = data.data
-            .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
-          this.handlePipeSelect(choosePipe);
-          await this.syncMixMapLoaded();
-          this.renderPipeLine(data.data)
-          this.loading = false;
         })
+          .then(async (data) => {
+            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            const choosePipe = data.data
+              .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
+            this.handlePipeSelect(choosePipe);
+            await this.syncMixMapLoaded();
+            this.renderPipeLine(data.data)
+          })
       },
       /**@description 一键识别 */
       handleDiscern () {
-        Helper.discernOneStep({
+        return Helper.discernOneStep({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP
-        }).then((res) => {
-          this.$router.push({
-            path: '/DiscernSteps/discern',
-            query: {
-              id: this.taskId,
-              taskName: this.taskName
-            }
-          })
         })
+          .then((res) => {
+            this.$router.push({
+              path: '/DiscernSteps/discern',
+              query: {
+                ...this.$route.query,
+                taskId: this.taskId,
+                taskName: this.taskName
+              }
+            })
+          })
       },
       /**@description 下一步 */
       handleNext () {
-        this.loading = true;
-        Helper.nextStepOpr({
+        return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
           flag: 'next'
-        }).then(() => {
-          this.$router.push({
-            path: '/DiscernSteps/discern',
-            query: {
-              id: this.taskId,
-              taskName: this.taskName,
-              choosePipe: Misc.pickFileds(
-                this.choosePipe,
-                'id',
-                'pipeCode',
-                'pipeSegmentCode',
-                'pipeName'
-              )
-            }
-          })
-        }).finally(_ => {
-          this.loading = false;
         })
+          .then(() => {
+            this.$router.push({
+              path: '/DiscernSteps/discern',
+              query: {
+                ...this.$route.query,
+                taskId: this.taskId,
+                taskName: this.taskName,
+                choosePipe: Misc.pickFileds(
+                  this.choosePipe,
+                  'id',
+                  'pipeCode',
+                  'pipeSegmentCode',
+                  'pipeName'
+                )
+              }
+            })
+          })
+      },
+      /**@description 上一步 */
+      onPrev () {
+        this.$router.push({
+          path: '/DiscernSteps/section',
+          query: {
+            ...this.$route.query,
+            choosePipe: this.choosePipe
+          }
+        })
+      },
+      /**@description 退出 */
+      onExit () {
+        if (this.isFromOuter) {
+          this.$connector.$send(this.$route.query.message)
+        } else {
+          this.$router.push('/GhgqDiscern')
+        }
       },
       onEdit (row) {
         this.dialogVisible = true;
@@ -315,11 +351,11 @@
           case 'cancel': {
             this.dialogVisible = false;
             this.__edittingRow = null;
-            break;
+            return Promise.resolve()
           }
           case 'submit': {
             const { label,level } = this.__selectBtn;
-            Helper.pipeLevelMutation({
+            return Helper.pipeLevelMutation({
               code,
               id,
               levelName: label,
@@ -327,30 +363,20 @@
               node: CURRENT_NODE_STEP,
               pipeSegmentCode,
               taskId: this.taskId
-            }).then(() => {
-              this.$message.success('修改成功');
-              this.$refs.table.$refs.table.refresh();
-              this.dialogVisible = false;
-              this.__edittingRow = null;
             })
-            break;
+              .then(() => {
+                this.$message.success('修改成功');
+                this.$refs.table.$refs.table.refresh();
+                this.dialogVisible = false;
+                this.__edittingRow = null;
+              })
           }
           default: {
             throw Error(`unCapture action type ${aBtn.code}`)
           }
         }
       },
-      /**@description 上一步 */
-      onPrev () {
-        console.log('onPrev--------',this.choosePipe)
-        this.$router.push({
-          path: '/DiscernSteps/section',
-          query: {
-            ...this.$route.query,
-            choosePipe: this.choosePipe
-          }
-        })
-      },
+
       /**@description 选择管道 */
       async handlePipeSelect (pipe) {
         this.choosePipe = pipe
@@ -374,14 +400,13 @@
       },
 
       async onTableGetData (data) {
-        await this.syncMixMapLoaded();
-        this.renderSegmentLabel(data);
-        this.renderLevel(data);
+        const mapRef = await this.syncMixMapLoaded();
+        this.renderSegmentLabel(data,mapRef);
+        this.renderLevel(data,'regionLevel',mapRef);
       },
 
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
-        console.log('row click---------------------',row);
         mixMapRef.locationByLineString(row.wkt)
       },
 
@@ -391,71 +416,61 @@
       togglePlaceVisible (val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
-      handleSelectionChange (val) {
-        this.selectPipeSegments = val;
-      },
-      onMerge () {
-        console.log('onMerge------------------',this,this.selectPipeSegments)
-        Helper.mergePipeSegments(this.selectPipeSegments).then(_ => {
-          this.$message.success('合并成功');
-          this.$refs.table.$refs.table.refresh();
-        })
-      }
     }
   }
 </script>
 
 <style lang="scss" scoped>
-.level-wrapper {
-  width: 100%;
-  height: 100%;
-
-  .level-top {
-    height: 50px;
-    margin-bottom: 10px;
-  }
-
-  .level-content {
-    height: calc(100% - 60px);
+  .level-wrapper {
     width: 100%;
-    display: flex;
+    height: 100%;
 
-    .level-content-left {
-      width: 300px;
-      height: 100%;
-      margin-right: 10px;
-      padding: 8px;
+    .level-top {
+      height: 50px;
+      margin-bottom: 10px;
+    }
 
-      ::v-deep .el-scrollbar {
+    .level-content {
+      height: calc(100% - 60px);
+      width: 100%;
+      display: flex;
+
+      .level-content-left {
+        width: 300px;
         height: 100%;
-        background-color: #EEF2F6;
+        margin-right: 10px;
+        padding: 8px;
 
-        .el-scrollbar__wrap {
-          overflow-x: hidden;
+        ::v-deep .el-scrollbar {
+          height: 100%;
+          background-color: #EEF2F6;
+
+          .el-scrollbar__wrap {
+            overflow-x: hidden;
+          }
+        }
+      }
+
+      .level-content-right {
+        flex: 1;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+
+        .right-content {
+          flex: 1;
+          position: relative;
+        }
+
+        .right-footer {
+          background-color: #fff;
+          display: flex;
+          justify-content: center;
+          padding-top: 6px;
+          padding-bottom: 6px;
         }
       }
     }
 
-    .level-content-right {
-      flex: 1;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-
-      .right-content {
-        flex: 1;
-        position: relative;
-      }
-
-      .right-footer {
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        padding-top: 6px;
-        padding-bottom: 6px;
-      }
-    }
   }
-
-}
 </style>

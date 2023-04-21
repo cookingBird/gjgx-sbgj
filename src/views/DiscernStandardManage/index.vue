@@ -79,6 +79,12 @@
             >
               预览
             </el-button>
+            <el-button
+              type="text"
+              @click="() => onDownload(scope)"
+            >
+              下载
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -138,12 +144,18 @@
         label="选择标准："
         prop="file"
       >
-        <input
-          type="file"
-          name="standardFile"
-          accept=".doc,.docx,"
-          @input="handleFileSelect"
-        />
+        <div
+          v-uploading="getProgressSetter"
+          class="relative"
+        >
+          <input
+            type="file"
+            name="standardFile"
+            accept=".doc,.docx,"
+            @input="handleFileSelect"
+          />
+          <span class="absolute -right-1">{{parseInt(progress.progress * 100)}}%</span>
+        </div>
       </el-form-item>
       <div class="flex justify-center">
         <el-button
@@ -154,6 +166,7 @@
           type="primary"
           @click="formData = null"
         >取消</el-button>
+
       </div>
     </el-form>
   </el-dialog>
@@ -178,6 +191,9 @@
   import pdf from 'vue-pdf';
   import ContentLayout from '../components/ContentLayout.vue';
   import * as Helper from './helper';
+  import * as Misc from '@/utils/misc';
+  
+  const FakeProgress = require("fake-progress");
   export default {
     components: { ContentLayout,pdf },
     inject: ['appCtx'],
@@ -200,6 +216,9 @@
         formData: null,
         pdfPages: 0,
         pdf: null,
+        progress: new FakeProgress({
+          timeConstant: 10000
+        }),
       };
     },
     computed: {
@@ -219,8 +238,18 @@
           };
       },
     },
+    watch: {
+      "progress.progress": {
+        handler (val) {
+          this.progressSetter(Number(val.toFixed(2)))
+        }
+      }
+    },
     created () {
       this.getData();
+      this.getProgressSetter = (setter) => {
+        this.progressSetter = setter;
+      };
     },
     methods: {
       reset () {
@@ -243,14 +272,21 @@
       },
       onSubmit () {
         this.$refs.addForm.validate().then((res) => {
-          Helper.addOrUpdate(this.formData)
+          console.log("this.$refs.addForm.validate()",res);
+          this.progress.start();
+          Helper.addOrUpdate(this.formData,this.progressSetter)
             .then((_) => {
               this.$message.success(this.dialogType === 1 ? '新增成功' : '修改成功');
-              this.formData = null;
+              this.progress.end();
             })
             .then(() => {
               this.getData();
-            });
+            })
+            .finally(_ => {
+              setTimeout(() => {
+                this.formData = null;
+              },300)
+            })
         });
       },
       onDelete (scope) {
@@ -289,6 +325,13 @@
       calcIndex (index,pgCfg = 'pageState') {
         const { pageNo,pageSize } = this[pgCfg]
         return index + (pageNo - 1) * pageSize + 1
+      },
+      onDownload ({ row }) {
+        if (row.filePath) {
+          Misc.downloadURL(row.filePath,row.fileName)
+        } else {
+          this.$message.error('不存在标准文件')
+        }
       }
     },
   };
@@ -313,5 +356,15 @@
   .dialog-preview.el-dialog__wrapper .el-dialog__body {
     height: 100%;
     overflow-y: scroll;
+  }
+
+  input[accept=".doc,.docx,"] {
+    padding: 0;
+    line-height: 24px;
+    cursor: pointer;
+  }
+
+  input[accept=".doc,.docx,"]::placeholder {
+    display: none;
   }
 </style>

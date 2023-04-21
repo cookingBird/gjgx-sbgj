@@ -1,9 +1,19 @@
 //Base
 $--border-color-base: #aeaeae;
 $--color-primary: #063770;
+$--color-white: #ffffff;
+$--color-black: #000000;
+/// color|1|Functional Color|1
+$--color-success: #67c23a !default;
+/// color|1|Functional Color|1
+$--color-warning: #e6a23c !default;
+/// color|1|Functional Color|1
+$--color-danger: #f56c6c !default;
+/// color|1|Functional Color|1
+$--color-info: #909399 !default;
 
 // Table
-$--table-header-background-color: #063770;
+$--table-header-background-color: $--color-primary;
 $--table-header-font-color: #ffffff;
 $--table-border-color: #e5edf6;
 
@@ -11,5 +21,21 @@ $--table-border-color: #e5edf6;
 $--button-default-background-color: #306fcf;
 $--button-default-font-color: #ffffff;
 
-
 @import "~element-ui/packages/theme-chalk/src/index.scss";
+
+@include b(dialog) {
+	@include e(header) {
+		background-color: $--color-primary;
+	}
+	@include e(title) {
+		color: $--color-white;
+	}
+	@include e(headerbtn) {
+		&:focus,
+		&:hover {
+			.el-dialog__close {
+				color: $--color-white;
+			}
+		}
+	}
+}

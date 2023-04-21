@@ -975,7 +975,7 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
     })
     .setLngLat(positions)
     .setDOMContent(div);
-  popup.on("open", () => {
+  popup.on("open", () => { 
     if (callback) {
       callback();
     }

@@ -10,11 +10,11 @@
 		</el-button>
 		<div class="!relative mix-table__action">
 			<el-button
-				:class="{'selected': type === item }"
-				class="mix-table__action-item"
 				v-for="item in ['混合', '表格', '地图']"
+				:class="{'selected': type === item }"
 				:key="item"
 				@click="type = item"
+				class="mix-table__action-item"
 			>
 				{{ item }}
 			</el-button>
@@ -22,7 +22,10 @@
 	</div>
 	<div class="relative flex-grow rounded">
 		<BaseMap ref="map">
-			<div class="absolute map-layer-switcher-group">
+			<div
+				class="absolute map-layer-switcher-group"
+				v-show="type !== '表格'"
+			>
 				<LayerSwitcher
 					v-model="visible.populationShow"
 					:number="pipeAroundTotal.people"
@@ -49,7 +52,7 @@
 					@click="type='地图'"
 				></i>
 			</div>
-			<div class="flex-grow overflow-hidden">
+			<div class="relative flex-grow">
 				<MyTable
 					ref="table"
 					height="100%"
@@ -73,10 +76,8 @@
 	import * as Refs from '@/mixins/Refs';
 	import mapMix from '../GhgqDiscern/mapMix';
 	import {
-		arrayOmit,
 		createTableSpanMethods,
 		createFiledRecordCtx,
-		mergeFiled,
 		statisticFiled,
 		createArrayContrast
 	} from '@/utils/misc';
@@ -113,7 +114,7 @@
 					{ width: 120,prop: 'code',align: 'center',label: '高后果区编号' },
 					{
 						width: 70,prop: 'hcaLevel',align: 'center',label: '等级',
-						format: function (val) {
+						formatter: function (val) {
 							if (val == 0) {
 								return '非高后果区'
 							} else if (val == 1) {
@@ -149,21 +150,50 @@
 			pipes () {
 				return this.$route.query.pipes
 			},
+			taskIds () {
+				return this.$route.query.taskIds
+			},
+			pipeSegmentCode () {
+				return this.$route.query.pipeSegmentCode
+			},
 		},
 		created () {
 			this.__getTaskColor = createFiledRecordCtx('randomColor','taskId');
-			this.__mergeTaskName = createTableSpanMethods('taskName','taskId')
-			this.__mergeColor = createTableSpanMethods('color','taskId')
-			this.__mergeSelection = createTableSpanMethods('selection','taskId')
+			this.__mergeRowByTaskId = createTableSpanMethods(['taskName','color','selection'],'taskId')
 		},
 		mounted () {
-			this.getPipesList();
+			this.getPipeDetail();
+			this.getTasksDetail();
 		},
 		updated () { },
 		beforeDestroy () { },
 		methods: {
-			getPipesList () {
-				Helper.queryPipesDetail(this.pipes,{ pageNo: 1,pageSize: -1 })
+			async getPipeDetail () {
+				const data = await Helper.queryPipeRegion(
+					this.taskIds.split(',')[0],
+					this.pipeSegmentCode
+				)
+				console.log('queryPipeRegion -----------------------------',data);
+				const { regionWkt,flammableWkt,specificWkt,populationWkt,wkt } = data;
+
+				this.pipeAroundTotal = {
+					people: populationWkt.length,
+					place: specificWkt.length,
+				};
+
+				const mixMapRef = await this.syncMapLoaded();
+				this.renderPipeLine([data],mixMapRef);
+				this.renderRadius({ regionDto: { regionWkt } },mixMapRef);
+				this.renderFeatureByType(populationWkt,'population',mixMapRef);
+				this.renderFeatureByType(specificWkt,'specific',mixMapRef);
+				mixMapRef.locationByLineString(wkt,{
+					padding: { left: 700,right: 50 }
+				})
+
+			},
+			/**@description 获取任务详情 */
+			getTasksDetail () {
+				Helper.queryPipesDetail(this.taskIds,this.pipeSegmentCode,{ pageNo: 1,pageSize: -1 })
 					.then(async (res) => {
 						this.pipeSegmentList = res.data.map(item => {
 							return {
@@ -172,22 +202,10 @@
 								_id: uuidv4()
 							}
 						})
-						const pipesObj = statisticFiled(this.pipeSegmentList,'taskId','obj')
-						const populationWkt = mergeFiled(this.pipeSegmentList,'regionDto.populationWkt');
-						const specificWkt = mergeFiled(this.pipeSegmentList,'regionDto.specificWkt');
-
-						this.pipeAroundTotal = {
-							people: populationWkt.length,
-							place: specificWkt.length,
-						}
-						const mixMapRef = await this.syncMapLoaded();
-						this.renderFeatureByType(populationWkt,'population',mixMapRef);
-						this.renderFeatureByType(specificWkt,'specific',mixMapRef);
-						this.renderPipeLine([this.pipes[0]],mixMapRef)
+						const pipesObj = statisticFiled(this.pipeSegmentList,'taskId','obj');
+						await this.syncMapLoaded();
+						//渲染管段
 						this.renderPipes(pipesObj);
-						//!未返回管线缓冲区wkt
-						console.log('this.pipes[0].regionDto',this.pipes)
-						// this.renderRadius(this.pipes[0].regionDto.regionWkt,mixMapRef);
 						const tableRef = await this.syncTableMounted();
 						tableRef.$refs['ElTable'].toggleAllSelection();
 					})
@@ -225,9 +243,7 @@
 			},
 
 			objectSpanMethod (scope) {
-				return this.__mergeTaskName(scope,this.pipeSegmentList)
-					|| this.__mergeColor(scope,this.pipeSegmentList)
-					|| this.__mergeSelection(scope,this.pipeSegmentList)
+				return this.__mergeRowByTaskId(scope,this.pipeSegmentList)
 			},
 
 			async handleRowClick (row) {
@@ -252,24 +268,24 @@
 		background-color: rgba(39, 79, 125, 0.75);
 	}
 
-	::v-deep.el-table {
+	::v-deep.gislife-table-pagination .el-table {
 		background-color: transparent;
 	}
 
-	::v-deep.el-table tr {
+	::v-deep.gislife-table-pagination .el-table tr {
 		background-color: transparent;
 		color: #ffffff;
 	}
 
-	::v-deep.el-table tr.el-table__row:hover {
+	::v-deep.gislife-table-pagination .el-table tr.el-table__row:hover {
 		background-color: transparent;
 	}
 
-	::v-deep.el-table tr.el-table__row:hover>td {
+	::v-deep.gislife-table-pagination .el-table tr.el-table__row:hover>td {
 		background-color: transparent;
 	}
 
-	::v-deep.el-table th.el-table__cell {
+	::v-deep.gislife-table-pagination .el-table th.el-table__cell {
 		background-color: transparent;
 		color: #ffffff;
 	}
