@@ -1,3 +1,4 @@
+import { MenuItem } from 'element-ui'
 import * as Validator from './validator'
 
 export function validateFileds (source, target, ...fileds) {
@@ -85,13 +86,18 @@ export function arrayOmit (array, omits, uniqueKey) {
 }
 
 export function rawForEach (raws, picks, uniqueKey, cb) {
-  picks?.forEach(
-    pipe => cb && cb(raws.find(p => p[uniqueKey] === pipe[uniqueKey]))
-  )
+  picks &&
+    picks.forEach(pipe => {
+      if (cb) {
+        cb(raws.find(p => p[uniqueKey] == pipe[uniqueKey]))
+      }
+    })
 }
 
 export function rawMap (raws, picks, uniqueKey) {
-  return picks.map(p => raws.find(raw => raw[uniqueKey] === p[uniqueKey]))
+  return picks
+    .map(p => raws.find(raw => raw[uniqueKey] === p[uniqueKey]))
+    .filter(Boolean)
 }
 
 export function toArray (tar) {
@@ -126,31 +132,36 @@ export function getCtxValue (ctx, filedLike) {
   return val
 }
 
-export function bindLoading (loadingFiled, loadingFn) {
+export function bindLoading (loadingFiled, loadingFn, beforeExec, afterExec) {
   if (!loadingFn) {
     throw Error('bindLoading error, callback is null')
   }
   const setValue = getCtxValueSetter(this, loadingFiled)
   return (...params) => {
+    beforeExec && beforeExec(...params)
+    setValue(true)
+    const result = loadingFn.call(this, ...params)
     try {
-      setValue(true)
-      const result = loadingFn.bind(this)(...params)
-      if (!result.then) {
-        throw Error('bindLoading must return a promise')
+      if (result.then) {
+        return result.then(
+          res => {
+            afterExec && afterExec(res)
+            setValue(false)
+            return res
+          },
+          err => {
+            afterExec && afterExec(err)
+            setValue(false)
+            return Promise.reject(err)
+          }
+        )
+      } else {
+        afterExec && afterExec(result)
+        setValue(false)
+        return result
       }
-      return result.then(
-        res => {
-          setValue(false)
-          return res
-        },
-        err => {
-          setValue(false)
-          return Promise.reject(err)
-        }
-      )
     } catch (error) {
-      console.log('exec loading error', error)
-      setValue(false)
+      return result
     }
   }
 }
@@ -408,7 +419,7 @@ export function createArrayContrast (raw, ...contrastFiled) {
   }
 }
 
-export function getTreeTravels (visitor, childrenKey = 'children') {
+export function getTreeTraveler (visitor, childrenKey = 'children') {
   const { firstEnter, every } = visitor || {}
   return target => {
     function travel (tar, isFirst = true) {
@@ -431,7 +442,7 @@ export function getTreeTravels (visitor, childrenKey = 'children') {
   }
 }
 
-export function getObjTravels (visitor, maxDepth = 3) {
+export function getObjectTraveler (visitor, maxDepth = 3) {
   const { every } = visitor || {}
   return target => {
     const result = {}

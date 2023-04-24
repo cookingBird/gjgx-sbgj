@@ -110,7 +110,6 @@
       };
     },
     created () {
-      console.log('detail--------------------------',this.code);
       this.getData();
     },
     methods: {
@@ -130,35 +129,40 @@
 </script>
 
 <style lang="scss" scoped>
-main {
-  width: 100%;
-  height: 100%;
-
-  .page-content {
-    height: calc(100% - 48px);
+  main {
     width: 100%;
+    height: 100%;
 
-    ::v-deep .el-descriptions {
-      .el-descriptions-item__label {
-        background: #edf4fb;
-        text-align: center;
-        color: #333;
-        font-weight: 600;
-        width: 200px;
+    .page-content {
+      height: calc(100% - 48px);
+      width: 100%;
+
+      ::v-deep .el-descriptions {
+        .el-descriptions-item__label {
+          background: #edf4fb;
+          text-align: center;
+          color: #333;
+          font-weight: 600;
+          width: 200px;
+        }
+
+        .el-descriptions-item__content {
+          width: 440px;
+        }
+
+        .el-descriptions-item__cell {
+          border-color: #8cc6fb;
+        }
       }
 
-      .el-descriptions-item__content {
-        width: 440px;
-      }
-
-      .el-descriptions-item__cell {
-        border-color: #8cc6fb;
+      .descriptions-wrapper {
+        width: 66%;
       }
     }
 
-    .descriptions-wrapper {
-      width: 66%;
-    }
   }
-}
+
+  .content-title {
+    @apply py-1 text-lg font-medium;
+  }
 </style>

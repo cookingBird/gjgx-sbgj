@@ -2,10 +2,7 @@ import { Loading } from 'element-ui'
 import './loading.css'
 const FakeProgress = require('fake-progress')
 export default function createLoading (ref, fakeOptions = {}) {
-  if (!ref) {
-    throw Error('create Loading error, ref is null')
-  }
-  const el = ref.$el || ref
+  const el = (ref && ref.$el) || ref
   let loadingService, timer
   const pro = new FakeProgress({
     timeConstant: 7000,
@@ -15,41 +12,43 @@ export default function createLoading (ref, fakeOptions = {}) {
   const defaultLoadingOpts = {
     target: el,
     text: '拼命加载中',
-    spinner: 'el-icon-loading'
-    // background: 'rgba(0, 0, 0, 0.8)'
+    spinner: 'el-icon-loading',
+    background: 'rgba(0, 0, 0, 0.7)'
   }
   const span = document.createElement('span')
   span.classList.add('gislife-loading-progress-span')
   if (this) {
-    this.$on('hook:beforeDestory', () => {
-      span.remove()
-    })
+    this.$on('hook:beforeDestroy', end)
+  }
+  function start (options = {}) {
+    timer = setInterval(() => {
+      span.innerText = parseInt(pro.progress * 100) + '%'
+    }, 100)
+    loadingService = Loading.service(
+      Object.assign(defaultLoadingOpts, fakeOptions, options)
+    )
+    if (fakeOptions.progress || options.progress) {
+      const container =
+        loadingService.$el.querySelector('.el-loading-text') ||
+        loadingService.$el.querySelector('.el-loading-spinner')
+      const isExist = container.querySelector('gislife-loading-progress-span')
+      if (!isExist) {
+        container.appendChild(span)
+      }
+    }
+    pro.start()
+  }
+  function end () {
+    pro.end()
+    timer && clearInterval(timer)
+    loadingService && loadingService.close()
   }
   return {
-    start (options) {
-      timer = setInterval(() => {
-        span.innerText = parseInt(pro.progress * 100) + '%'
-      }, 100)
-      loadingService = Loading.service(
-        Object.assign(defaultLoadingOpts, options)
-      )
-      const spinner = loadingService.$el.querySelector('.el-loading-text')
-      const isExist = el.querySelector('gislife-loading-progress-span')
-      if (!isExist) {
-        spinner.appendChild(span)
-      }
-      pro.start()
-    },
+    start,
     stop () {
       pro.stop()
     },
-    end () {
-      pro.end()
-      clearInterval(timer)
-      setTimeout(() => {
-        loadingService?.close()
-      }, 100)
-    }
+    end
   }
 }
 

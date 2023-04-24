@@ -78,7 +78,7 @@
       <el-button
         v-for="btn in levelGroup"
         :key="btn.level"
-        :class="{'selected':(selectRowLevel == btn.level || selectRowLevel == btn.label)}"
+        :class="{'selected':(selectRowLevel == btn.level)}"
         class="el-button-level"
         @click="onSelectLevel(btn)"
       >
@@ -211,7 +211,7 @@
           people: 300,
           place: 200
         },
-        loading: true,
+        loading: false,
       }
     },
     computed: {
@@ -234,10 +234,24 @@
         immediate: true,
         handler (val) {
           if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this,document.body);
+            this.loadingMask = createLoading.call(this);
           }
           if (val) {
-            this.loadingMask.start()
+            let text = void 0;
+            switch (this.loadingType) {
+              case 'handleDiscern': {
+                text = '一键识别中...';
+                break;
+              }
+              case 'handleNext': {
+                text = '高后果区等级识别中...';
+                break;
+              }
+              default: {
+                text = ''
+              }
+            }
+            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
           } else {
             this.loadingMask.end();
           }
@@ -246,21 +260,23 @@
     },
     created () {
       console.log('level--------------',this.$route);
-      const loadingFuncs = ['getSelectedPipeList','handleDiscern','handleNext','onDialogAction'];
+      const loadingFuncs = [
+        'getSelectedPipeList',
+        'handleDiscern',
+        'handleNext',
+        'onDialogAction'
+      ];
+      // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+          this.loadingType = key
+        })
       })
       this.getSelectedPipeList();
     },
     methods: {
       getSelectedPipeList () {
         return Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
           taskId: this.taskId
         })
           .then(async (data) => {
@@ -269,7 +285,8 @@
               .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
             this.handlePipeSelect(choosePipe);
             await this.syncMixMapLoaded();
-            this.renderPipeLine(data.data)
+            this.renderPipeLine(data.data);
+            this.__levelLayer.move2Top();
           })
       },
       /**@description 一键识别 */
@@ -397,12 +414,13 @@
           people: populationWkt.length,
           place: specificWkt.length
         })
+        this.__levelLayer.move2Top();
       },
 
       async onTableGetData (data) {
         const mapRef = await this.syncMixMapLoaded();
         this.renderSegmentLabel(data,mapRef);
-        this.renderLevel(data,'regionLevel',mapRef);
+        this.__levelLayer = this.renderLevel(data,'regionLevel',mapRef);
       },
 
       async handleTableRowClick (row) {

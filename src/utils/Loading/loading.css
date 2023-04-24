@@ -1,4 +1,12 @@
 .gislife-loading-progress-span {
+  color: currentColor;
   z-index: 10;
   margin-left: 4px;
+}
+
+.gislife-loading .el-loading-spinner {
+  font-size: 64px;
+}
+.gislife-loading .el-loading-text {
+  font-size: 24px;
 }

@@ -5,7 +5,7 @@ import Request from '@/utils/request'
  * @description 任务管理
  */
 
-export function remove(id) {
+export function remove (id) {
   return Request.request({
     method: 'delete',
     url: `/task/delete/${id}`
@@ -18,7 +18,7 @@ export function remove(id) {
   })
 }
 
-export function syncData(data) {
+export function syncData (data) {
   return Request.request({
     method: 'post',
     url: '/result/hgcResultSync',
@@ -32,7 +32,7 @@ export function syncData(data) {
   })
 }
 
-export function syncPrompt(data) {
+export function syncPrompt (data) {
   return Request.request({
     method: 'post',
     url: '/result/hgcResultSyncPrompt',
@@ -46,12 +46,8 @@ export function syncPrompt(data) {
   })
 }
 
-export function addOrUpdateTask(data) {
-  const {
-    taskName,
-    taskDescription,
-    id
-  } = data
+export function addOrUpdateTask (data) {
+  const { taskName, taskDescription, id } = data
   return Request.request({
     method: 'post',
     url: '/task/addOrUpdate',
@@ -69,7 +65,7 @@ export function addOrUpdateTask(data) {
   })
 }
 
-export function taskDetail(id) {
+export function taskDetail (id) {
   return Request.request({
     method: 'get',
     url: `/task/detail/${id}`
@@ -85,11 +81,7 @@ export function taskDetail(id) {
  * @description 过程管理
  */
 
-export function queryAll({
-  keyWords,
-  pageNo,
-  pageSize
-}) {
+export function queryAll ({ keyWords, pageNo, pageSize }) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/queryPipeLine',
@@ -107,18 +99,18 @@ export function queryAll({
   })
 }
 
-export function queryAllSelected({
-  keyWords,
-  taskId
-}) {
+export function queryAllSelected (options = {}) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/existList',
     data: {
-      keyWords,
-      taskId,
-      pageNo: -1,
-      pageSize: 10
+      keyWords: '',
+      pageNo: 1,
+      pageSize: -1,
+      startTime: '',
+      endTime: '',
+      status: 0,
+      ...options
     }
   }).then(res => {
     if (res.code === 200) {
@@ -129,10 +121,7 @@ export function queryAllSelected({
   })
 }
 
-export function discernOneStep({
-  taskId,
-  nodeId
-}) {
+export function discernOneStep ({ taskId, nodeId }) {
   return Request.request({
     url: '/highconsarea/autRecognition',
     method: 'get',
@@ -149,7 +138,7 @@ export function discernOneStep({
   })
 }
 
-export function pipeLevelMutation({
+export function pipeLevelMutation ({
   code,
   id,
   levelName,
@@ -179,7 +168,7 @@ export function pipeLevelMutation({
   })
 }
 
-export function nextStepOpr({
+export function nextStepOpr ({
   taskId,
   nodeId = 0,
   flag = 'next',
@@ -205,11 +194,7 @@ export function nextStepOpr({
   })
 }
 
-export function pipeAddOrUpdate({
-  pipeLineVos,
-  taskId,
-  taskName
-}) {
+export function pipeAddOrUpdate ({ pipeLineVos, taskId, taskName }) {
   /**
    * pipeLineVos: [
         {
@@ -239,7 +224,7 @@ export function pipeAddOrUpdate({
   })
 }
 
-export function pipeSplitSegment({
+export function pipeSplitSegment ({
   code,
   id,
   pipeSegmentCode,
@@ -269,7 +254,7 @@ export function pipeSplitSegment({
   })
 }
 
-export function mergePipeSegments(segments, filedKey = 'id') {
+export function mergePipeSegments (segments, filedKey = 'id') {
   return Request.request({
     url: '/highconsarea/segmentMerge',
     methods: 'get',

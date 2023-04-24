@@ -10,7 +10,108 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes: []
+  routes: [
+    //业务页面静态路由
+    {
+      path: '/DiscernStandardManage',
+      component: () =>
+        import(
+          /* webpackChunkName: "DiscernStandardManage" */ '@/views/DiscernStandardManage'
+        )
+    },
+    {
+      path: '/GhgqDiscern',
+      component: () =>
+        import(/* webpackChunkName: "GhgqDiscern" */ '@/views/GhgqDiscern')
+    },
+    {
+      path: '/DiscernSteps',
+      component: () =>
+        import(
+          /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/stepLayout.vue'
+        ),
+      redirect: '/DiscernSteps/choose',
+      children: [
+        {
+          path: '/DiscernSteps/choose',
+          component: () =>
+            import(
+              /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/choose.vue'
+            ),
+          meta: {
+            step: 1,
+            name: '管道选择'
+          }
+        },
+        {
+          path: '/DiscernSteps/section',
+          component: () =>
+            import(
+              /* webpackChunkName: "section" */ '@/views/GhgqDiscern/section.vue'
+            ),
+          meta: {
+            step: 2,
+            name: '管道分段'
+          }
+        },
+        {
+          path: '/DiscernSteps/level',
+          component: () =>
+            import(
+              /* webpackChunkName: "level" */ '@/views/GhgqDiscern/level.vue'
+            ),
+          meta: {
+            step: 3,
+            name: '管道等级划分'
+          }
+        },
+        {
+          path: '/DiscernSteps/discern',
+          component: () =>
+            import(
+              /* webpackChunkName: "discern" */ '@/views/GhgqDiscern/discern.vue'
+            ),
+          meta: {
+            step: 4,
+            name: '高后果区识别'
+          }
+        }
+      ]
+    },
+    {
+      path: '/PotentialEffectAnalysis',
+      component: () =>
+        import(
+          /* webpackChunkName: "PotentialEffectAnalysis" */ '@/views/PotentialEffectAnalysis'
+        )
+    },
+    {
+      path: '/detail',
+      component: () =>
+        import(/* webpackChunkName: "detail" */ '@/views/detail.vue')
+    },
+    {
+      path: '/DiscernResultManage',
+      component: () =>
+        import(
+          /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage'
+        )
+    },
+    {
+      path: '/DiscernResultManage/detail',
+      component: () =>
+        import(
+          /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/detail.vue'
+        )
+    },
+    {
+      path: '/DiscernResultManage/contrast',
+      component: () =>
+        import(
+          /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/contrast.vue'
+        )
+    }
+  ]
 })
 
 router.beforeEach((to, from, next) => {
@@ -39,107 +140,6 @@ router.createRouter = function (menuList) {
         name: 'main',
         component: Main,
         children: []
-      },
-      //业务页面静态路由
-      {
-        path: '/DiscernStandardManage',
-        component: () =>
-          import(
-            /* webpackChunkName: "DiscernStandardManage" */ '@/views/DiscernStandardManage'
-          )
-      },
-      {
-        path: '/GhgqDiscern',
-        component: () =>
-          import(/* webpackChunkName: "GhgqDiscern" */ '@/views/GhgqDiscern')
-      },
-      {
-        path: '/DiscernSteps',
-        component: () =>
-          import(
-            /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/stepLayout.vue'
-          ),
-        redirect: '/DiscernSteps/choose',
-        children: [
-          {
-            path: '/DiscernSteps/choose',
-            component: () =>
-              import(
-                /* webpackChunkName: "DiscernSteps" */ '@/views/GhgqDiscern/choose.vue'
-              ),
-            meta: {
-              step: 1,
-              name: '管道选择'
-            }
-          },
-          {
-            path: '/DiscernSteps/section',
-            component: () =>
-              import(
-                /* webpackChunkName: "section" */ '@/views/GhgqDiscern/section.vue'
-              ),
-            meta: {
-              step: 2,
-              name: '管道分段'
-            }
-          },
-          {
-            path: '/DiscernSteps/level',
-            component: () =>
-              import(
-                /* webpackChunkName: "level" */ '@/views/GhgqDiscern/level.vue'
-              ),
-            meta: {
-              step: 3,
-              name: '管道等级划分'
-            }
-          },
-          {
-            path: '/DiscernSteps/discern',
-            component: () =>
-              import(
-                /* webpackChunkName: "discern" */ '@/views/GhgqDiscern/discern.vue'
-              ),
-            meta: {
-              step: 4,
-              name: '高后果区识别'
-            }
-          }
-        ]
-      },
-      {
-        path: '/PotentialEffectAnalysis',
-        component: () =>
-          import(
-            /* webpackChunkName: "PotentialEffectAnalysis" */ '@/views/PotentialEffectAnalysis'
-          )
-      },
-      {
-        path: '/detail',
-        component: () =>
-          import(/* webpackChunkName: "detail" */ '@/views/detail.vue')
-      },
-
-      {
-        path: '/DiscernResultManage',
-        component: () =>
-          import(
-            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage'
-          )
-      },
-      {
-        path: '/DiscernResultManage/detail',
-        component: () =>
-          import(
-            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/detail.vue'
-          )
-      },
-      {
-        path: '/DiscernResultManage/contrast',
-        component: () =>
-          import(
-            /* webpackChunkName: "DiscernResultManage" */ '@/views/DiscernResultManage/contrast.vue'
-          )
       }
     ]
   }

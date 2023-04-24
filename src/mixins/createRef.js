@@ -6,7 +6,7 @@ export default function createRefMixin (LIFECYCLE_FILED, LIFECYCLE) {
       computed: {
         [buildRefName(refName)] () {
           return () =>
-            via == 'ctx' || via == 'context'
+            via == 'ctx' || via == 'context' || via == 'global'
               ? this.getRef(refName)
               : this.$refs[refName]
         }

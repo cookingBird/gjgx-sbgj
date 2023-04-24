@@ -87,7 +87,6 @@
       ref="splitForm"
       :model="formData"
       label-width="110px"
-      @validate="onValidate"
     >
       <el-form-item
         label="起始里程："
@@ -163,7 +162,46 @@
     },
     mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
+      const getValidator = (errorMsgs,otherJudge) => (rule,value,callback) => {
+        if (!value && value !== 0) {
+          callback(new Error(errorMsgs[0]));
+        }
+        if (Number(value) < 0) {
+          callback(new Error(errorMsgs[1]));
+        }
+        otherJudge && otherJudge(value,callback)
+        callback()
+      }
       return {
+        rules: {
+          beginMileage: [{
+            validator: getValidator(['请输入起始里程','起始里程必须大于零'],
+              (value,callback) => {
+                if (value > this.formData.endMileage) {
+                  callback(new Error('起始里程必须小于终止里程'))
+                }
+              }),
+            trigger: ['blur','change']
+          }],
+          splitMileage: [{
+            validator: getValidator(['请输入分割里程','分割里程必须大于零'],
+              (value,callback) => {
+                if (value > this.formData.endMileage || value < this.formData.beginMileage) {
+                  callback(Error('分割里程必须大于起始里程，小于终止里程'))
+                }
+              }),
+            trigger: ['blur','change']
+          }],
+          endMileage: [{
+            validator: getValidator(['请输入终止里程','终止里程必须大于零'],
+              (value,callback) => {
+                if (value < this.formData.beginMileage) {
+                  callback(new Error('终止里程必须大于起始里程'))
+                }
+              }),
+            trigger: ['blur','change']
+          }],
+        },
         pipeList: [
           {
             pipeName: '全部管道',
@@ -237,7 +275,7 @@
           people: 300,
           place: 200
         },
-        loading: true,
+        loading: false,
       }
     },
     computed: {
@@ -246,64 +284,6 @@
       },
       taskName () {
         return this.$route.query.taskName
-      },
-      rules () {
-        if (!this.getValidator) {
-          this.getValidator = (errorMsgs,otherJudge) => (rule,value,callback) => {
-            if (value === void 0) {
-              callback(new Error(errorMsgs[0]));
-            }
-            if (Number(value) < 0) {
-              callback(new Error(errorMsgs[1]));
-            }
-            otherJudge && otherJudge(value,callback)
-          }
-        }
-        const commonValidator = {
-          beginMileage: [{
-            validator: this.getValidator(['请输入起始里程','起始里程必须大于零'],
-              (value,callback) => {
-                if (value > this.formData.endMileage) {
-                  callback(new Error('起始里程必须小于终止里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-          endMileage: [{
-            validator: this.getValidator(['请输入终止里程','终止里程必须大于零'],
-              (value,callback) => {
-                if (value < this.formData.beginMileage) {
-                  callback(new Error('终止里程必须大于起始里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-        }
-        // return this.actionType
-        //   ? Object.assign(commonValidator,{
-        //     splitMileage: [{
-        //       validator: this.getValidator(['请输入分割里程','分割里程必须大于零'],
-        //         (value,callback) => {
-        //           if (value > this.formData.endMileage || value < this.formData.beginMileage) {
-        //             callback(new Error('分割里程必须大于起始里程，小于终止里程'))
-        //           }
-        //         }),
-        //       trigger: ['blur','change']
-        //     }]
-        //   })
-        //   : commonValidator
-        return {
-          splitMileage: [{
-            validator: this.getValidator(['请输入分割里程','分割里程必须大于零'],
-              (value,callback) => {
-                if (value > this.formData.endMileage || value < this.formData.beginMileage) {
-                  callback(Error('分割里程必须大于起始里程，小于终止里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-          ...commonValidator
-        }
       },
       mapRef () {
         return this.$refs['table'].$refs['basemap'];
@@ -326,13 +306,26 @@
     },
     watch: {
       loading: {
-        immediate: true,
         handler (val) {
           if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this,document.body);
+            this.loadingMask = createLoading.call(this);
           }
           if (val) {
-            this.loadingMask.start()
+            let text = void 0;
+            switch (this.loadingType) {
+              case 'handleDiscern': {
+                text = '一键识别中...';
+                break;
+              }
+              case 'handleNext': {
+                text = '地区等级识别中...';
+                break;
+              }
+              default: {
+                text = ''
+              }
+            }
+            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
           } else {
             this.loadingMask.end();
           }
@@ -345,9 +338,12 @@
         'handleDiscern',
         'handleNext',
         'onSubmit',
-        'onMerge'];
+        'onMerge'
+      ];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+          this.loadingType = key
+        })
       })
       if (this.isEveryStep) {
         await Helper.pipeAddOrUpdate({
@@ -363,16 +359,9 @@
       }
       this.getSelectedPipeList();
     },
-
     methods: {
       getSelectedPipeList () {
         return Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
           taskId: this.taskId
         })
           .then(async (data) => {
@@ -458,16 +447,9 @@
       /**@description 编辑分段submit */
       async onSubmit () {
         const { id,code,pipeSegmentCode } = this.__edittingRow;
-        console.log('onSubmit----------------',this.$refs['splitForm']);
-        this.$refs['splitForm'].validate((res) => {
-          console.log("this.$refs['splitForm'].validate callback-------",res);
-        });
-        this.$refs['splitForm'].validateField(['beginMileage','endMileage'],(res) => {
-          console.log("this.$refs['splitForm'].validate callback-------",res);
-        });
         try {
-          // const res = await this.$refs['splitForm'].validate();
-          // console.log('validate res----------------',res);
+          const res = await this.$refs['splitForm'].validate();
+          console.log("this.$refs['splitForm'].validate()",res);
           return Helper.pipeSplitSegment({
             code,
             id,
@@ -512,7 +494,8 @@
         })
       },
       /**@description 管段数据改变，重新渲染分段标识 */
-      onTableGetData (data) {
+      async onTableGetData (data) {
+        await this.syncMixMapLoaded();
         this.renderSegmentLabel(data);
       },
 
@@ -534,10 +517,11 @@
       },
 
       onMerge () {
-        return Helper.mergePipeSegments(this.selectPipeSegments).then(_ => {
-          this.$message.success('合并成功');
-          this.$refs.table.$refs.table.refresh();
-        })
+        return Helper.mergePipeSegments(this.selectPipeSegments)
+          .then(_ => {
+            this.$message.success('合并成功');
+            this.$refs.table.$refs.table.refresh();
+          })
       }
     }
   }

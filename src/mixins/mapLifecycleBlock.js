@@ -10,7 +10,7 @@ export default function () {
     methods: {
       setMapLoaded () {
         this.mapLifecycle.loaded.setReady()
-      },
+      }
     }
   }
 }

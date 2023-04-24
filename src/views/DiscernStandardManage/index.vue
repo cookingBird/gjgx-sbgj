@@ -18,10 +18,7 @@
       <el-button
         class="absolute inline-block right-2"
         type="primary"
-        @click="
-            dialogType = 1;
-            formData = {};
-          "
+        @click="onAdd"
       >
         新增
       </el-button>
@@ -154,7 +151,14 @@
             accept=".doc,.docx,"
             @input="handleFileSelect"
           />
-          <span class="absolute -right-1">{{parseInt(progress.progress * 100)}}%</span>
+          <span
+            v-show="formData && formData.file"
+            class="absolute -right-1"
+          >{{parseInt(progress.progress * 100)}}%</span>
+          <span
+            v-if="formData && formData.fileName && !formData.file"
+            class="absolute -ml-1 bg-white left-20"
+          >{{formData.fileName}}</span>
         </div>
       </el-form-item>
       <div class="flex justify-center">
@@ -192,7 +196,7 @@
   import ContentLayout from '../components/ContentLayout.vue';
   import * as Helper from './helper';
   import * as Misc from '@/utils/misc';
-  
+
   const FakeProgress = require("fake-progress");
   export default {
     components: { ContentLayout,pdf },
@@ -243,6 +247,11 @@
         handler (val) {
           this.progressSetter(Number(val.toFixed(2)))
         }
+      },
+      formData (val) {
+        if (val === null) {
+          this.progress.end();
+        }
       }
     },
     created () {
@@ -250,6 +259,9 @@
       this.getProgressSetter = (setter) => {
         this.progressSetter = setter;
       };
+    },
+    mounted () {
+      console.log("mounted-------------------",this.progress);
     },
     methods: {
       reset () {
@@ -274,7 +286,7 @@
         this.$refs.addForm.validate().then((res) => {
           console.log("this.$refs.addForm.validate()",res);
           this.progress.start();
-          Helper.addOrUpdate(this.formData,this.progressSetter)
+          Helper.addOrUpdate(this.formData)
             .then((_) => {
               this.$message.success(this.dialogType === 1 ? '新增成功' : '修改成功');
               this.progress.end();
@@ -304,6 +316,10 @@
         this.loadPdf(row.pdfPath);
         // Helper.renderPdf(row.pdfPath,"discern-standard-preview")
       },
+      onAdd () {
+        this.dialogType = 1;
+        this.formData = {};
+      },
       handleFileSelect (e) {
         this.formData = {
           ...this.formData,
@@ -312,9 +328,8 @@
       },
       onEdit (row) {
         this.dialogType = 2;
-        setTimeout(() => {
-          this.formData = row;
-        });
+        this.formData = row;
+        console.log("onEdit---------------",row);
       },
       loadPdf (src) {
         this.pdf = pdf.createLoadingTask(src);

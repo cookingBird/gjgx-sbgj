@@ -39,7 +39,11 @@
     computed: {
       src () {
         return function (src) {
-          return src + '?' + qs.stringify(this.$route.query)
+          if (Object.keys(this.$route.query).length) {
+            return src + '?' + qs.stringify(this.$route.query)
+          } else {
+            return src
+          }
         }
       },
       code () {
@@ -68,14 +72,14 @@
 </script>
   
 <style lang="scss">
-.micro-app-container {
-  width: 100%;
-  height: 100%;
-
-  iframe {
+  .micro-app-container {
     width: 100%;
     height: 100%;
+
+    iframe {
+      width: 100%;
+      height: 100%;
+    }
   }
-}
 </style>
   

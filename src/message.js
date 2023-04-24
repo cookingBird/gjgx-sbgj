@@ -3,6 +3,7 @@ import store from '@/store'
 import { connector } from '@gislife/micro-message'
 import { logout } from '@/api/base'
 import { Message } from 'element-ui'
+import qs from 'qs'
 
 setTimeout(() => {
   if (connector.isMain()) {
@@ -37,6 +38,35 @@ setTimeout(() => {
       router.push(data)
     })
     /**
+     * @description 子应用在当前跳转
+     */
+    connector.$on(null, 'routeReplace', ({ data, responser }) => {
+      //获取后台配置路由信息
+      const travel = getTreeTraveler({
+        every (node) {
+          if (node.route === data.path) {
+            if (node.reqPath) {
+              if (node.reqPath.includes('?')) {
+                throw Error(`
+                node.reqPath should not has search query;\n 
+                node.reqPath is ${node.reqPath}`)
+              }
+              if (data.query) {
+                responser(node.reqPath + '?' + qs.stringify(data.query))
+              } else {
+                responser(node.reqPath)
+              }
+            } else {
+              throw Error(`on routeReplace error;\n 
+              data.path is ${data.path}; \n
+              node.reqPath is ${node.reqPath};`)
+            }
+          }
+        }
+      })
+      store.state.auth.userinfo.fun.forEach(travel)
+    })
+    /**
      * @description 子应用登出
      */
     connector.$on(null, 'logout', async () => {
@@ -65,6 +95,18 @@ setTimeout(() => {
     connector.$on(null, 'open', ({ data }) => {
       window.open(data.to)
     })
+  } else {
+    /**
+     * @description 子应用路由跳转替换当前页面
+     */
+    connector.$on(null, 'routeReplace', ({ data }) => {
+      const search = location.href.split('?')[1]
+      if (search) {
+        location.href = data + '&microAppCode=' + connector.appCode
+      } else {
+        location.href = data + '?microAppCode=' + connector.appCode
+      }
+    })
   }
   /**
    * @description token全局刷新
@@ -86,27 +128,14 @@ export function getMainPath () {
     })
 }
 
+/**
+ * @deprecated 请使用 getTreeTraveler
+ * @param {*} target
+ * @returns traveler
+ */
 export function treeTravels (target) {
   return visitor => {
-    const { firstEnter, every } = visitor || {}
-
-    function travel (tar, isFirst = true) {
-      if (isFirst) {
-        firstEnter && firstEnter(tar)
-      }
-      if (Object.prototype.toString.call(tar) === '[object Object]') {
-        every && every(tar)
-        if (tar.children && tar.children.length) {
-          travel(tar.children, false)
-        }
-      }
-      if (Object.prototype.toString.call(tar) === '[object Array]') {
-        tar.forEach(element => {
-          travel(element, false)
-        })
-      }
-    }
-
+    const travel = getTreeTraveler(visitor)
     travel(target)
   }
 }
@@ -134,12 +163,33 @@ export function isMain () {
   return connector.isMain()
 }
 
-
 function getFiledValue (origin, ...fileds) {
   const result = {}
-  fileds = fileds.flat();
+  fileds = fileds.flat()
   for (const key of fileds) {
     result[key] = origin[key]
   }
   return result
+}
+
+export function getTreeTraveler (visitor, childrenKey = 'children') {
+  const { firstEnter, every } = visitor || {}
+  return target => {
+    function travel (tar, isFirst = true) {
+      if (isFirst) {
+        firstEnter && firstEnter(tar)
+      }
+      if (Array.isArray(tar)) {
+        tar.forEach(element => {
+          travel(element, false)
+        })
+      } else if (typeof tar === 'object') {
+        every && every(tar)
+        if (tar[childrenKey] && tar[childrenKey].length) {
+          travel(tar[childrenKey], false)
+        }
+      }
+    }
+    travel(target)
+  }
 }

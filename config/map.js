@@ -41,6 +41,7 @@ const cesium3DCss = [
 ]
 
 module.exports = function getCDN (mode) {
+  if (!mode) return { js: [], css: [] }
   if (mode.toLowerCase() === '2d') {
     return {
       js: mapBox2DJs,

@@ -143,7 +143,7 @@
       },
     },
     created () {
-      this.fetchData = Misc.bindLoading('loading.tableLoading',this.fetchData).bind(this);
+      this.fetchData = Misc.bindLoading.call(this,'loading.tableLoading',this.fetchData);
     },
     methods: {
       async fetchData (query) {

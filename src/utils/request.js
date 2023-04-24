@@ -1,7 +1,7 @@
 import axios from 'axios'
 import Message from 'element-ui/packages/message/index.js'
 import { connector } from '@gislife/micro-message'
-import { getTreeTravels } from '@/utils/misc'
+import { getTreeTraveler } from '@/utils/misc'
 
 const service = axios.create({
   baseURL: window.URL_CONFIG.baseUrl
@@ -65,8 +65,7 @@ service.interceptors.response.use(
     }
   }
 )
-//开发环境本地地址转换
-service.interceptors.response.use(transform)
+
 //500、401
 service.interceptors.response.use(responseData => {
   const data = responseData
@@ -89,9 +88,14 @@ service.interceptors.response.use(responseData => {
   return responseData
 })
 
+//开发环境本地地址转换
+if (process.env.NODE_ENV === 'development') {
+  service.interceptors.response.use(transform)
+}
+
 export default service
 
-const funTransform = getTreeTravels({
+const funTransform = getTreeTraveler({
   every (node) {
     if (node.reqPath) {
       node.reqPath = node.reqPath.replace(
@@ -103,7 +107,7 @@ const funTransform = getTreeTravels({
 })
 function transform (response) {
   const { data, code } = response
-  if (code === 200 && data?.fun && process.env.NODE_ENV === 'development') {
+  if (code === 200 && data?.fun) {
     data.fun.forEach(element => {
       funTransform(element)
     })

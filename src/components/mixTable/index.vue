@@ -28,7 +28,7 @@
   </div>
 
   <div
-    v-if="mapload && configs.table"
+    v-if="configs.table"
     v-show="type !== '地图'"
     class="shadow-content mix-table__table"
   >

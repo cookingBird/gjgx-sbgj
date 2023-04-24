@@ -1,7 +1,7 @@
 /** @type {import('@vue/cli-service').ProjectOptions} */
 const path = require('path')
 const { ElementUiResolver } = require('unplugin-vue-components/resolvers')
-const CDN = require('./config/cdn')('2d')
+const CDN = require('./config/cdn')('')
 const transform = require('./config/dataTransform')
 module.exports = {
   publicPath: '/',
@@ -43,7 +43,7 @@ module.exports = {
     proxy: {
       '/': {
         target: 'http://192.168.3.53:17878/',
-        bypass: transform,
+        bypass: transform
       }
     }
   }

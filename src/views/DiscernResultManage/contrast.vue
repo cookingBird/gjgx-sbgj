@@ -165,22 +165,18 @@
 			this.getPipeDetail();
 			this.getTasksDetail();
 		},
-		updated () { },
-		beforeDestroy () { },
+ 
 		methods: {
 			async getPipeDetail () {
 				const data = await Helper.queryPipeRegion(
 					this.taskIds.split(',')[0],
 					this.pipeSegmentCode
 				)
-				console.log('queryPipeRegion -----------------------------',data);
 				const { regionWkt,flammableWkt,specificWkt,populationWkt,wkt } = data;
-
 				this.pipeAroundTotal = {
 					people: populationWkt.length,
 					place: specificWkt.length,
 				};
-
 				const mixMapRef = await this.syncMapLoaded();
 				this.renderPipeLine([data],mixMapRef);
 				this.renderRadius({ regionDto: { regionWkt } },mixMapRef);

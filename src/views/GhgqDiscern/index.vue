@@ -243,7 +243,7 @@
             label: '已完成',
           },
         ],
-        loading: true
+        loading: false
       };
     },
     computed: {
@@ -285,24 +285,31 @@
     },
     watch: {
       loading: {
-        immediate: true,
         handler (val) {
           if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this,document.body);
+            this.loadingMask = createLoading.call(
+              this,
+              void 0,
+              {
+                customClass: 'gislife-loading',
+                text: '',
+              }
+            );
           }
-          console.log("loading watch----------------",val);
           if (val) {
             this.loadingMask.start()
           } else {
             this.loadingMask.end();
           }
         }
-      }
+      },
     },
     created () {
       const loadingFuncs = ['onPreview','onDelete','onSubmit','onSync','onContinue'];
+      // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+        /**注意此处容易造成死循环，当bindLoading第二个参数为函数时 */
+        this[key] = Misc.bindLoading.call(this,'loading',this[key])
       })
     },
     mounted () {

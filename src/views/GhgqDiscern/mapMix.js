@@ -3,7 +3,7 @@ export default function () {
     methods: {
       /**@description 渲染所有管线 */
       renderPipeLine (pipeList, mixMapRef = this.mixMapRef()) {
-        mixMapRef.pipeRender(pipeList)
+        return mixMapRef.pipeRender(pipeList)
       },
       /**
        * @description 渲染缓冲区
@@ -74,7 +74,12 @@ export default function () {
         return mixMapRef.pipeSectionPointRender(headerList)
       },
       /**@description 渲染地区等级 */
-      renderLevel (data, field, mixMapRef = this.mixMapRef(), colorMap = void 0) {
+      renderLevel (
+        data,
+        field,
+        mixMapRef = this.mixMapRef(),
+        colorMap = void 0
+      ) {
         return mixMapRef.sectionLevelRender(data, field, void 0, colorMap)
       }
     }

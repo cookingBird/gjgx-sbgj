@@ -34,7 +34,7 @@
   }
 
   export default {
-    mixins: [mapLifecycle()],
+    mixins: [mapLifecycle(() => this.$refs['map'].map)],
     data () {
       return {
         requestHeader: {
@@ -104,7 +104,7 @@
         }
         let data = {
           'type': 'FeatureCollection',
-          'features': []
+          features: []
         }
         pipes.forEach((pipe) => {
           const { name,wkt } = pipe;
@@ -118,14 +118,14 @@
             }
           })
           //中心点数据
-          // const centerGeometry = turf.center(geometry);
-          // data.features.push({
-          //   type: 'Fetaure',
-          //   geometry: centerGeometry.geometry,
-          //   properties: {
-          //     name,
-          //   },
-          // })
+          const centerGeometry = turf.center(geometry);
+          data.features.push({
+            type: 'Fetaure',
+            geometry: centerGeometry.geometry,
+            properties: {
+              name,
+            },
+          })
         })
         source.setData(data);
         return source.id;
@@ -171,7 +171,9 @@
        * **/
       pipeRender (pipes) {
         const { map } = this.$refs['map'].map;
+        const layerId = 'pipe-name';
         const sourceId = this.createPipeSource(pipes,PIPE_LAYER_ID);
+        this.removePipeLayer()
         //管线图层
         !map.getLayer(PIPE_LAYER_ID) && map.addLayer({
           id: PIPE_LAYER_ID,
@@ -188,8 +190,8 @@
           filter: ['==','$type','LineString']
         })
         //管线名称图层
-        !map.getLayer('pipe-name') && map.addLayer({
-          id: 'pipe-name',
+        !map.getLayer(layerId) && map.addLayer({
+          id: layerId,
           type: 'symbol',
           source: sourceId,
           layout: {
@@ -210,6 +212,18 @@
           minzoom: 12,
           maxzoom: 0
         })
+        return {
+          toggleVisibility (val) {
+            if (val) {
+              map.setLayoutProperty(PIPE_LAYER_ID,'visibility','visible')
+            } else {
+              map.setLayoutProperty(PIPE_LAYER_ID,'visibility','none')
+            }
+          },
+          move2Top () {
+            map.moveLayer(PIPE_LAYER_ID);
+          }
+        }
       },
       /**
        * @description 删除管线影响半径
@@ -312,7 +326,7 @@
               if (err) {
                 reject();
               } else {
-                map.addImage(img,data);
+                map.addImage(img,data)
                 resolve();
               }
             })
@@ -450,7 +464,6 @@
         ]
       ) {
         const { map } = this.$refs['map'].map;
-        // const id = 'section-level';
         const sourceId = this.createPipeSource(data,id);
         !map.getLayer(id) && map.addLayer({
           id,
@@ -480,6 +493,9 @@
               map && map.setLayoutProperty(id,'visibility','none')
             }
           },
+          move2Top () {
+            map.moveLayer(id);
+          }
         }
       },
       resize () {
@@ -490,18 +506,18 @@
 </script>
 
 <style lang="scss" scoped>
-::v-deep .mapboxgl-popup {
-  max-width: 200px;
-  font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-  top: -20px;
-}
-
-.map-container {
-  width: 100%;
-  height: 100%;
-
-  ::v-deep .map-type-controller {
-    display: none;
+  ::v-deep .mapboxgl-popup {
+    max-width: 200px;
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    top: -20px;
   }
-}
+
+  .map-container {
+    width: 100%;
+    height: 100%;
+
+    ::v-deep .map-type-controller {
+      display: none;
+    }
+  }
 </style>

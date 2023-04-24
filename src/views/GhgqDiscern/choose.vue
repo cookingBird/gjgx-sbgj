@@ -1,7 +1,7 @@
 <template>
 <div class="choose-wrapper">
   <div class="space-x-2 choose-content">
-    <div class="flex-grow-0 flex-shrink-0 w-1/3 rounded">
+    <div class="flex-grow-0 flex-shrink-0 w-5/12 rounded">
       <div class="choose-title">作业区所有管线列表</div>
       <div class="my-2 choose-search">
         <el-form
@@ -115,8 +115,6 @@
             :data="selectedListFiltered"
             @selection-change="(val)=>handleSelectionChange(val,'right')"
             :columns="rightCols"
-            :pagination="{}"
-            :autoPage="true"
           >
           </MyTable>
         </div>
@@ -249,7 +247,7 @@
             }
           },
         ],
-        loading: true
+        loading: false
       };
     },
     computed: {
@@ -260,19 +258,41 @@
         return this.$route.query.taskName;
       },
       selectedListFiltered () {
+        const filterKey = 'pipeName'
+
         return this.selectedPipeList
-          .filter((node) => node.pipeName.includes(this.rightKeyword));
+          .filter((node) => node[filterKey] && node[filterKey].includes(this.rightKeyword));
       },
     },
     watch: {
       loading: {
-        immediate: true,
-        handler (val) {
+        handler (val,oldVal) {
           if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this,document.body);
+            this.loadingMask = createLoading.call(
+              this,
+              void 0,
+              {
+                customClass: 'gislife-loading',
+              }
+            );
           }
           if (val) {
-            this.loadingMask.start()
+            let text = void 0;
+            switch (this.loadingType) {
+              case 'bootstrap': {
+                text = '';
+                break;
+              }
+              case 'handleDiscern': {
+                text = '一键识别中...';
+                break;
+              }
+              case 'handleNext': {
+                text = '分段识别中...';
+                break;
+              }
+            }
+            this.loadingMask.start({ text,progress: Boolean(text) })
           } else {
             this.loadingMask.end();
           }
@@ -283,9 +303,17 @@
       const loadingFuncs = [
         'bootstrap',
         'handleDiscern',
-        'handleNext'];
+        'handleNext'
+      ];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+        /**@description 栈溢出 */
+        // this[key] = Misc.bindLoading.call(this,'loading',(...param) => this[key](...param),() => {
+        //   this.loadingType = key
+        // })
+        //！ OK
+        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+          this.loadingType = key
+        })
       })
     },
     mounted () {
@@ -315,34 +343,25 @@
             //   pipeSegmentCode: "GE0401050300000282",
             //   pipeType: "净化气",
             // }).map((item,index) => ({ ...item,id: index }))
-            this.syncItemStatus();
+
           });
       },
       getSelectedPipeList () {
         return Helper.queryAllSelected({
-          keyWords: this.rightKeyword,
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
           taskId: this.taskId,
-        }).then((data) => {
-          this.selectedPipeList = data.data;
+        }).then((res) => {
+          this.selectedPipeList = res.data;
         })
       },
-      syncItemStatus (uniqueKey = 'pipeSegmentCode') {
-        this.$nextTick(() => {
-          Misc.rawForEach(this.pipeList,this.selectedPipeList,uniqueKey,(item) => {
-            this.$refs['leftTableRef'].toggleRowSelection(item,true);
-          })
-          // sync pipeList中最新的匹配数据
-          this.selectedPipeList = Misc.rawMap(this.pipeList,this.selectedPipeList,uniqueKey)
-        });
-      },
-      async bootstrap () {
+      async bootstrap (uniqueKey = 'pipeSegmentCode') {
         await this.getSelectedPipeList();
         await this.queryPipeList();
+        Misc.rawForEach(this.pipeList,this.selectedPipeList,uniqueKey,(item) => {
+          if (item) {
+            this.$refs['leftTableRef'].toggleRowSelection(item,true);
+          }
+        })
+        this.selectedPipeList = Misc.rawMap(this.pipeList,this.selectedPipeList,uniqueKey)
       },
       handleSelectAll () {
         this.pipeList.forEach((pipe) => {
@@ -350,11 +369,14 @@
         });
       },
       handleSelectClear () {
-        const findKey = 'pipeSegmentCode';
-        Misc.rawForEach(this.pipeList,this.selectChooseList,findKey,(item) => {
+        const uniqueKey = 'pipeSegmentCode';
+        Misc.rawForEach(this.pipeList,this.selectChooseList,uniqueKey,(item) => {
           this.$refs['leftTableRef'].toggleRowSelection(item,false);
         })
-        this.selectedPipeList = Misc.arrayOmit(this.selectedPipeList,this.selectChooseList,findKey)
+        this.selectedPipeList = Misc.arrayOmit(
+          this.selectedPipeList,
+          this.selectChooseList,
+          uniqueKey)
       },
       handleSelectionChange (rows,type) {
         if (type === 'left') {
@@ -369,6 +391,7 @@
       },
       /**@description 下一步 */
       handleNext () {
+        console.log("selectedPipeList---------------",this.selectedPipeList);
         return Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,

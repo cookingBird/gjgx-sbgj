@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 
 const transformRequest = [['/permission/getPermission', transPermission]]
-const reqLog = getObjTravels(
+const reqLog = getObjectTraveler(
   {
     every (key, value, result) {
       if (typeof value !== 'object') {
@@ -69,7 +69,7 @@ function transPermission (response) {
   return response
 }
 
-function getObjTravels (visitor, maxDepth = 3) {
+function getObjectTraveler (visitor, maxDepth = 3) {
   const { every } = visitor || {}
   return target => {
     const result = {}

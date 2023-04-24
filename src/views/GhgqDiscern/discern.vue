@@ -61,6 +61,7 @@
               @click="onExit"
             >退出</el-button>
             <el-button
+              v-if="!isOneStep"
               type="primary"
               @click="onPrev"
             >上一步</el-button>
@@ -76,7 +77,7 @@
   <el-dialog
     v-if="edittingRow"
     @close="onclose"
-    title="修改地区等级"
+    title="修改高后果区等级"
     :visible="true"
     width="30%"
   >
@@ -93,8 +94,8 @@
     </div>
     <div class="flex justify-center mt-7">
       <el-button
-        type="primary"
         v-for="aBtn in dialogAction"
+        type="primary"
         :key="aBtn.code"
         @click="onDialogAction(aBtn)"
       >
@@ -280,7 +281,7 @@
           people: 300,
           place: 200
         },
-        loading: true
+        loading: false
       }
     },
     computed: {
@@ -311,13 +312,26 @@
     },
     watch: {
       loading: {
-        immediate: true,
         handler (val) {
           if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this,document.body);
+            this.loadingMask = createLoading.call(this);
           }
           if (val) {
-            this.loadingMask.start()
+            let text = void 0;
+            switch (this.loadingType) {
+              case 'handleDiscern': {
+                text = '一键识别中...';
+                break;
+              }
+              case 'handleNext': {
+                text = '';
+                break;
+              }
+              default: {
+                text = ''
+              }
+            }
+            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
           } else {
             this.loadingMask.end();
           }
@@ -326,9 +340,16 @@
     },
     async created () {
       console.log('discern created-----------------',this.$route);
-      const loadingFuncs = ['getSelectedPipeList','handleFinish','onDialogAction'];
+      const loadingFuncs = [
+        'getSelectedPipeList',
+        'handleFinish',
+        'onDialogAction'
+      ];
+      // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.bind(this)('loading',this[key])
+        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+          this.loadingType = key
+        })
       })
       if (this.isOneStep) {
         await Helper.pipeAddOrUpdate({
@@ -346,12 +367,6 @@
     methods: {
       getSelectedPipeList () {
         return Helper.queryAllSelected({
-          keyWords: '',
-          pageNo: 1,
-          pageSize: -1,
-          startTime: '',
-          endTime: '',
-          status: 0,
           taskId: this.taskId
         }).then(async (data) => {
           this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
@@ -360,6 +375,7 @@
           this.handlePipeSelect(choosePipe);
           await this.syncMixMapLoaded();
           this.renderPipeLine(data.data)
+          this.__levelLayer.move2Top();
         })
       },
       /**@description 选择管道 */
@@ -381,7 +397,8 @@
         Object.assign(this.pipeAroundTotal,{
           people: populationWkt.length,
           place: specificWkt.length
-        })
+        });
+        this.__levelLayer.move2Top();
       },
       /**@description 完成 */
       handleFinish () {
@@ -441,7 +458,11 @@
       },
       /**@description 选择等级 */
       onSelectLevel (btn) {
-        Object.assign(this.edittingRow,btn)
+        this.edittingRow = {
+          ...this.edittingRow,
+          hcaLevel: btn.level,
+          hcaLevelLabel: btn.label
+        }
       },
       /**@description 关闭弹窗，提交表单 */
       onDialogAction (aBtn) {
@@ -451,32 +472,41 @@
             return Promise.resolve();
           }
           case 'submit': {
-            const { level,label,code,id,pipeSegmentCode } = this.edittingRow
+            const { label,hcaLevelLabel,code,id,pipeSegmentCode,hcaLevel } = this.edittingRow;
+            console.log("this.edittingRow",this.edittingRow);
             return Helper.pipeLevelMutation({
               code,
               id,
-              levelName: label,
-              levelNo: level,
+              levelName: hcaLevelLabel || label,
+              levelNo: hcaLevel,
               node: CURRENT_NODE_STEP,
               pipeSegmentCode,
               taskId: this.taskId
-            }).then(() => {
-              this.$message.success('修改成功');
-              this.$refs.table.$refs.table.refresh();
-              this.edittingRow = null;
             })
+              .then(() => {
+                this.$message.success('修改成功');
+                this.$refs.table.$refs.table.refresh();
+                this.edittingRow = null;
+              })
           }
           default: {
             throw Error(`unCapture action type ${aBtn.code}`)
           }
         }
       },
-
+      /**
+       * @description 渲染高后果区等级
+       * @param {*} data 
+       */
       async onTableGetData (data) {
         const mapRef = await this.syncMixMapLoaded();
         this.renderSegmentLabel(data,mapRef);
-        this.renderLevel(data,'hcaLevel',mapRef);
+        this.__levelLayer = this.renderLevel(data,'hcaLevel',mapRef);
       },
+      /**
+       * @description 行点击，定位
+       * @param {*} row 
+       */
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
         mixMapRef.locationByLineString(row.wkt)

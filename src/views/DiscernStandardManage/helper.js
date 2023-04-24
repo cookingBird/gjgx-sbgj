@@ -14,14 +14,13 @@ export function remove (id) {
   })
 }
 
-export function addOrUpdate ({ id, name, scope, file },onUploadProgress) {
+export function addOrUpdate ({ id, name, scope, file }, onUploadProgress) {
   const formData = new FormData()
   Object.entries({ id, name, scope, file }).forEach(item => {
     formData.append(item[0], item[1] || null)
   })
   return Request.request({
     method: 'post',
-    onUploadProgress,
     headers: {
       'Content-Type': 'multipart/form-data'
     },

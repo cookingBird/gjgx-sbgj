@@ -1,16 +1,16 @@
 <template>
-  <div class="gislife-toBody">
-    <slot></slot>
-  </div>
+<div class="gislife-toBody">
+  <slot></slot>
+</div>
 </template>
 
 <script>
   export default {
     name: 'ToBody',
-    mounted() {
+    mounted () {
       document.body.appendChild(this.$el);
     },
-    destroyed() {
+    destroyed () {
       if (this.$el && this.$el.parentNode) {
         this.$el.parentNode.removeChild(this.$el);
       }
