@@ -18,6 +18,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="right-content">
           <mix-table
+            v-if="pipeList.length"
             ref="table"
             :tableColumns="tableColumns"
             :config="tableConfig"
@@ -73,6 +74,7 @@
     title="修改地区等级"
     :visible.sync="dialogVisible"
     width="25%"
+    :close-on-click-modal="false"
   >
     <div class="flex justify-around">
       <el-button

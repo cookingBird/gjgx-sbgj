@@ -34,9 +34,8 @@
 						<div
 							v-else-if="item.slotIs === 'div'"
 							v-bind="Object.assign({},
-						pickDataAttrs(scope.row,item.dataAttrs),
-						pickAttrs(scope.row,item.attrs),
-						item.slotProps&&item.slotProps(scope))"
+								pickAttrs(scope.row,item.attrs),
+								item.slotProps&&item.slotProps(scope))"
 						>
 							{{ item.formatter ? item.formatter(scope.row[item.prop]) : scope.row[item.prop] }}
 						</div>
@@ -93,7 +92,7 @@
 
 <script>
 	import compLifecycleBlock from '@/mixins/compLifecycleBlock';
-	import { pickDataAttrs,pickAttrs } from '@/utils/misc'
+	import { pickAttrs } from '@/utils/misc'
 	export default {
 		name: "MyTable",
 		components: {},
@@ -134,23 +133,27 @@
 				return this.autoPage
 					? this.data.length
 					: this.pageParams.total
+			},
+			getPageInfo () {
+				return this.pageParams
 			}
 		},
 		methods: {
-			pickDataAttrs,
 			pickAttrs,
 		},
 	}
 </script>
 
 <style lang="css">
-.gislife-table-pagination{
-	@apply w-full h-full max-h-full max-w-full flex flex-col space-y-1;
-}
-.gislife-table-pagination__table{
-	@apply flex-grow px-1;
-}
-.gislife-table-pagination__pagination{
-	@apply flex justify-center flex-grow-0 flex-shrink-0 p-2;
-}
+	.gislife-table-pagination {
+		@apply w-full h-full max-h-full max-w-full flex flex-col space-y-1;
+	}
+
+	.gislife-table-pagination__table {
+		@apply flex-grow px-1;
+	}
+
+	.gislife-table-pagination__pagination {
+		@apply flex justify-center flex-grow-0 flex-shrink-0 p-2;
+	}
 </style>

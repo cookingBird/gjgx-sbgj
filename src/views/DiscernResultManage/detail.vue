@@ -10,11 +10,18 @@
       >
       </el-option>
     </el-select>
-    <el-button @click="onSearch">查询</el-button>
-    <el-button @click="onRest">重置</el-button>
+    <el-button
+      type="primary"
+      @click="onSearch"
+    >查询</el-button>
+    <el-button
+      type="primary"
+      @click="onRest"
+    >重置</el-button>
     <el-button
       class="float-right"
-      @click="$router.go(-1)"
+      type="primary"
+      @click="$router.push('/DiscernResultManage')"
     >
       返回
     </el-button>
@@ -60,8 +67,8 @@
   import LayerSwitcher from '@/components/LayerSwitcher.vue';
   import { queryPipesDetail } from './Helper'
   import * as Misc from '@/utils/misc';
+  import * as Helper from './Helper'
   const HCA_LEVEL = {
-    '0': '非高后果区',
     '1': 'Ⅰ级',
     '2': 'Ⅱ级',
     '3': 'Ⅲ级',
@@ -76,7 +83,20 @@
     mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
       return {
-        highLevelOptions: [],
+        highLevelOptions: [
+          {
+            label: 'Ⅰ级',
+            value: '1'
+          },
+          {
+            label: 'Ⅱ级',
+            value: '2'
+          },
+          {
+            label: 'Ⅲ级',
+            value: '3'
+          },
+        ],
         queryModel: {},
         tableConfig: {
           isPagination: true
@@ -85,6 +105,14 @@
           {
             label: "管道名称",
             prop: "pipeSegmentName"
+          },
+          {
+            label: "高后果区等级",
+            prop: "hcaLevel",
+            format (val) {
+              console.log('format-----------',val);
+              return HCA_LEVEL[val];
+            }
           },
           {
             label: "分段编号",
@@ -126,8 +154,8 @@
         populationShow: true,
         placeShow: true,
         pipeAroundTotal: {
-          people: 300,
-          place: 200
+          people: 0,
+          place: 0
         },
         loading: {
           tableLoading: true,
@@ -145,19 +173,37 @@
     created () {
       this.fetchData = Misc.bindLoading.call(this,'loading.tableLoading',this.fetchData);
     },
+    mounted () {
+      this.getPipeDetail();
+    },
     methods: {
+      /**获取选择管道详情 */
+      async getPipeDetail () {
+        const data = await Helper.queryPipeRegion(
+          this.taskIds,
+          this.pipeSegmentCode
+        )
+        const { regionWkt,flammableWkt,specificWkt,populationWkt,wkt } = data;
+        this.pipeAroundTotal = {
+          people: populationWkt.length,
+          place: specificWkt.length,
+        };
+        const mixMapRef = await this.syncMixMapLoaded();
+        this.renderPipeLine([data],mixMapRef);
+        this.renderRadius({ regionDto: { regionWkt } },mixMapRef);
+        this.renderFeatureByType(populationWkt,'population',mixMapRef);
+        this.renderFeatureByType(specificWkt,'specific',mixMapRef);
+        mixMapRef.locationByLineString(wkt,{
+          padding: { left: 700,right: 50 }
+        })
+      },
+      /**@description 获取管段数据 */
       async fetchData (query) {
         const res = await queryPipesDetail(
           this.taskId,
           this.pipeSegmentCode,
           { ...this.queryModel,...query }
         )
-        this.highLevelOptions = Misc.statisticFiled(res.data,'hcaLevel')
-          .map(node => ({
-            value: node[0],
-            label: HCA_LEVEL[node[0]],
-            contains: node[1]
-          }))
         return Promise.resolve(res)
       },
       /**@description 选择管道 */
@@ -172,20 +218,22 @@
         this.renderFeatures(pipe);
         const populationWkt = pipe.regionDto.populationWkt;
         const specificWkt = pipe.regionDto.specificWkt;
-        Object.assign(this.pipeAroundTotal,{
+        this.pipeAroundTotal = {
           people: populationWkt.length,
           place: specificWkt.length
-        })
+        }
       },
       /**@description 渲染所有管段、渲染地区等级、缓冲区、人居 */
       async onTableGetData (data) {
-        // todo 渲染管段
-        // this.renderSegmentLabel(data);
         const mapRef = await this.syncMixMapLoaded();
+
+        // todo 渲染管段
+        this.renderSegmentLabel(data.filter(pipe => pipe.firstPoint && pipe.lastPoint));
         //渲染管线
         this.renderPipeLine(data);
         //渲染地区等级
-        this.renderLevel(data,'higLevel',mapRef);
+        this.__levelLayer = this.renderLevel(data,'hcaLevel',mapRef);
+        this.__levelLayer.move2Top();
       },
       async handleTableRowClick (row) {
         const mixMapRef = await this.syncMixMapLoaded()
@@ -216,8 +264,7 @@
     }
   }
 </script>
-<style lang="css" scoped>
-  ::v-deep.mix-table-wrapper>.mix-table__action {
-    top: -52px;
-  }
+<style lang="css" scoped>::v-deep.mix-table-wrapper>.mix-table__action {
+  top: -52px;
+}
 </style>

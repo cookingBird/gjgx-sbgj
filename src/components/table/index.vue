@@ -10,7 +10,6 @@
       class="gislife-table"
       v-bind="$attrs"
       v-on="$listeners"
-      v-observe:tableEmptyRow
       :data="tableData"
       :border="initCom.border"
       :class="config.class"

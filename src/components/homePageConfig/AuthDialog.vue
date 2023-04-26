@@ -4,7 +4,7 @@
   width="1400px"
   :visible.sync="visible"
   append-to-body
-  :close-on-click-modal="false"
+  ::close-on-click-modal="false"
   @close="handleClose"
 >
   <div class="auth-dialog-content">

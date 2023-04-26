@@ -1,7 +1,7 @@
 <template>
 <div class="flex flex-col w-full h-full space-y-2">
 	<div class="flex items-center justify-between flex-grow-0 flex-shrink-0 w-auto h-12 p-1 bg-white rounded shadow-content">
-		<span class="px-2 text-2xl font-bold text-black"> 对比分析</span>
+		<span class="px-2 text-2xl font-bold text-black">{{ pipeSegmentName }} 对比分析</span>
 		<el-button
 			class="absolute right-0 mr-56"
 			@click="$router.push('/DiscernResultManage')"
@@ -41,9 +41,9 @@
 			</div>
 		</BaseMap>
 		<section
-			v-show="type == '表格' || type == '混合'"
+			v-show="(type == '表格' || type == '混合') && pipeSegmentList.length"
 			class="absolute flex-col p-2 m-2 rounded-lg table-wrapper"
-			:class="[ type == '表格' ? 'inset-0' : 'top-0 bottom-0 left-0 w-[675px]']"
+			:class="[ type == '表格' ? 'inset-0 z-10' : 'top-0 bottom-0 left-0 w-[675px]']"
 		>
 			<div class="flex justify-between flex-grow-0 flex-shrink-0 w-auto py-2">
 				<span class="text-2xl font-bold text-white"> 对比分析</span>
@@ -156,6 +156,9 @@
 			pipeSegmentCode () {
 				return this.$route.query.pipeSegmentCode
 			},
+			pipeSegmentName () {
+				return this.$route.query.pipeSegmentName
+			},
 		},
 		created () {
 			this.__getTaskColor = createFiledRecordCtx('randomColor','taskId');
@@ -165,8 +168,9 @@
 			this.getPipeDetail();
 			this.getTasksDetail();
 		},
- 
+
 		methods: {
+			/**获取选择管道详情 */
 			async getPipeDetail () {
 				const data = await Helper.queryPipeRegion(
 					this.taskIds.split(',')[0],
@@ -185,7 +189,6 @@
 				mixMapRef.locationByLineString(wkt,{
 					padding: { left: 700,right: 50 }
 				})
-
 			},
 			/**@description 获取任务详情 */
 			getTasksDetail () {

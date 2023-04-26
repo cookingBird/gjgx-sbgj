@@ -16,7 +16,7 @@
           <el-option
             v-for="item in pipeList"
             :key="item.id"
-            :label="item.pipeName"
+            :label="item.pipeSegmentName"
             :value="item.pipeSegmentCode"
           ></el-option>
         </el-select>
@@ -56,7 +56,7 @@
         ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div class="page-content-right shadow-content">
+    <div class="max-w-full page-content-right shadow-content">
       <MixTable
         v-if="loaded"
         ref="mixTableRef"
@@ -68,6 +68,7 @@
         @onData="onTableGetData"
         @handleCommand="tableCommand"
         @row-click="handleTableRowClick"
+        style="width: 100%"
       >
       </MixTable>
     </div>
@@ -85,23 +86,25 @@
 </template>
 
 <script>
-  import { pipeListAPI,queryOrgList } from '@/api/result';
+  import { pipeListAPI, queryOrgList } from '@/api/result';
   import MixTable from '@/components/mixTable';
+  import * as Misc from '@/utils/misc';
   import * as Refs from '@/mixins/Refs';
   import { pipeAround } from '@/api/analyse';
   import Detail from '../detail.vue';
   import ToBody from '@/components/ToBody.vue';
   import PipeSelector from '@/components/pipeSelector';
+  import mapMix from '../GhgqDiscern/mapMix';
 
   export default {
-    mixins: [Refs.createMap('mixMap','ctx')],
+    mixins: [Refs.createMap('mixMap', 'ctx'), mapMix()],
     components: {
       MixTable,
       PipeSelector,
       Detail,
       ToBody,
     },
-    data () {
+    data() {
       return {
         loaded: false,
         leftTreeData: [],
@@ -116,23 +119,23 @@
         },
         pickedDate: [],
         tableCols: [
-          { prop: 'secOrgName',label: '二级单位' },
-          { prop: 'orgName',label: '三级单位' },
-          { prop: 'pipeSegmentName',label: '管道名称' },
-          { prop: 'startPosition',label: '起点' },
-          { prop: 'endPosition',label: '终点' },
-          { prop: 'segmentLength',label: '管道长度' },
-          { prop: 'diameter',label: '管径' },
-          { prop: 'pressure',width: '90',label: '压力' },
-          { prop: 'transmissionMedium',width: '90',label: '传输介质' },
-          { prop: 'impactRadius',width: '90',label: '影响半径' },
-          { prop: 'exposureRadius',width: '90',label: '暴露半径' },
+          { prop: 'secOrgName', label: '二级单位' },
+          { prop: 'orgName', label: '三级单位' },
+          { prop: 'pipeSegmentName', label: '管段名称' },
+          { prop: 'startPosition', label: '起点' },
+          { prop: 'endPosition', label: '终点' },
+          { prop: 'segmentLength', label: '管道长度' },
+          { prop: 'diameter', label: '管径' },
+          { prop: 'pressure', width: '90', label: '压力' },
+          { prop: 'transmissionMedium', width: '90', label: '传输介质' },
+          { prop: 'impactRadius', width: '90', label: '影响半径' },
+          { prop: 'exposureRadius', width: '90', label: '暴露半径' },
         ],
         tableData: [],
         actionType: [
-          { type: 'mix',label: '混合' },
-          { type: 'table',label: '表格' },
-          { type: 'map',label: '地图' },
+          { type: 'mix', label: '混合' },
+          { type: 'table', label: '表格' },
+          { type: 'map', label: '地图' },
         ],
         currentActionType: 'mix',
         mixTableCfg: {
@@ -155,7 +158,7 @@
       };
     },
     watch: {
-      pickedDate (val) {
+      pickedDate(val) {
         if (Array.isArray(val)) {
           this.searchForm.startTime = val[0] || '';
           this.searchForm.endTime = val[1] || '';
@@ -166,34 +169,41 @@
       },
     },
     computed: {
-      mapRef () {
+      mapRef() {
         return this.$refs['mixTableRef'].$refs['basemap'];
       },
-      tableRef () {
+      tableRef() {
         return this.$refs['mixTableRef'].$refs['table'];
       },
     },
-    created () {
+    async created() {
       this.getTreeData();
+      const mapRef = await this.syncMixMapLoaded();
+      mapRef.setPopShow(true,
+        (e) => (e.layerId === "pipe-line" && e.infos),
+        (infos) => Misc.objMap(infos, (key, value) => value === 'null' ? '空' : value)
+      );
+      console.log("object", mapRef);
     },
 
     methods: {
-      async getTreeData () {
-        const { code,data } = await queryOrgList({
+      async getTreeData() {
+        const { code, data } = await queryOrgList({
           hasPipe: false,
           relateHgc: 0
         });
         if (code === 200) {
           this.leftTreeData = data;
-          data.length && this.handleTreeSelect(data[0],true);
+          data.length && this.handleTreeSelect(data[0], true);
         }
       },
-      async onTableGetData (data) {
-        await this.syncMixMapLoaded()
-        this.mapRef.pipeRadiusRemove();
-        this.mapRef.pipeRender(data);
+      async onTableGetData(data) {
+        const mapRef = await this.syncMixMapLoaded()
+        mapRef.pipeRadiusRemove();
+        mapRef.pipeRender(data);
+        this.renderLevel(data, '', mapRef);
       },
-      handleTreeSelect ({ code },init = false) {
+      handleTreeSelect({ code }, init = false) {
         this.searchForm.orgCode = code;
         if (init) {
           this.loaded = true;
@@ -201,23 +211,24 @@
         }
         this.tableRef.refresh();
       },
-      async handleTableRowClick (row) {
+      async handleTableRowClick(row) {
         const res = await pipeAround({ pipeCode: row.pipeSegmentCode });
-        const { regionWkt,flammableWkt,specificWkt,populationWkt } = res;
+        await this.syncMixMapLoaded()
+        const { regionWkt, flammableWkt, specificWkt, populationWkt } = res;
         //影响半径
         regionWkt && this.mapRef.pipeRadiusRender({
           wkt: regionWkt
         });
         //人居
-        populationWkt.length && this.mapRef.renderMarkerByType(populationWkt,1);
+        populationWkt.length && this.mapRef.renderMarkerByType(populationWkt, 1);
         //特定场所
-        specificWkt.length && this.mapRef.renderMarkerByType(specificWkt,2);
+        specificWkt.length && this.mapRef.renderMarkerByType(specificWkt, 2);
         //易燃易爆场所
-        flammableWkt.length && this.mapRef.renderMarkerByType(flammableWkt,3);
+        flammableWkt.length && this.mapRef.renderMarkerByType(flammableWkt, 3);
         //管线详情窗口
         this.mapRef.openPipeInfoPop(row);
       },
-      tableCommand (key,row) {
+      tableCommand(key, row) {
         switch (key) {
           case 'info':
             if (!row.code) {
@@ -228,8 +239,8 @@
             break;
         }
       },
-      async getPipeList () {
-        const { code,data } = await pipeListAPI({
+      async getPipeList() {
+        const { code, data } = await pipeListAPI({
           pageSize: -1,
           pageNo: 1,
         });
@@ -237,17 +248,17 @@
           this.pipeList = data.data;
         }
       },
-      handleSearch () {
+      handleSearch() {
         this.tableRef.refresh();
       },
-      handleReset () {
+      handleReset() {
         this.searchForm.pipeCode = '';
         this.pickedDate = [];
         setTimeout(this.tableRef.refresh);
       },
-      onMapLoad () { },
-      handleMapClick () { },
-      switchView (type) {
+      onMapLoad() { },
+      handleMapClick() { },
+      switchView(type) {
         this.currentActionType = type;
       },
     },
@@ -282,6 +293,7 @@
         height: 100%;
         margin-right: 10px;
         padding: 8px;
+        flex-shrink: 0;
 
         ::v-deep .el-scrollbar {
           height: 100%;

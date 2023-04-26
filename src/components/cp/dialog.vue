@@ -5,7 +5,7 @@
   width="30%"
   custom-class="zjtk"
   top="6vh"
-  :close-on-click-modal="false"
+  ::close-on-click-modal="false"
   @close="resetForm('ruleForm')"
   center
 >
@@ -265,132 +265,133 @@
             { required: true,message: "请选择所属组织机构",trigger: "change" },
           ];
         }
-      return rule;
+        return rule;
+      },
     },
-  },
-  created () {
-    this.getTagOptions();
-  },
-  methods: {
-    openAuth () {
-      this.$refs['auth'].open(this.formData.org);
+    created () {
+      this.getTagOptions();
     },
-    handleAuthConfirm (result) {
-      this.formData.org = result;
-    },
-    async getTagOptions () {
-      try {
-        const { code,data } = await getTagOptionApi();
-        if (code === 200) {
-          this.tagOptions = data;
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    },
-    handleTagSelectChange (val) {
-      this.formData.tagId = val.join(",");
-    },
-    submitForm (formName) {
-      this.$refs[formName].validate(async (valid) => {
-        if (valid) {
-          const api = this.formData.id ? componentUpdate : componentAdd;
-          try {
-            const { code } = await api(this.formData);
-            if (code === 200) {
-              this.$message.success(
-                `${this.formData.id ? "修改" : "新增"}组件成功`
-              );
-              this.dialogVisible = false;
-              this.$emit("onConfirm");
-            }
-          } catch (err) {
-            console.log(err);
+    methods: {
+      openAuth () {
+        this.$refs['auth'].open(this.formData.org);
+      },
+      handleAuthConfirm (result) {
+        this.formData.org = result;
+      },
+      async getTagOptions () {
+        try {
+          const { code,data } = await getTagOptionApi();
+          if (code === 200) {
+            this.tagOptions = data;
           }
-        } else {
-          return false;
+        } catch (err) {
+          console.log(err);
         }
-      });
+      },
+      handleTagSelectChange (val) {
+        this.formData.tagId = val.join(",");
+      },
+      submitForm (formName) {
+        this.$refs[formName].validate(async (valid) => {
+          if (valid) {
+            const api = this.formData.id ? componentUpdate : componentAdd;
+            try {
+              const { code } = await api(this.formData);
+              if (code === 200) {
+                this.$message.success(
+                  `${this.formData.id ? "修改" : "新增"}组件成功`
+                );
+                this.dialogVisible = false;
+                this.$emit("onConfirm");
+              }
+            } catch (err) {
+              console.log(err);
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      open (formData) {
+        this.dialogVisible = true;
+        this.$nextTick(() => {
+          if (formData) {
+            this.formData = cloneDeep(formData);
+            this.tags =
+              typeof this.formData.tagId === String
+                ? this.formData.tagId.split(",")
+                : [];
+          }
+        });
+      },
+      resetForm (formName) {
+        this.$refs[formName].resetFields();
+        this.tags = [];
+        this.dialogVisible = false;
+      },
+      uploadImgChange ({ raw }) {
+        fileToBase64(raw).then((base64) => {
+          this.formData.image = base64;
+        });
+      },
     },
-    open (formData) {
-      this.dialogVisible = true;
-      this.$nextTick(() => {
-        if (formData) {
-          this.formData = cloneDeep(formData);
-          this.tags =
-            typeof this.formData.tagId === String
-              ? this.formData.tagId.split(",")
-              : [];
-        }
-      });
-    },
-    resetForm (formName) {
-      this.$refs[formName].resetFields();
-      this.tags = [];
-      this.dialogVisible = false;
-    },
-    uploadImgChange ({ raw }) {
-      fileToBase64(raw).then((base64) => {
-        this.formData.image = base64;
-      });
-    },
-  },
-};
+  };
 </script>
 
-<style lang="scss" scoped>/deep/.zjtk {
-  border-radius: 4px;
-  overflow: hidden;
+<style lang="scss" scoped>
+  /deep/.zjtk {
+    border-radius: 4px;
+    overflow: hidden;
 
-  .demo-ruleForm {
+    .demo-ruleForm {
 
-    .el-select,
-    .el-input-number,
-    .el-cascader {
-      width: 100%;
+      .el-select,
+      .el-input-number,
+      .el-cascader {
+        width: 100%;
 
-      .el-input__inner {
-        text-align: left !important;
+        .el-input__inner {
+          text-align: left !important;
+        }
+      }
+
+      .avatar-uploader {
+        .el-upload {
+          border: 1px dashed #d9d9d9;
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+
+          &:hover {
+            border-color: #409eff;
+          }
+
+          .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 200px;
+            height: 120px;
+            line-height: 120px;
+            text-align: center;
+          }
+
+          .avatar {
+            width: 200px;
+            height: 120px;
+            display: block;
+          }
+        }
       }
     }
 
-    .avatar-uploader {
-      .el-upload {
-        border: 1px dashed #d9d9d9;
-        border-radius: 6px;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
+    .el-dialog__header {
+      background-color: #05366f;
 
-        &:hover {
-          border-color: #409eff;
-        }
-
-        .avatar-uploader-icon {
-          font-size: 28px;
-          color: #8c939d;
-          width: 200px;
-          height: 120px;
-          line-height: 120px;
-          text-align: center;
-        }
-
-        .avatar {
-          width: 200px;
-          height: 120px;
-          display: block;
-        }
+      .el-dialog__title,
+      .el-dialog__close {
+        color: #fff;
       }
     }
   }
-
-  .el-dialog__header {
-    background-color: #05366f;
-
-    .el-dialog__title,
-    .el-dialog__close {
-      color: #fff;
-    }
-  }
-}
 </style>

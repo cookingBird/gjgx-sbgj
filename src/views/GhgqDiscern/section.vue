@@ -4,6 +4,7 @@
     <el-button
       type="primary"
       class="mr-56"
+      :disabled="selectPipeSegments.length < 2"
       @click="onMerge"
     >
       合并
@@ -25,6 +26,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="right-content">
           <mix-table
+            v-if="pipeList.length"
             ref="table"
             :tableColumns="tableColumns"
             :config="tableConfig"
@@ -82,9 +84,11 @@
     visible
     width="30%"
     @close="()=>formData = null"
+    :close-on-click-modal="false"
   >
     <el-form
       ref="splitForm"
+      @validate="validateRest"
       :model="formData"
       label-width="110px"
     >
@@ -162,46 +166,9 @@
     },
     mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
     data () {
-      const getValidator = (errorMsgs,otherJudge) => (rule,value,callback) => {
-        if (!value && value !== 0) {
-          callback(new Error(errorMsgs[0]));
-        }
-        if (Number(value) < 0) {
-          callback(new Error(errorMsgs[1]));
-        }
-        otherJudge && otherJudge(value,callback)
-        callback()
-      }
+
       return {
-        rules: {
-          beginMileage: [{
-            validator: getValidator(['请输入起始里程','起始里程必须大于零'],
-              (value,callback) => {
-                if (value > this.formData.endMileage) {
-                  callback(new Error('起始里程必须小于终止里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-          splitMileage: [{
-            validator: getValidator(['请输入分割里程','分割里程必须大于零'],
-              (value,callback) => {
-                if (value > this.formData.endMileage || value < this.formData.beginMileage) {
-                  callback(Error('分割里程必须大于起始里程，小于终止里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-          endMileage: [{
-            validator: getValidator(['请输入终止里程','终止里程必须大于零'],
-              (value,callback) => {
-                if (value < this.formData.beginMileage) {
-                  callback(new Error('终止里程必须大于起始里程'))
-                }
-              }),
-            trigger: ['blur','change']
-          }],
-        },
+
         pipeList: [
           {
             pipeName: '全部管道',
@@ -276,6 +243,7 @@
           place: 200
         },
         loading: false,
+        selectPipeSegments: [],//合并选中的管线列表
       }
     },
     computed: {
@@ -302,6 +270,50 @@
       },
       outerMsg () {
         return this.uniQuery.message;
+      },
+      rules () {
+        const getValidator = (errorMsgs,otherJudge) => (rule,value,callback) => {
+          if (!value && value !== 0) {
+            callback(new Error(errorMsgs[0]));
+          }
+          if (Number(value) < 0) {
+            callback(new Error(errorMsgs[1]));
+          }
+          otherJudge && otherJudge(value,callback)
+          callback()
+        }
+        return {
+          beginMileage: [{
+            validator: getValidator(
+              ['请输入起始里程','起始里程必须大于零'],
+              (value,callback) => {
+                if (value > this.formData.endMileage) {
+                  callback(new Error('起始里程必须小于终止里程'))
+                }
+              }),
+            trigger: ['blur']
+          }],
+          splitMileage: [{
+            validator: getValidator(
+              ['请输入分割里程','分割里程必须大于零'],
+              (value,callback) => {
+                if (value > this.formData.endMileage || value < this.formData.beginMileage) {
+                  callback(Error('分割里程必须大于起始里程，小于终止里程'))
+                }
+              }),
+            trigger: ['blur']
+          }],
+          endMileage: [{
+            validator: getValidator(
+              ['请输入终止里程','终止里程必须大于零'],
+              (value,callback) => {
+                if (value < this.formData.beginMileage) {
+                  callback(new Error('终止里程必须大于起始里程'))
+                }
+              }),
+            trigger: ['blur']
+          }],
+        }
       },
     },
     watch: {
@@ -441,9 +453,6 @@
         }
         this.__edittingRow = row
       },
-      onValidate (filed,isTrue,message) {
-        console.log('onValidate',filed,isTrue,message);
-      },
       /**@description 编辑分段submit */
       async onSubmit () {
         const { id,code,pipeSegmentCode } = this.__edittingRow;
@@ -522,6 +531,20 @@
             this.$message.success('合并成功');
             this.$refs.table.$refs.table.refresh();
           })
+      },
+      validateRest (filed,success,message,formRef = this.$refs.splitForm) {
+        console.log("validateRest-----------------------",filed,success,message);
+        if (success) {
+          formRef.fields.forEach(formItem => {
+            if (formItem.prop !== filed) {
+              formItem.validate(void 0,(errorMsg,filed) => {
+                if (!errorMsg) {
+                  formItem.clearValidate()
+                }
+              })
+            }
+          })
+        }
       }
     }
   }

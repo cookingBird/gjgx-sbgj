@@ -207,7 +207,9 @@
 					path: '/DiscernResultManage/contrast',
 					query: {
 						taskIds: selectRows.map(pipe => pipe.id).join(','),
-						pipeSegmentCode: selectRows[0].pipeSegmentCode
+						pipeSegmentCode: selectRows[0].pipeSegmentCode,
+						pipeSegmentName: selectRows[0].pipeSegmentName,
+						pipeName: selectRows[0].pipeName,
 					}
 				})
 			},
@@ -239,7 +241,7 @@
 				data.forEach(item => {
 					ghgqs = ghgqs.concat(item.highWkt);
 				})
-				this.mapRef.sectionLevelRender(ghgqs,'higLevel');
+				this.mapRef.sectionLevelRender(ghgqs,'higLevel').move2Top();
 			},
 			handleSearch () {
 				this.tableRef.refresh();
@@ -303,42 +305,43 @@
 			background-color: #fff;
 
 			.el-form-item {
-			margin-bottom: 0;
+				margin-bottom: 0;
 
-			.el-input {
-				width: 200px;
-			}
-		}
-
-	}
-
-	.page-content {
-		height: calc(100% - 66px);
-		width: 100%;
-		display: flex;
-
-		.page-content-left {
-			width: 400px;
-			height: 100%;
-			margin-right: 10px;
-			padding: 8px;
-
-			::v-deep .el-scrollbar {
-				height: 100%;
-				background-color: #EEF2F6;
-
-				.el-scrollbar__wrap {
-					overflow-x: hidden;
+				.el-input {
+					width: 200px;
 				}
 			}
+
 		}
 
-		.page-content-right {
-			overflow: visible;
-			flex: 1;
+		.page-content {
+			height: calc(100% - 66px);
+			width: 100%;
+			display: flex;
+
+			.page-content-left {
+				width: 400px;
+				height: 100%;
+				margin-right: 10px;
+				padding: 8px;
+				flex-shrink: 0;
+
+				::v-deep .el-scrollbar {
+					height: 100%;
+					background-color: #EEF2F6;
+
+					.el-scrollbar__wrap {
+						overflow-x: hidden;
+					}
+				}
+			}
+
+			.page-content-right {
+				overflow: visible;
+				flex: 1;
+			}
+
 		}
 
 	}
-
-}
 </style>

@@ -1,5 +1,5 @@
 .gislife-loading-progress-span {
-  color: currentColor;
+  /* color: currentColor; */
   z-index: 10;
   margin-left: 4px;
 }

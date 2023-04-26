@@ -71,7 +71,7 @@ function Map(containerid, baseimage, opt) {
           id: "tdt-img-rest",
           type: "raster",
           source: "raster_tiles_rest",
-        }, ],
+        },],
       };
       break;
     case "mapWord-img":
@@ -83,30 +83,30 @@ function Map(containerid, baseimage, opt) {
           raster_tiles_img: {
             type: "raster",
             tiles: [
-              `http://t0.tianditu.gov.cn/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${maptoken}`,
+              `http://t0.tianditu.gov.cn/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
           "raster-cia": {
             type: "raster",
             tiles: [
-              `http://t0.tianditu.gov.cn/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${maptoken}`,
+              `http://t0.tianditu.gov.cn/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
         },
         layers: [{
-            id: "tdt-img-tiles",
-            type: "raster",
-            source: "raster_tiles_img",
-          },
-          {
-            id: "tdt-cva-tiles",
-            type: "raster",
-            source: "raster-cia",
-            renderWorldCopies: false,
-            isConstrain: true,
-          },
+          id: "tdt-img-tiles",
+          type: "raster",
+          source: "raster_tiles_img",
+        },
+        {
+          id: "tdt-cva-tiles",
+          type: "raster",
+          source: "raster-cia",
+          renderWorldCopies: false,
+          isConstrain: true,
+        },
         ],
       };
       break;
@@ -119,28 +119,28 @@ function Map(containerid, baseimage, opt) {
           "raster-tiles-vec": {
             type: "raster",
             tiles: [
-              `http://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${maptoken}`,
+              `http://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
           "raster-cva": {
             type: "raster",
             tiles: [
-              `http://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${maptoken}`,
+              `http://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
         },
         layers: [{
-            id: "tdt-vec-tiles",
-            type: "raster",
-            source: "raster-tiles-vec",
-          },
-          {
-            id: "tdt-cva-tiles",
-            type: "raster",
-            source: "raster-cva",
-          },
+          id: "tdt-vec-tiles",
+          type: "raster",
+          source: "raster-tiles-vec",
+        },
+        {
+          id: "tdt-cva-tiles",
+          type: "raster",
+          source: "raster-cva",
+        },
         ],
       };
       break;
@@ -154,28 +154,28 @@ function Map(containerid, baseimage, opt) {
           "raster-tiles-ter": {
             type: "raster",
             tiles: [
-              `http://t7.tianditu.gov.cn/ter_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${maptoken}`,
+              `http://t7.tianditu.gov.cn/ter_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
           "raster-cta": {
             type: "raster",
             tiles: [
-              `http://t0.tianditu.gov.cn/cta_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${maptoken}`,
+              `http://t0.tianditu.gov.cn/cta_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
         },
         layers: [{
-            id: "tdt-ter-tiles",
-            type: "raster",
-            source: "raster-tiles-ter",
-          },
-          {
-            id: "tdt-cta-tiles",
-            type: "raster",
-            source: "raster-cta",
-          },
+          id: "tdt-ter-tiles",
+          type: "raster",
+          source: "raster-tiles-ter",
+        },
+        {
+          id: "tdt-cta-tiles",
+          type: "raster",
+          source: "raster-cta",
+        },
         ],
       };
       break;
@@ -194,7 +194,7 @@ function Map(containerid, baseimage, opt) {
           id: "A4-tiles",
           type: "raster",
           source: "A4",
-        }, ],
+        },],
       };
       break;
 
@@ -209,28 +209,28 @@ function Map(containerid, baseimage, opt) {
           "raster-tiles-scimg": {
             type: "raster",
             tiles: [
-              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省内影像地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
+              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省内影像地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
           "raster-tiles-sccta": {
             type: "raster",
             tiles: [
-              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_scann/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省注记地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
+              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_scann/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省注记地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
         },
         layers: [{
-            id: "tdt-scimg-tiles",
-            type: "raster",
-            source: "raster-tiles-scimg",
-          },
-          {
-            id: "tdt-sccta-tiles",
-            type: "raster",
-            source: "raster-tiles-sccta",
-          },
+          id: "tdt-scimg-tiles",
+          type: "raster",
+          source: "raster-tiles-scimg",
+        },
+        {
+          id: "tdt-sccta-tiles",
+          type: "raster",
+          source: "raster-tiles-sccta",
+        },
         ],
       };
       break;
@@ -245,7 +245,7 @@ function Map(containerid, baseimage, opt) {
           "raster-tiles-scvec": {
             type: "raster",
             tiles: [
-              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudlg_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=聚合天地图瓦片地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
+              `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudlg_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=聚合天地图瓦片地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
             ],
             tileSize: 256,
           },
@@ -254,11 +254,11 @@ function Map(containerid, baseimage, opt) {
           id: "tdt-scvec-tiles",
           type: "raster",
           source: "raster-tiles-scvec",
-        }, ],
+        },],
       };
       break;
   }
-  style.glyphs = "/data/fonts/test/{range}.pbf";
+  style.glyphs = "./public/data/fonts/test/{range}.pbf";
   this.map = new mapboxgl.Map({
     container: containerid, // container id
     style: style,
@@ -275,16 +275,16 @@ function Map(containerid, baseimage, opt) {
     transformRequest: (url, resourceType) => {
       //解决iportal key 加载问题
       /* if (url.indexOf('portalproxy') != -1) {
-				if (url.indexOf('&') != -1) {
-					return {
-						url: url + `&key=${iportalkey}`
-					}
-				} else {
-					return {
-						url: url + `?key=${iportalkey}`
-					}
-				}
-			} */
+        if (url.indexOf('&') != -1) {
+          return {
+            url: url + `&key=${iportalkey}`
+          }
+        } else {
+          return {
+            url: url + `?key=${iportalkey}`
+          }
+        }
+      } */
       //以下代码为解决添加超图转发天地图的wmts服务不出图的问题
       //if (url.match(/\TILEMATRIX=\d*/)) {
       //var z = parseInt(url.match(/\TILEMATRIX=\d*/)[0].split('=')[1]) - 1
@@ -913,7 +913,7 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
   var html = "";
   var style = "";
   text.forEach((item) => {
-    html += `<p>${item}</p>`;
+    html += `<p>${ item }</p>`;
   });
   switch (type) {
     case 1:
@@ -929,10 +929,10 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
       break;
   }
   var popup = new mapboxgl.Popup({
-      closeOnClick: false,
-      closeButton: true,
-      className: style,
-    })
+    closeOnClick: false,
+    closeButton: true,
+    className: style,
+  })
     .setLngLat(positions)
     .setHTML(html);
   popup.on("open", () => {
@@ -949,7 +949,7 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
   });
   return pop;
 };
-(Map.prototype.getPopById = function (id) {
+Map.prototype.getPopById = function (id) {
   if (!id) {
     return;
   }
@@ -961,21 +961,21 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
     }
   }
   return pop;
-}),
+}
 //添加自定义div浮窗
-(Map.prototype.addCustomDivPop = function (positions, containid, callback) {
+Map.prototype.addCustomDivPop = function (positions, containid, callback) {
   var div = document.getElementById(containid);
   if (!positions || !div) {
     return;
   }
   div.style.bottom = 20 + "px";
   var popup = new mapboxgl.Popup({
-      closeOnClick: false,
-      closeButton: false,
-    })
+    closeOnClick: false,
+    closeButton: false,
+  })
     .setLngLat(positions)
     .setDOMContent(div);
-  popup.on("open", () => { 
+  popup.on("open", () => {
     if (callback) {
       callback();
     }
@@ -988,7 +988,7 @@ Map.prototype.addPop = function (positions, type, text, id, callback) {
     type: "dom",
   });
   return pop;
-});
+}
 
 //根据id移除浮窗
 Map.prototype.removePopById = function (id) {
@@ -1165,7 +1165,7 @@ Map.prototype.addGeoLayerSelectEvent = function (callback) {
             position: [e.lngLat.lng, e.lngLat.lat],
           }
           this.Geoselectlayer = feature.layer.id + "hover";
-          map.setFilter(this.Geoselectlayer, [
+          map.getLayer(this.Geoselectlayer) && map.setFilter(this.Geoselectlayer, [
             "in",
             "id",
             feature.properties.id,
@@ -1250,7 +1250,7 @@ Map.prototype.addGeoLayerByGeoJson = function (data, id, opt) {
           layout: {
             "text-rotate": 360,
             "text-letter-spacing": 0,
-            "text-field": text ? `{${text}}` : text,
+            "text-field": text ? `{${ text }}` : text,
             "text-rotation-alignment": "viewport",
             "text-size": fontsize,
             "text-allow-overlap": true,
@@ -1272,7 +1272,7 @@ Map.prototype.addGeoLayerByGeoJson = function (data, id, opt) {
           layout: {
             "text-rotate": 360,
             "text-letter-spacing": 0,
-            "text-field": text ? `{${text}}` : text,
+            "text-field": text ? `{${ text }}` : text,
             "text-rotation-alignment": "viewport",
             "text-size": fontsize,
             "text-allow-overlap": true,
@@ -1365,7 +1365,7 @@ Map.prototype.addGeoLayerByGeoJson = function (data, id, opt) {
             "icon-ignore-placement": true,
             "symbol-placement": "point",
             "text-rotate": 360,
-            "text-field": text ? `{${text}}` : text,
+            "text-field": text ? `{${ text }}` : text,
             "text-rotation-alignment": "viewport",
             "text-size": fontsize,
             "text-allow-overlap": true,
@@ -1389,7 +1389,7 @@ Map.prototype.addGeoLayerByGeoJson = function (data, id, opt) {
             "icon-ignore-placement": true,
             "symbol-placement": "point",
             "text-rotate": 360,
-            "text-field": text ? `{${text}}` : text,
+            "text-field": text ? `{${ text }}` : text,
             "text-rotation-alignment": "viewport",
             "text-size": fontsize,
             "text-allow-overlap": true,
@@ -2684,16 +2684,16 @@ Map.prototype.locationWKT = function (wkt, during, callback) {
   var time = during || 0.01;
   this.map.fitBounds(
     [bbox[0] - 0.0045, bbox[1] - 0.0045, bbox[2] + 0.0045, bbox[3] + 0.0045], {
-      duration: time * 1000,
-      easing: (t) => {
-        if (t == 1) {
-          if (callback) {
-            callback();
-          }
+    duration: time * 1000,
+    easing: (t) => {
+      if (t == 1) {
+        if (callback) {
+          callback();
         }
-        return t;
-      },
-    }
+      }
+      return t;
+    },
+  }
   );
 };
 /* 定位点 */
@@ -2849,36 +2849,36 @@ Map.prototype.changeBasemap = function (changeType, opt) {
     case "mapWord-img":
       maptoken = options.token || "1b0e6426f7883feec155d6f3e3c8f5e2";
       var sources = [{
-          type: "raster",
-          tiles: [
-            `http://t0.tianditu.gov.cn/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
-        {
-          type: "raster",
-          tiles: [
-            `http://t0.tianditu.gov.cn/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
+        type: "raster",
+        tiles: [
+          `http://t0.tianditu.gov.cn/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
+      {
+        type: "raster",
+        tiles: [
+          `http://t0.tianditu.gov.cn/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
       ];
       var layers = [{
-          id: "tdt-img-tiles",
-          type: "raster",
-          source: "raster_tiles_img",
-          minzoom: min,
-          maxzoom: max,
-        },
-        {
-          id: "tdt-cva-tiles",
-          type: "raster",
-          source: "raster-cia",
-          minzoom: min,
-          maxzoom: max,
-          renderWorldCopies: false,
-          isConstrain: true,
-        },
+        id: "tdt-img-tiles",
+        type: "raster",
+        source: "raster_tiles_img",
+        minzoom: min,
+        maxzoom: max,
+      },
+      {
+        id: "tdt-cva-tiles",
+        type: "raster",
+        source: "raster-cia",
+        minzoom: min,
+        maxzoom: max,
+        renderWorldCopies: false,
+        isConstrain: true,
+      },
       ];
       this.map.addSource("raster_tiles_img", sources[0]);
       this.map.addSource("raster-cia", sources[1]);
@@ -2891,34 +2891,34 @@ Map.prototype.changeBasemap = function (changeType, opt) {
     case "mapWord-vec":
       maptoken = options.token || "1b0e6426f7883feec155d6f3e3c8f5e2";
       var sources = [{
-          type: "raster",
-          tiles: [
-            `http://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
-        {
-          type: "raster",
-          tiles: [
-            `http://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
+        type: "raster",
+        tiles: [
+          `http://t0.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
+      {
+        type: "raster",
+        tiles: [
+          `http://t0.tianditu.gov.cn/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
       ];
       var layers = [{
-          id: "tdt-vec-tiles",
-          type: "raster",
-          source: "raster-tiles-vec",
-          minzoom: min,
-          maxzoom: max,
-        },
-        {
-          id: "tdt-cva-tiles",
-          type: "raster",
-          source: "raster-cva",
-          minzoom: min,
-          maxzoom: max,
-        },
+        id: "tdt-vec-tiles",
+        type: "raster",
+        source: "raster-tiles-vec",
+        minzoom: min,
+        maxzoom: max,
+      },
+      {
+        id: "tdt-cva-tiles",
+        type: "raster",
+        source: "raster-cva",
+        minzoom: min,
+        maxzoom: max,
+      },
       ];
 
       this.map.addSource("raster-tiles-vec", sources[0]);
@@ -2932,34 +2932,34 @@ Map.prototype.changeBasemap = function (changeType, opt) {
     case "mapWord-ter":
       maptoken = options.token || "1b0e6426f7883feec155d6f3e3c8f5e2";
       var sources = [{
-          type: "raster",
-          tiles: [
-            `http://t7.tianditu.gov.cn/ter_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
-        {
-          type: "raster",
-          tiles: [
-            `http://t0.tianditu.gov.cn/cta_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
+        type: "raster",
+        tiles: [
+          `http://t7.tianditu.gov.cn/ter_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ter&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
+      {
+        type: "raster",
+        tiles: [
+          `http://t0.tianditu.gov.cn/cta_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cta&STYLE=default&TILEMATRIXSET=c&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
       ];
       var layers = [{
-          id: "tdt-ter-tiles",
-          type: "raster",
-          source: "raster-tiles-ter",
-          minzoom: min,
-          maxzoom: max,
-        },
-        {
-          id: "tdt-cta-tiles",
-          type: "raster",
-          source: "raster-cta",
-          minzoom: min,
-          maxzoom: max,
-        },
+        id: "tdt-ter-tiles",
+        type: "raster",
+        source: "raster-tiles-ter",
+        minzoom: min,
+        maxzoom: max,
+      },
+      {
+        id: "tdt-cta-tiles",
+        type: "raster",
+        source: "raster-cta",
+        minzoom: min,
+        maxzoom: max,
+      },
       ];
       this.map.addSource("raster-tiles-ter", sources[0]);
       this.map.addSource("raster-cta", sources[1]);
@@ -2976,17 +2976,17 @@ Map.prototype.changeBasemap = function (changeType, opt) {
       var sources = [{
         type: "raster",
         tiles: [
-          `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudlg_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=聚合天地图瓦片地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
+          `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudlg_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=聚合天地图瓦片地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
         ],
         tileSize: 256,
-      }, ];
+      },];
       var layers = [{
         id: "tdt-scvec-tiles",
         type: "raster",
         source: "raster-tiles-scvec",
         minzoom: min,
         maxzoom: max,
-      }, ];
+      },];
 
       this.map.addSource("raster-tiles-scvec", sources[0]);
       this.map.addLayer(layers[0]);
@@ -2998,34 +2998,34 @@ Map.prototype.changeBasemap = function (changeType, opt) {
         options.token ||
         "4SVVnPw609KwqSUir46UEKZpjSaCipFATjWgwvPtZVvPznuqeNhHIx3aIhQsi4Nx";
       var sources = [{
-          type: "raster",
-          tiles: [
-            `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省内影像地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
-        {
-          type: "raster",
-          tiles: [
-            `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_scann/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省注记地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${maptoken}`,
-          ],
-          tileSize: 256,
-        },
+        type: "raster",
+        tiles: [
+          `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_sc/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省内影像地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
+      {
+        type: "raster",
+        tiles: [
+          `http://sichuan.tianditu.gov.cn/imap/imapserver/defaultrest/services/newtianditudom_scann/WMTS?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=四川省注记地图服务&STYLE=default&TILEMATRIXSET=GetTileMatrix&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&transparent=true&FORMAT=tiles&tk=${ maptoken }`,
+        ],
+        tileSize: 256,
+      },
       ];
       var layers = [{
-          id: "tdt-scimg-tiles",
-          type: "raster",
-          source: "raster-tiles-scimg",
-          minzoom: min,
-          maxzoom: max,
-        },
-        {
-          id: "tdt-sccta-tiles",
-          type: "raster",
-          source: "raster-tiles-sccta",
-          minzoom: min,
-          maxzoom: max,
-        },
+        id: "tdt-scimg-tiles",
+        type: "raster",
+        source: "raster-tiles-scimg",
+        minzoom: min,
+        maxzoom: max,
+      },
+      {
+        id: "tdt-sccta-tiles",
+        type: "raster",
+        source: "raster-tiles-sccta",
+        minzoom: min,
+        maxzoom: max,
+      },
       ];
 
       this.map.addSource("raster-tiles-scimg", sources[0]);
@@ -3041,14 +3041,14 @@ Map.prototype.changeBasemap = function (changeType, opt) {
         type: "raster",
         tiles: [url],
         tileSize: 256,
-      }, ];
+      },];
       var layers = [{
         id: "A4-tiles",
         type: "raster",
         source: "A4",
         minzoom: min,
         maxzoom: max,
-      }, ];
+      },];
       this.map.addSource("A4", sources[0]);
       this.map.addLayer(layers[0]);
       var id = this.map.getStyle().layers[0].id;
@@ -3059,14 +3059,14 @@ Map.prototype.changeBasemap = function (changeType, opt) {
         type: "raster",
         tiles: [url],
         tileSize: 256,
-      }, ];
+      },];
       var layers = [{
         id: "tdt-img-rest",
         type: "raster",
         source: "raster_tiles_rest",
         minzoom: min,
         maxzoom: max,
-      }, ];
+      },];
       this.map.addSource("raster_tiles_rest", sources[0]);
       this.map.addLayer(layers[0]);
       var id = this.map.getStyle().layers[0].id;
@@ -3074,27 +3074,4 @@ Map.prototype.changeBasemap = function (changeType, opt) {
       break;
   }
 };
-
-/* 添加地图移动监听 */
-Map.prototype.addMapMoveEvent = function (callback) {
-  this.moveendEvent = (e) => {
-    // let center = this.getCenter();
-    // let zoom = this.getZoom();
-    let bounds = this.getBounds();
-    if (callback) {
-      // callback({pos: center, zoom: zoom});
-      callback({
-        bounds: bounds
-      });
-    }
-  }
-  this.map.on("moveend", this.moveendEvent);
-}
-/* 移除地图移动监听 */
-Map.prototype.removeMapMoveEvent = function () {
-  if (this.moveendEvent) {
-    this.map.off("moveend", this.moveendEvent);
-    this.moveendEvent = null;
-  }
-}
 export default Map;

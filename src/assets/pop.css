@@ -1,0 +1,50 @@
+.pipe-info-wrapper {
+	position: relative;
+  width: 520px;
+  background-color: rgba(8, 56, 129, 0.9);
+  color: #fff;
+}
+
+.pipe-info-header {
+  height: 50px;
+  line-height: 50px;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 0 20px;
+}
+
+.pipe-info-header i {
+  float: right;
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.pipe-info-content {
+  padding: 0 20px 20px;
+  overflow: hidden;
+}
+
+.pipe-info-content>div {
+  float: left;
+  width: 50%;
+  font-size: 16px;
+  line-height: 24px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipe-info-content>div label {
+  color: #18E3FF;
+  font-weight: 700;
+  width: 120px;
+}
+
+.result-pop .mapboxgl-popup-content{
+  background-color: rgba(8, 56, 129, 0.9);
+}
+
+.result-pop.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: rgba(8, 56, 129, 0.9);
+}

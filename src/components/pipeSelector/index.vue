@@ -51,7 +51,7 @@ export default {
     // 树显示最高层级
     showLevel: {
       type: Number,
-      default: 4,
+      default: 9,
     },
   },
   components: {

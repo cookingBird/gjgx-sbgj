@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import './pop.css';
 img,
 svg,
 video,
@@ -27,3 +28,7 @@ object {
   opacity: 0;
   transform: scale(0);
 }
+
+
+
+

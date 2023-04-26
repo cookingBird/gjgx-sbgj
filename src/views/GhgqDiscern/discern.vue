@@ -20,6 +20,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="flex-grow right-content">
           <mix-table
+            v-if="pipeList.length"
             ref="table"
             class="!w-auto"
             :tableColumns="tableColumns"
@@ -124,8 +125,8 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
-    data () {
+    mixins: [Refs.createMap('mixMap', 'ctx'), Refs.createTable('mixTable', 'ctx'), mapMix()],
+    data() {
       return {
         pipeList: [
           {
@@ -163,13 +164,13 @@
             label: "是否高后果区",
             prop: "isHigh",
             width: 150,
-            format (val) {
+            format(val) {
               if (val === null) {
-                return '否'
+                return '否';
               } else if (val == 0) {
-                return '否'
+                return '否';
               } else if (val == 1) {
-                return '是'
+                return '是';
               }
             }
           },
@@ -179,17 +180,17 @@
             width: 120,
             format: function (val) {
               if (val == 0) {
-                return '非高后果区'
+                return '非高后果区';
               } else if (val == 1) {
-                return '一级'
+                return '一级';
               } else if (val == 2) {
-                return '二级'
+                return '二级';
               } else if (val == 3) {
-                return '三级'
+                return '三级';
               } else if (val == 4) {
-                return '四级'
+                return '四级';
               } else {
-                return val
+                return val;
               }
             }
           },
@@ -209,17 +210,17 @@
             width: 120,
             format: function (val) {
               if (val == 0) {
-                return '-'
+                return '-';
               } else if (val == 1) {
-                return '一级'
+                return '一级';
               } else if (val == 2) {
-                return '二级'
+                return '二级';
               } else if (val == 3) {
-                return '三级'
+                return '三级';
               } else if (val == 4) {
-                return '四级'
+                return '四级';
               } else {
-                return val
+                return val;
               }
             }
           },
@@ -252,8 +253,8 @@
             label: "识别时间",
             prop: "recognitionTime",
             width: 120,
-            format (val) {
-              return val ? val.split(' ')[0] : '-'
+            format(val) {
+              return val ? val.split(' ')[0] : '-';
             }
           },
           // {
@@ -263,14 +264,14 @@
         ],
         dialogVisible: false,
         levelGroup: [
-          { label: '非高后果区',level: 0 },
-          { label: '一级',level: 1 },
-          { label: '二级',level: 2 },
-          { label: '三级',level: 3 },
+          { label: '非高后果区', level: 0 },
+          { label: '一级', level: 1 },
+          { label: '二级', level: 2 },
+          { label: '三级', level: 3 },
         ],
         dialogAction: [
-          { label: '取消',code: 'cancel' },
-          { label: '确定',code: 'submit' },
+          { label: '取消', code: 'cancel' },
+          { label: '确定', code: 'submit' },
         ],
         selectRowLevel: 1,
         pipeCode: '',
@@ -281,38 +282,38 @@
           people: 300,
           place: 200
         },
-        loading: false
-      }
+        loading: false,
+      };
     },
     computed: {
-      taskId () {
-        return this.$route.query.taskId
+      taskId() {
+        return this.$route.query.taskId;
       },
-      taskName () {
-        return this.$route.query.taskName
+      taskName() {
+        return this.$route.query.taskName;
       },
-      mapRef () {
+      mapRef() {
         return this.$refs['table'].$refs['basemap'];
       },
-      selectedPipe () {
+      selectedPipe() {
         this.choosePipe = this.$route.query.choosePipe;
-        return this.$route.query.choosePipe
+        return this.$route.query.choosePipe;
       },
-      isOneStep () {
-        return this.$route.query.step === 'one'
+      isOneStep() {
+        return this.$route.query.step === 'one';
       },
-      uniQuery () {
+      uniQuery() {
         return this.isOneStep
           ? qs.parse(this.$route.fullPath.split('?')[1])
-          : this.$route.query
+          : this.$route.query;
       },
-      isFromOuter () {
-        return Boolean(this.uniQuery.message)
+      isFromOuter() {
+        return Boolean(this.uniQuery.message);
       },
     },
     watch: {
       loading: {
-        handler (val) {
+        handler(val) {
           if (!this.loadingMask) {
             this.loadingMask = createLoading.call(this);
           }
@@ -328,18 +329,18 @@
                 break;
               }
               default: {
-                text = ''
+                text = '';
               }
             }
-            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
+            this.loadingMask.start({ text, progress: Boolean(text), customClass: 'gislife-loading' });
           } else {
             this.loadingMask.end();
           }
         }
       }
     },
-    async created () {
-      console.log('discern created-----------------',this.$route);
+    async created() {
+      console.log('discern created-----------------', this.$route);
       const loadingFuncs = [
         'getSelectedPipeList',
         'handleFinish',
@@ -347,16 +348,16 @@
       ];
       // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
-          this.loadingType = key
-        })
-      })
+        this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
+          this.loadingType = key;
+        });
+      });
       if (this.isOneStep) {
         await Helper.pipeAddOrUpdate({
           pipeLineVos: this.uniQuery.pipeLineVos,
           taskId: this.taskId,
           taskName: this.taskName,
-        })
+        });
         await Helper.discernOneStep({
           taskId: this.taskId,
           nodeId: 1,
@@ -365,43 +366,43 @@
       this.getSelectedPipeList();
     },
     methods: {
-      getSelectedPipeList () {
+      getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId
         }).then(async (data) => {
-          this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+          this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })];
           const choosePipe = data.data
             .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
           this.handlePipeSelect(choosePipe);
           await this.syncMixMapLoaded();
-          this.renderPipeLine(data.data)
+          this.renderPipeLine(data.data, void 0, { pop: true });
           this.__levelLayer.move2Top();
-        })
+        });
       },
       /**@description 选择管道 */
-      async handlePipeSelect (pipe) {
-        this.choosePipe = pipe
-        this.pipeCode = pipe.pipeSegmentCode
-        const mixTableRef = await this.syncMixTableMounted()
-        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
-        const mixMapRef = await this.syncMixMapLoaded()
+      async handlePipeSelect(pipe) {
+        this.choosePipe = pipe;
+        this.pipeCode = pipe.pipeSegmentCode;
+        const mixTableRef = await this.syncMixTableMounted();
+        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode });
+        const mixMapRef = await this.syncMixMapLoaded();
         if (pipe.wkt) {
-          mixMapRef.locationByLineString(pipe.wkt)
+          mixMapRef.locationByLineString(pipe.wkt);
         } else {
-          this.$message.error('管线wkt为null')
+          this.$message.error('管线wkt为null');
         }
-        this.renderRadius(pipe)
-        this.renderFeatures(pipe)
+        this.renderRadius(pipe);
+        this.renderFeatures(pipe);
         const populationWkt = pipe.regionDto.populationWkt;
         const specificWkt = pipe.regionDto.specificWkt;
-        Object.assign(this.pipeAroundTotal,{
+        Object.assign(this.pipeAroundTotal, {
           people: populationWkt.length,
           place: specificWkt.length
         });
         this.__levelLayer.move2Top();
       },
       /**@description 完成 */
-      handleFinish () {
+      handleFinish() {
         return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -409,16 +410,16 @@
         })
           .then(() => {
             if (this.isFromOuter) {
-              this.$connector.$send(this.uniQuery.message)
+              this.$connector.$send(this.uniQuery.message);
             } else {
               this.$router.push({
                 path: '/GhgqDiscern',
-              })
+              });
             }
-          })
+          });
       },
       /**@description 上一步 */
-      onPrev () {
+      onPrev() {
         const back = () => {
           this.$router.push({
             path: '/DiscernSteps/level',
@@ -432,48 +433,48 @@
                 'pipeName'
               )
             }
-          })
-        }
+          });
+        };
         if (this.isOneStep) {
-          this.$connector.$send(this.uniQuery.message)
+          this.$connector.$send(this.uniQuery.message);
         } else {
-          back()
+          back();
         }
       },
       /**@description 退出 */
-      onExit () {
+      onExit() {
         if (this.isFromOuter) {
-          this.$connector.$send(this.uniQuery.message)
+          this.$connector.$send(this.uniQuery.message);
         } else {
-          this.$router.push('/GhgqDiscern')
+          this.$router.push('/GhgqDiscern');
         }
       },
       /**@description 编辑等级，打开弹窗 */
-      onEdit (row) {
+      onEdit(row) {
         this.edittingRow = row;
       },
       /**@description 关闭弹窗 */
-      onclose () {
-        this.edittingRow = null
+      onclose() {
+        this.edittingRow = null;
       },
       /**@description 选择等级 */
-      onSelectLevel (btn) {
+      onSelectLevel(btn) {
         this.edittingRow = {
           ...this.edittingRow,
           hcaLevel: btn.level,
           hcaLevelLabel: btn.label
-        }
+        };
       },
       /**@description 关闭弹窗，提交表单 */
-      onDialogAction (aBtn) {
+      onDialogAction(aBtn) {
         switch (aBtn.code) {
           case 'cancel': {
             this.edittingRow = null;
             return Promise.resolve();
           }
           case 'submit': {
-            const { label,hcaLevelLabel,code,id,pipeSegmentCode,hcaLevel } = this.edittingRow;
-            console.log("this.edittingRow",this.edittingRow);
+            const { label, hcaLevelLabel, code, id, pipeSegmentCode, hcaLevel } = this.edittingRow;
+            console.log("this.edittingRow", this.edittingRow);
             return Helper.pipeLevelMutation({
               code,
               id,
@@ -487,10 +488,10 @@
                 this.$message.success('修改成功');
                 this.$refs.table.$refs.table.refresh();
                 this.edittingRow = null;
-              })
+              });
           }
           default: {
-            throw Error(`unCapture action type ${aBtn.code}`)
+            throw Error(`unCapture action type ${ aBtn.code }`);
           }
         }
       },
@@ -498,28 +499,30 @@
        * @description 渲染高后果区等级
        * @param {*} data 
        */
-      async onTableGetData (data) {
+      async onTableGetData(data) {
         const mapRef = await this.syncMixMapLoaded();
-        this.renderSegmentLabel(data,mapRef);
-        this.__levelLayer = this.renderLevel(data,'hcaLevel',mapRef);
+        this.renderSegmentLabel(data, mapRef);
+        this.__levelLayer = this.renderLevel(data, 'hcaLevel', mapRef);
       },
       /**
        * @description 行点击，定位
        * @param {*} row 
        */
-      async handleTableRowClick (row) {
-        const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(row.wkt)
+      async handleTableRowClick(row) {
+        const mixMapRef = await this.syncMixMapLoaded();
+        mixMapRef.locationByLineString(row.wkt);
       },
-      togglePopulationVisible (val) {
-        this.__populationLayer && this.__populationLayer.toggleVisibility(val)
+      /**@description 切换人员显示 */
+      togglePopulationVisible(val) {
+        this.__populationLayer && this.__populationLayer.toggleVisibility(val);
       },
-      togglePlaceVisible (val) {
-        this.__placeLayer && this.__placeLayer.toggleVisibility(val)
+      /**@description 切换地区显示 */
+      togglePlaceVisible(val) {
+        this.__placeLayer && this.__placeLayer.toggleVisibility(val);
       },
 
     },
-  }
+  };
 </script>
 
 <style lang="scss" scoped>

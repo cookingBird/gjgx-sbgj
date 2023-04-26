@@ -163,6 +163,13 @@
   }
 
   .content-title {
-    @apply py-1 text-lg font-medium;
+    font-size: 18px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #157ee0;
+    border-left: 4px solid currentColor;
+    padding-left: 12px;
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
 </style>

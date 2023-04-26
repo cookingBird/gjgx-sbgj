@@ -27,8 +27,6 @@
   <template v-slot:main>
     <div class="w-full h-full p-2">
       <el-table
-        v-observe:tableEmptyRow
-        v-observe:tableWrapperFix
         class="my-el-table-ctx"
         :data="data"
         height="100%"
@@ -109,6 +107,7 @@
     :visible="true"
     @close="formData = null"
     width="30%"
+    :close-on-click-modal="false"
   >
     <el-form
       :model="formData"
@@ -141,25 +140,11 @@
         label="选择标准："
         prop="file"
       >
-        <div
-          v-uploading="getProgressSetter"
-          class="relative"
-        >
-          <input
-            type="file"
-            name="standardFile"
-            accept=".doc,.docx,"
-            @input="handleFileSelect"
-          />
-          <span
-            v-show="formData && formData.file"
-            class="absolute -right-1"
-          >{{parseInt(progress.progress * 100)}}%</span>
-          <span
-            v-if="formData && formData.fileName && !formData.file"
-            class="absolute -ml-1 bg-white left-20"
-          >{{formData.fileName}}</span>
-        </div>
+        <Upload
+          ref="upload"
+          :fileName="formData.fileName"
+          @input="handleFileSelect"
+        />
       </el-form-item>
       <div class="flex justify-center">
         <el-button
@@ -180,6 +165,7 @@
     :visible="true"
     class="dialog-preview"
     @close="pdf = null"
+    :close-on-click-modal="false"
   >
     <pdf
       v-for="i in pdfPages"
@@ -196,10 +182,10 @@
   import ContentLayout from '../components/ContentLayout.vue';
   import * as Helper from './helper';
   import * as Misc from '@/utils/misc';
+  import Upload from '@/components/Upload.vue';
 
-  const FakeProgress = require("fake-progress");
   export default {
-    components: { ContentLayout,pdf },
+    components: { ContentLayout,pdf,Upload },
     inject: ['appCtx'],
     data () {
       return {
@@ -208,60 +194,34 @@
           pageSize: 10,
         },
         total: 100,
-        data: [
-          {
-            standardName: '标准名称',
-            suitRange: '适用范围',
-          },
-        ],
+        data: [],
+        rules: {
+          name: [{ required: true,message: '请输入' }],
+          scope: [{ required: true,message: '请输入' }],
+          file: [{ required: true,message: '请选择' }],
+        },
         queryString: '',
         dialogVisible: false,
         dialogType: 1,
         formData: null,
         pdfPages: 0,
         pdf: null,
-        progress: new FakeProgress({
-          timeConstant: 10000
-        }),
       };
     },
     computed: {
       dialogTitle () {
         return this.dialogType === 1 ? '新增' : this.dialogType === 2 ? '修改' : '其它';
       },
-      rules () {
-        return this.dialogType === 1
-          ? {
-            name: [{ required: true,message: '请输入' }],
-            scope: [{ required: true,message: '请输入' }],
-            file: [{ required: true,message: '请选择' }],
-          }
-          : {
-            name: [{ required: true,message: '请输入' }],
-            scope: [{ required: true,message: '请输入' }],
-          };
-      },
     },
     watch: {
-      "progress.progress": {
-        handler (val) {
-          this.progressSetter(Number(val.toFixed(2)))
-        }
-      },
       formData (val) {
         if (val === null) {
-          this.progress.end();
+          // this.progress.end();
         }
       }
     },
     created () {
       this.getData();
-      this.getProgressSetter = (setter) => {
-        this.progressSetter = setter;
-      };
-    },
-    mounted () {
-      console.log("mounted-------------------",this.progress);
     },
     methods: {
       reset () {
@@ -285,16 +245,16 @@
       onSubmit () {
         this.$refs.addForm.validate().then((res) => {
           console.log("this.$refs.addForm.validate()",res);
-          this.progress.start();
+          this.$refs.upload.start();
           Helper.addOrUpdate(this.formData)
             .then((_) => {
               this.$message.success(this.dialogType === 1 ? '新增成功' : '修改成功');
-              this.progress.end();
             })
             .then(() => {
               this.getData();
             })
             .finally(_ => {
+              this.$refs.upload.end();
               setTimeout(() => {
                 this.formData = null;
               },300)
@@ -302,11 +262,24 @@
         });
       },
       onDelete (scope) {
-        const { row } = scope;
-        Helper.remove(row.id)
-          .then((_) => {
-            this.$message.success('删除成功');
+        this.$confirm('此操作将永久删除该文件, 是否继续?','提示',{
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+          .then(_ => {
+            const { row } = scope;
+            return Helper.remove(row.id)
           })
+          .then(
+            (_) => {
+              this.$message.success('删除成功');
+            },
+            (_) => {
+              this.$message.success('删除失败');
+              return Promise.reject()
+            }
+          )
           .then(() => {
             this.getData();
           });
@@ -320,10 +293,10 @@
         this.dialogType = 1;
         this.formData = {};
       },
-      handleFileSelect (e) {
+      handleFileSelect (files) {
         this.formData = {
           ...this.formData,
-          file: e.target.files[0],
+          file: files[0],
         };
       },
       onEdit (row) {
@@ -382,4 +355,6 @@
   input[accept=".doc,.docx,"]::placeholder {
     display: none;
   }
+
+  /** q: 帮我写一个动画 */
 </style>

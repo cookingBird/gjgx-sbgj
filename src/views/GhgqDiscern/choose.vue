@@ -34,9 +34,11 @@
           <el-table
             ref="leftTableRef"
             height="100%"
+            row-key="pipeSegmentCode"
             border
             :data="pipeList"
-            @selection-change="(val)=>handleSelectionChange(val,'left')"
+            @select="(val)=>onHandSelect(val,'left')"
+            @select-all="onSelectAll"
           >
             <el-table-column
               type="selection"
@@ -46,7 +48,6 @@
             <el-table-column
               type="index"
               width="55"
-              :index="calcIndex"
               label="序号"
               align="center"
             ></el-table-column>
@@ -74,6 +75,7 @@
             @prev-click="queryPipeList"
             @next-click="queryPipeList"
             background
+            small
           ></el-pagination>
         </div>
       </div>
@@ -113,7 +115,7 @@
         <div class="absolute inset-0 px-1 pb-1">
           <MyTable
             :data="selectedListFiltered"
-            @selection-change="(val)=>handleSelectionChange(val,'right')"
+            @select="(val)=>onHandSelect(val,'right')"
             :columns="rightCols"
           >
           </MyTable>
@@ -145,7 +147,9 @@
   import * as Misc from '@/utils/misc';
   import MyTable from '@/components/MyTable.vue';
   import createLoading from '@/utils/Loading/loading';
+  import { debounce } from '@/utils/misc';
   const CURRENT_NODE_STEP = 1;
+  const uniqueKey = 'pipeSegmentCode';
 
   export default {
     components: { MyTable },
@@ -163,7 +167,7 @@
         },
         rightCols: [
           { width: 55,type: 'selection',align: 'center' },
-          { width: 55,type: 'index',align: 'center',index: this.calcIndex,label: '序号' },
+          { width: 55,type: 'index',align: 'center',label: '序号' },
           { width: 150,align: 'center',prop: 'pipeName',label: '管线' },
           { width: 120,align: 'center',prop: 'transferMaterial',label: '传输介质' },
           {
@@ -247,7 +251,8 @@
             }
           },
         ],
-        loading: false
+        loading: false,
+        selectChooseList: []
       };
     },
     computed: {
@@ -259,7 +264,6 @@
       },
       selectedListFiltered () {
         const filterKey = 'pipeName'
-
         return this.selectedPipeList
           .filter((node) => node[filterKey] && node[filterKey].includes(this.rightKeyword));
       },
@@ -297,7 +301,7 @@
             this.loadingMask.end();
           }
         }
-      }
+      },
     },
     created () {
       const loadingFuncs = [
@@ -314,7 +318,7 @@
         this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
           this.loadingType = key
         })
-      })
+      });
     },
     mounted () {
       this.bootstrap();
@@ -335,15 +339,12 @@
               ...this.leftPageCfg,
               total: data.totalCount,
             };
-            this.pipeList = data.data;
-            // this.pipeList = new Array(50).fill({
-            //   id: Math.random(),
-            //   pipeName: "平籍线A",
-            //   pipeCode: null,
-            //   pipeSegmentCode: "GE0401050300000282",
-            //   pipeType: "净化气",
-            // }).map((item,index) => ({ ...item,id: index }))
-
+            this.pipeList = data.data
+              .map(item => ({
+                ...item,
+                pageNo: pageNo,
+              }));
+            this.patchPipeStatusAndSelected()
           });
       },
       getSelectedPipeList () {
@@ -353,38 +354,67 @@
           this.selectedPipeList = res.data;
         })
       },
-      async bootstrap (uniqueKey = 'pipeSegmentCode') {
+      async bootstrap () {
         await this.getSelectedPipeList();
         await this.queryPipeList();
-        Misc.rawForEach(this.pipeList,this.selectedPipeList,uniqueKey,(item) => {
-          if (item) {
-            this.$refs['leftTableRef'].toggleRowSelection(item,true);
-          }
-        })
-        this.selectedPipeList = Misc.rawMap(this.pipeList,this.selectedPipeList,uniqueKey)
       },
+      /**@description 每次请求数据初始化每一行的状态 */
+      patchPipeStatusAndSelected () {
+        setTimeout(() => {
+          //同步表格状态
+          Misc.rawForEach(this.pipeList,this.selectedPipeList,(item) => {
+            console.log('rawForEach----------',item);
+            if (item) {
+              this.$refs['leftTableRef'].toggleRowSelection(item,true);
+            }
+          },uniqueKey);
+          // 同步每条选中数据的页码信息；
+          this.selectedPipeList = Misc.rawMap(
+            this.selectedPipeList,
+            this.pipeList,
+            uniqueKey);
+        })
+      },
+      /**@description 左侧切换全选和取消全选状态 */
       handleSelectAll () {
-        this.pipeList.forEach((pipe) => {
-          this.$refs['leftTableRef'].toggleRowSelection(pipe,true);
-        });
+        this.$refs['leftTableRef'].toggleAllSelection();
       },
+      /**@description 取消左侧选择 */
       handleSelectClear () {
-        const uniqueKey = 'pipeSegmentCode';
-        Misc.rawForEach(this.pipeList,this.selectChooseList,uniqueKey,(item) => {
+        Misc.rawForEach(this.pipeList,this.selectChooseList,(item) => {
           this.$refs['leftTableRef'].toggleRowSelection(item,false);
-        })
+        },uniqueKey)
         this.selectedPipeList = Misc.arrayOmit(
           this.selectedPipeList,
           this.selectChooseList,
           uniqueKey)
       },
-      handleSelectionChange (rows,type) {
+      /**@description 用户选择点击checkbox事件 */
+      onHandSelect (rows,type) {
         if (type === 'left') {
-          this.selectedPipeList = rows;
+          /**Patch selected rows*/
+          this.selectedPipeList =
+            Misc.replaceFiledItems(
+              this.selectedPipeList,
+              'pageNo',
+              this.leftPageCfg.pageNo,
+              rows,
+            );
         }
         if (type === 'right') {
           this.selectChooseList = rows;
         }
+      },
+      /**@description 全选 */
+      onSelectAll (rows) {
+        console.log("handleSelectAll----------",rows);
+        this.selectedPipeList =
+          Misc.replaceFiledItems(
+            this.selectedPipeList,
+            'pageNo',
+            this.leftPageCfg.pageNo,
+            rows,
+          );
       },
       handleBack () {
         this.$router.push('/GhgqDiscern');

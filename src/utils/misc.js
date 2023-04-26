@@ -1,496 +1,530 @@
-import { MenuItem } from 'element-ui'
-import * as Validator from './validator'
+import * as Validator from './validator';
 
-export function validateFileds (source, target, ...fileds) {
-  fileds = fileds.flat()
+/**@description 判断两个对象的某些字段的一致性 */
+export function validateFileds(source, target, ...fileds) {
+  fileds = fileds.flat();
   return fileds.reduce((pre, curF) => {
-    return pre && source[curF] === target[curF]
-  }, true)
+    return pre && source[curF] === target[curF];
+  }, true);
 }
 
-export function arrayDupRemove (array, ...keyFileds) {
-  keyFileds = keyFileds.flat()
+/**@description 根据给出的字段，移除数组中的重复元素 */
+export function arrayDupRemove(array, ...keyFileds) {
+  keyFileds = keyFileds.flat();
   return array.reduce((pre, curr) => {
     if (keyFileds.length) {
       if (pre.findIndex(n => validateFileds(n, curr, keyFileds)) > -1) {
-        return pre
+        return pre;
       } else {
-        return pre.concat(curr)
+        return pre.concat(curr);
       }
     } else {
       if (pre.include(curr)) {
-        return pre
+        return pre;
       } else {
-        return pre.concat(curr)
+        return pre.concat(curr);
       }
     }
-  }, [])
+  }, []);
 }
 
-export function requestDom (
+/**@description 在timeout的时间内，轮询获取一个元素或实例 */
+export function requestDom(
   id,
   judgeCb = el => Boolean(el),
   type = 'requestAnimationFrame',
-  timer = 300
+  timer = 300,
+  timeOut = 3000
 ) {
-  function getDom (id, callback, type) {
+  function getDom(id, callback, type) {
     if (document && window) {
-      const el = typeof id === 'string' ? document.getElementById(id) : id()
+      const el = typeof id === 'string' ? document.getElementById(id) : id();
       if (!judgeCb(el)) {
         if (type === 'requestAnimationFrame') {
           requestAnimationFrame(() => {
-            getDom(id, callback, type)
-          })
+            getDom(id, callback, type);
+          });
         }
         if (type === 'setTimeout') {
           setTimeout(() => {
-            getDom(id, callback, type)
-          }, timer)
+            getDom(id, callback, type);
+          }, timer);
         }
         if (type === 'requestIdleCallback') {
           requestIdleCallback(
             () => {
-              getDom(id, callback, type)
+              getDom(id, callback, type);
             },
             { timeout: timer }
-          )
+          );
         }
       } else {
-        return callback(el)
+        return callback(el);
       }
-    } else {
-      throw Error("browser don't support")
+    }
+    else {
+      throw Error("browser don't support");
     }
   }
 
-  return new Promise(resolve => {
-    getDom(id, resolve, type)
-  })
+  return new Promise((resolve, reject) => {
+    setTimeout(reject, timeOut);
+    getDom(id, resolve, type);
+  });
 }
 
-export function pickFileds (target, ...fileds) {
-  if (!target) return {}
-  const f = fileds.flat()
-  if (f.length === 0) return target
-  const res = {}
-  for (const key of f) {
-    res[key] = target[key]
-  }
-  return res
+/**@description pick一些对象的某些字段值 */
+export function pickFileds(target, ...fileds) {
+  if (!target) return {};
+  const f = fileds.flat();
+  if (f.length === 0) return target;
+  return pickAttrs(target, key => key, f);
 }
 
-export function arrayOmit (array, omits, uniqueKey) {
+/**@description 根据key去除数组中的一些元素 */
+export function arrayOmit(array, omits, uniqueKey = 'id') {
   return array.filter(
     pipe => omits.findIndex(p => p[uniqueKey] === pipe[uniqueKey]) === -1
-  )
+  );
 }
 
-export function rawForEach (raws, picks, uniqueKey, cb) {
+/**@description forEach Picks数组的元素从raw中找到元素，并传入回调 */
+export function rawForEach(raws, picks, cb, uniqueKey = 'id') {
   picks &&
     picks.forEach(pipe => {
       if (cb) {
-        cb(raws.find(p => p[uniqueKey] == pipe[uniqueKey]))
+        cb(raws.find(p => p[uniqueKey] === pipe[uniqueKey]));
       }
-    })
+    });
 }
 
-export function rawMap (raws, picks, uniqueKey) {
-  return picks
-    .map(p => raws.find(raw => raw[uniqueKey] === p[uniqueKey]))
-    .filter(Boolean)
+/**@description 从picks中映射为raw中的元素，不存则映射为原来的值 */
+export function rawMap(picks, raws, uniqueKey) {
+  return picks.map(
+    p => raws.find(raw => raw[uniqueKey] === p[uniqueKey]) || p
+  );
 }
 
-export function toArray (tar) {
+/**@description 根据key合并数组中的元素 */
+export function arrayMerge(uniqueKey, ...arrays) {
+  arrays = arrays.flat();
+  return arrayDupRemove(arrays, uniqueKey);
+}
+
+/**@description 将单个元素转为对象 */
+export function toArray(tar) {
   if (Array.isArray(tar)) {
-    return tar
+    return tar;
   } else {
-    return [tar]
+    return [tar];
   }
 }
 
-export function getCtxValueSetter (ctx, filedLike) {
-  const fileds = filedLike.split('.')
-  const length = fileds.length
+/**@description 更新list中某个字段等于value的元素 */
+export function replaceFiledItems(list, filedKey, filedValue, tars) {
+  return list.filter(p => p[filedKey] != filedValue).concat(tars);
+}
+
+/**@description 设置一个ctx中的某些字段值，支持.访问符 */
+export function getCtxValueSetter(ctx, filedLike) {
+  const fileds = filedLike.split('.');
+  const length = fileds.length;
   return value => {
-    let context = ctx
+    let context = ctx;
     fileds.forEach((val, index) => {
       if (index < length - 1) {
-        context = context[val]
+        context = context[val];
       } else {
-        context[val] = value
+        context[val] = value;
       }
-    })
-  }
+    });
+  };
 }
 
-export function getCtxValue (ctx, filedLike) {
-  const fileds = filedLike.split('.')
-  let val = ctx
+/**@description 获取一个ctx中的某一字段值，支持.访问符 */
+export function getCtxValue(ctx, filedLike) {
+  const fileds = filedLike.split('.');
+  let val = ctx;
   fileds.forEach(key => {
-    val = val[key]
-  })
-  return val
+    val = val[key];
+  });
+  return val;
 }
 
-export function bindLoading (loadingFiled, loadingFn, beforeExec, afterExec) {
+/**@description bindLoading函数 */
+export function bindLoading(loadingFiled, loadingFn, beforeExec, afterExec) {
   if (!loadingFn) {
-    throw Error('bindLoading error, callback is null')
+    throw Error('bindLoading error, callback is null');
   }
-  const setValue = getCtxValueSetter(this, loadingFiled)
+  const setValue = getCtxValueSetter(this, loadingFiled);
   return (...params) => {
-    beforeExec && beforeExec(...params)
-    setValue(true)
-    const result = loadingFn.call(this, ...params)
+    beforeExec && beforeExec(...params);
+    setValue(true);
+    const result = loadingFn.call(this, ...params);
     try {
-      if (result.then) {
-        return result.then(
-          res => {
-            afterExec && afterExec(res)
-            setValue(false)
-            return res
-          },
-          err => {
-            afterExec && afterExec(err)
-            setValue(false)
-            return Promise.reject(err)
-          }
-        )
-      } else {
-        afterExec && afterExec(result)
-        setValue(false)
-        return result
-      }
+      return result.then(
+        res => {
+          afterExec && afterExec(res);
+          setValue(false);
+          return res;
+        },
+        err => {
+          afterExec && afterExec(err);
+          setValue(false);
+          return Promise.reject(err);
+        }
+      );
     } catch (error) {
-      return result
+      afterExec && afterExec(result);
+      setValue(false);
+      return result;
     }
-  }
+  };
 }
 
-export function statisticFiled (array, Filed, resultType = 'array') {
+/**@description 统计数组中某个字段的值的出现频率 */
+export function statisticFiled(array, Filed, resultType = 'array') {
   if (
     !Array.isArray(array) ||
     !Filed ||
     ['array', 'obj', 'object'].indexOf(resultType) === -1
   ) {
-    throw Error('statisticFiled params error')
+    throw Error('statisticFiled params error');
   }
-  const isArray = resultType === 'array'
-  return array.reduce(
-    (pre, cur) => {
-      const preVal = isArray
-        ? pre.find(i => i[0] === cur[Filed])
-        : pre[cur[Filed]]
-      if (preVal) {
-        if (isArray) {
-          const preIndex = pre.findIndex(item => item[0] === cur[Filed])
-          pre[preIndex][1].push(cur)
-        } else {
-          pre[cur[Filed]].push(cur)
-        }
+  const isArray = resultType === 'array';
+  return array.reduce((pre, cur) => {
+    const preVal = isArray
+      ? pre.find(i => i[0] === cur[Filed])
+      : pre[cur[Filed]];
+    if (preVal) {
+      if (isArray) {
+        const preIndex = pre.findIndex(item => item[0] === cur[Filed]);
+        pre[preIndex][1].push(cur);
       } else {
-        if (isArray) {
-          pre.push([cur[Filed], [cur]])
-        } else {
-          pre[cur[Filed]] = [cur]
-        }
+        pre[cur[Filed]].push(cur);
       }
-      return pre
-    },
-    isArray ? [] : {}
-  )
+    }
+    else {
+      if (isArray) {
+        pre.push([cur[Filed], [cur]]);
+      } else {
+        pre[cur[Filed]] = [cur];
+      }
+    }
+    return pre;
+  }, isArray ? [] : {});
 }
 
-export function reduceFiledEqual (array, filed = 'id') {
+/**@description 判断数组中每个元素的某个filed值是否相同 */
+export function reduceFiledEqual(array, filed = 'id') {
   if (Array.isArray(array) && array.length > 0) {
-    return array.slice(1).reduce(
-      (pre, cur) => {
-        if (cur[filed] === pre[0]) {
-          return pre
-        } else {
-          return [false, false]
-        }
-      },
-      [array[0][filed], true]
-    )[1]
+    return array.slice(1).reduce((pre, cur) => {
+      if (cur[filed] === pre[0]) {
+        return pre;
+      } else {
+        return [false, false];
+      }
+    }, [array[0][filed], true])[1];
   } else {
-    return false
+    return false;
   }
 }
 
-export function pickAttrs (obj, prefix = val => val, ...attrs) {
-  attrs = attrs.flat()
+/**@description 拾取对象中某些字段的值 */
+export function pickAttrs(obj, prefix = val => val, ...attrs) {
+  attrs = attrs.flat();
   return attrs.reduce((pre, cur) => {
     return {
       ...pre,
-      [prefix(cur)]: obj[cur]
-    }
-  }, {})
+      [prefix(cur)]: obj[cur],
+    };
+  }, {});
 }
 
-export function pickDataAttrs (obj, ...attrs) {
-  return pickAttrs(obj, key => 'data-' + key, attrs)
-}
-
-export function statisticArray (array, sFiled = 'id') {
+/**@description 统计一个数组中，某一个字段出现的元素信息 */
+export function statisticArray(array, sFiled = 'id') {
   return array.reduce((pre, curr) => {
-    const fVal = curr[sFiled]
+    const fVal = curr[sFiled];
     return {
       ...pre,
-      [fVal]: pre[fVal] ? pre[fVal].concat(curr) : [curr]
-    }
-  }, {})
+      [fVal]: pre[fVal] ? pre[fVal].concat(curr) : [curr],
+    };
+  }, {});
 }
 
-export function debounce (fn, timeGutter = 300, immediate = false) {
-  let timer
+/**@description debounce函数 */
+export function debounce(fn, timeGutter = 300, immediate = false) {
+  let timer;
   return function (...params) {
     if (!timer) {
       timer = setTimeout(() => {
-        fn(...params)
-        timer = void 0
-      }, timeGutter)
+        fn(...params);
+        timer = void 0;
+      }, timeGutter);
       if (immediate) {
-        fn(...params)
+        fn(...params);
       }
     } else {
-      clearTimeout(timer)
+      clearTimeout(timer);
       timer = setTimeout(() => {
-        fn(...params)
-        timer = null
-      })
+        fn(...params);
+        timer = null;
+      });
     }
-  }
+  };
 }
 
 /**
- * !警告,该函数的回调不可打印执行
+ * !警告,该函数的返回函数不可打印执行
  * @description
  * @param {*} mergeFiled
  * @param {*} statisticKey
  * @returns
  */
-export function createTableSpanMethods (mergeFiled, statisticKey) {
-  let mergeRecord = null
-  let mergeRecordClear = null
-  let mergeStatistic = null
-  let mergeStatisticClear = null
-  statisticKey = statisticKey || mergeFiled
-  const isA = Array.isArray(mergeFiled)
+export function createTableSpanMethods(mergeFiled, statisticKey) {
+  let mergeRecord = null;
+  let mergeRecordClear = null;
+  let mergeStatistic = null;
+  let mergeStatisticClear = null;
+  statisticKey = statisticKey || mergeFiled;
+  const isA = Array.isArray(mergeFiled);
   if (!isA) {
     return function (scope, tableData) {
-      const { row, column } = scope
-
+      const { row, column } = scope;
+      //判断字段是否已被合并
       if (!mergeRecord) {
-        mergeRecord = {}
+        mergeRecord = {};
         mergeRecordClear = debounce(() => {
-          mergeRecord = null
-        }, 1000)
-      } else {
-        mergeRecordClear()
+          mergeRecord = null;
+        }, 1000);
       }
-
+      else {
+        mergeRecordClear();
+      }
+      //判断是否完成统计
       if (!mergeStatistic) {
-        mergeStatistic = statisticArray(tableData, statisticKey)
+        mergeStatistic = statisticArray(tableData, statisticKey);
         mergeStatisticClear = debounce(() => {
-          mergeStatistic = null
-        }, 1000)
-      } else {
-        mergeStatisticClear()
+          mergeStatistic = null;
+        }, 1000);
       }
+      else {
+        mergeStatisticClear();
+      }
+      // 处理合并字段
       if (column.property === mergeFiled) {
         if (!mergeRecord[row[statisticKey]]) {
-          mergeRecord[row[statisticKey]] = true
+          mergeRecord[row[statisticKey]] = true;
           return {
             rowspan: mergeStatistic[row[statisticKey]].length,
-            colspan: 1
-          }
-        } else {
-          return {}
+            colspan: 1,
+          };
+        }
+        else {
+          return {};
         }
       }
-    }
-  } else {
+    };
+  }
+  else {
     return function (scope, tableData) {
-      const { row, column } = scope
+      const { row, column } = scope;
+      //判断字段是否已被合并
       if (!mergeRecord) {
-        mergeRecord = {}
+        mergeRecord = {};
         mergeRecordClear = debounce(() => {
-          mergeRecord = null
-        }, 1000)
-      } else {
-        mergeRecordClear()
+          mergeRecord = null;
+        }, 1000);
       }
-
+      else {
+        mergeRecordClear();
+      }
+      //判断表是否完成统计
       if (!mergeStatistic) {
-        mergeStatistic = statisticArray(tableData, statisticKey)
+        mergeStatistic = statisticArray(tableData, statisticKey);
         mergeStatisticClear = debounce(() => {
-          mergeStatistic = null
-        }, 1000)
-      } else {
-        mergeStatisticClear()
+          mergeStatistic = null;
+        }, 1000);
       }
+      else {
+        mergeStatisticClear();
+      }
+      // 处理合并字段
       if (mergeFiled.includes(column.property)) {
         if (
           !mergeRecord[row[statisticKey]] ||
           !mergeRecord[row[statisticKey]].includes(column.property)
         ) {
           if (!mergeRecord[row[statisticKey]]) {
-            mergeRecord[row[statisticKey]] = [column.property]
-          } else {
-            mergeRecord[row[statisticKey]].push(column.property)
+            mergeRecord[row[statisticKey]] = [column.property];
+          }
+          else {
+            mergeRecord[row[statisticKey]].push(column.property);
           }
           return {
             rowspan: mergeStatistic[row[statisticKey]].length,
-            colspan: 1
-          }
-        } else {
-          return {}
+            colspan: 1,
+          };
+        }
+        else {
+          return {};
         }
       }
-    }
+    };
   }
 }
 
-export function createFiledRecordCtx (fallback, filedKey) {
-  const ctx = {}
+/**@description 返回了一个得到每个Item[filedKey]唯一对应的值的函数，fallback为生成对应值的函数 */
+export function createFiledRecordCtx(fallback, filedKey) {
+  const ctx = {};
   if (typeof fallback === 'string') {
     switch (fallback) {
       case 'randomColor': {
-        fallback = randomColor
-        break
+        fallback = randomColor;
+        break;
       }
     }
   }
-  return function (filedOrItem, isGetCtx = false) {
+
+  return function (filedKeyOrItem, isGetCtx = false) {
     if (isGetCtx) {
-      return ctx
+      return ctx;
     }
     if (!filedKey) {
-      if (!ctx[filedOrItem]) {
-        ctx[filedOrItem] = fallback()
-        return ctx[filedOrItem]
+      if (!ctx[filedKeyOrItem]) {
+        ctx[filedKeyOrItem] = fallback();
+        return ctx[filedKeyOrItem];
       } else {
-        return ctx[filedOrItem]
+        return ctx[filedKeyOrItem];
       }
     } else {
-      if (!ctx[filedOrItem[filedKey]]) {
-        ctx[filedOrItem[filedKey]] = fallback()
-        return ctx[filedOrItem[filedKey]]
+      if (!ctx[filedKeyOrItem[filedKey]]) {
+        ctx[filedKeyOrItem[filedKey]] = fallback();
+        return ctx[filedKeyOrItem[filedKey]];
       } else {
-        return ctx[filedOrItem[filedKey]]
+        return ctx[filedKeyOrItem[filedKey]];
       }
     }
-  }
+  };
 }
 
-export function randomColor () {
+/**@description 获取一个HEX格式的随机颜色 */
+export function randomColor() {
   return (
-    '#' + ('00000' + ((Math.random() * 0x1000000) << 0).toString(16)).substr(-6)
-  )
+    '#' +
+    ('00000' + ((Math.random() * 0x1000000) << 0).toString(16)).substr(-6)
+  );
 }
 
-export function mergeFiled (array, filedLike) {
-  return array.map(item => getCtxValue(item, filedLike)).flat()
+/**@description 映射数组中的每个object的某个filed值,支持使用.访问符 */
+export function mergeFiled(array, filedLike) {
+  return array.map(item => getCtxValue(item, filedLike)).flat();
 }
 
-export function createArrayContrast (raw, ...contrastFiled) {
-  let history = raw || []
-  contrastFiled = contrastFiled.flat()
-  return function contrast (curr) {
-    const isAdd = curr.length > history.length
-    let list = []
+/**@description 创建两个数组的历史对照 */
+export function createArrayContrast(raw, ...contrastFiled) {
+  let history = raw || [];
+  contrastFiled = contrastFiled.flat();
+  return function contrast(curr) {
+    const isAdd = curr.length > history.length;
+    let list = [];
     if (isAdd) {
       list = curr.filter(
         cur =>
-          history.findIndex(his => validateFileds(cur, his, contrastFiled)) ===
-          -1
-      )
-    } else {
+          history.findIndex(his => validateFileds(cur, his, contrastFiled)) === -1
+      );
+    }
+    else {
       list = history.filter(
         cur =>
-          curr.findIndex(his => validateFileds(cur, his, contrastFiled)) === -1
-      )
+          curr.findIndex(his =>
+            validateFileds(cur, his, contrastFiled)) === -1
+      );
     }
-    history = curr
+    history = curr;
     return {
       isAdd: isAdd,
-      list: list
-    }
-  }
+      list: list,
+    };
+  };
 }
 
-export function getTreeTraveler (visitor, childrenKey = 'children') {
-  const { firstEnter, every } = visitor || {}
+/**@description 获取一个树状 结构的travel函数 */
+export function getTreeTraveler(visitor, childrenKey = 'children') {
+  const { firstEnter, every } = visitor || {};
   return target => {
-    function travel (tar, isFirst = true) {
+    function travel(tar, isFirst = true) {
       if (isFirst) {
-        firstEnter && firstEnter(tar)
+        firstEnter && firstEnter(tar);
       }
-      if (Object.prototype.toString.call(tar) === '[object Object]') {
-        every && every(tar)
+      if (Array.isArray(tar)) {
+        tar.forEach(element => {
+          travel(element, false);
+        });
+      }
+      else if (typeof tar === 'object') {
+        every && every(tar);
         if (tar[childrenKey] && tar[childrenKey].length) {
-          travel(tar[childrenKey], false)
+          travel(tar[childrenKey], false);
         }
       }
-      if (Object.prototype.toString.call(tar) === '[object Array]') {
-        tar.forEach(element => {
-          travel(element, false)
-        })
-      }
     }
-    travel(target)
-  }
+    travel(target);
+  };
 }
 
-export function getObjectTraveler (visitor, maxDepth = 3) {
-  const { every } = visitor || {}
+/**@description 获取一个对象递归的traveler函数 */
+export function getObjectTraveler(visitor, maxDepth = 3) {
+  const { every } = visitor || {};
   return target => {
-    const result = {}
-    function travel (object, res, depth = 1) {
+    const result = {};
+    function travel(object, res, depth = 1) {
       if (depth < maxDepth) {
         for (const key in object) {
-          const isTravel = every && every(key, object[key], res)
-          const tar = object[key]
-          if (
-            Object.prototype.toString.call(tar) === '[object Object]' &&
-            isTravel &&
-            depth < maxDepth
-          ) {
-            res[key] = res[key] || {}
-            travel(tar, res[key], depth + 1)
+          const isTravel = every && every(key, object[key], res);
+          const tar = object[key];
+          if (Array.isArray(tar) && isTravel) {
+            res[key] = res[key] || [];
+            tar.forEach(element => travel(element, res[key], depth + 1));
           }
-          if (
-            Object.prototype.toString.call(tar) === '[object Array]' &&
-            isTravel &&
-            depth < maxDepth
-          ) {
-            res[key] = res[key] || []
-            tar.forEach(element => {
-              travel(element, res[key], depth + 1)
-            })
+          else if (typeof tar === 'object' && isTravel) {
+            res[key] = res[key] || {};
+            travel(tar, res[key], depth + 1);
           }
         }
       }
     }
-    travel(target, result)
-    return result
-  }
+    travel(target, result);
+    return result;
+  };
 }
 
-export function downloadURL (url, name = '默认名称') {
-  const link = document.createElement('a')
-  link.download = name
-  link.href = url
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+/**@description 通过URL下载文件 */
+export function downloadURL(url, name = '默认名称') {
+  const link = document.createElement('a');
+  link.download = name;
+  link.href = url;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-export function forIn (obj, cb) {
+/**@description OBj 映射 */
+export function objMap(obj, cb) {
+  const res = {}
   for (const key in obj) {
     if (Object.hasOwnProperty.call(obj, key)) {
-      const element = obj[key]
-      cb && cb(key, element)
+      const element = obj[key];
+      res[key] = (cb && cb(key, element) || res[key]);
     }
   }
+  return res;
+}
+
+/**@description once */
+export function once(id, callback) {
+  if (id) return id;
+  const _id = Math.random();
+  callback && callback();
+  return _id;
 }

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog width="400px" :visible.sync="visible" title="新增页面" :close-on-click-modal="false" @close="handleClose">
+  <el-dialog width="400px" :visible.sync="visible" title="新增页面" ::close-on-click-modal="false" @close="handleClose">
     <div class="page-dialog-content">
       <el-form ref="formRef" :model="formData" :rules="formRule" label-width="80px">
         <el-form-item label="页面名称" prop="name">
