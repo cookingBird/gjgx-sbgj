@@ -1,10 +1,10 @@
 // import * as PDFJS from "pdfjs-dist/legacy/build/pdf";
 import Request from '@/utils/request'
 
-export function remove (id) {
+export function remove(id) {
   return Request.request({
     method: 'delete',
-    url: `/criterion/delete/${id}`
+    url: `/criterion/delete/${ id }`
   }).then(res => {
     if (res.code === 200) {
       return Promise.resolve()
@@ -14,7 +14,7 @@ export function remove (id) {
   })
 }
 
-export function addOrUpdate ({ id, name, scope, file }, onUploadProgress) {
+export function addOrUpdate({ id, name, scope, file }, onUploadProgress) {
   const formData = new FormData()
   Object.entries({ id, name, scope, file }).forEach(item => {
     formData.append(item[0], item[1] || null)
@@ -35,7 +35,7 @@ export function addOrUpdate ({ id, name, scope, file }, onUploadProgress) {
   })
 }
 
-export function query (query) {
+export function query(query) {
   return Request.request({
     method: 'post',
     url: '/criterion/list',

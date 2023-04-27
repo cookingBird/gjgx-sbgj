@@ -20,7 +20,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="flex-grow right-content">
           <mix-table
-            v-if="pipeList.length"
+            v-if="pipeList[0].children.length"
             ref="table"
             class="!w-auto"
             :tableColumns="tableColumns"
@@ -369,15 +369,15 @@
       getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId
-        }).then(async (data) => {
-          this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })];
-          const choosePipe = data.data
-            .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
-          this.handlePipeSelect(choosePipe);
-          await this.syncMixMapLoaded();
-          this.renderPipeLine(data.data, void 0, { pop: true });
-          this.__levelLayer.move2Top();
-        });
+        })
+          .then(async (data) => {
+            this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })];
+            const choosePipe = data.data
+              .find(pipe => pipe.id === this.choosePipe?.id) || data.data[0];
+            this.handlePipeSelect(choosePipe);
+            await this.syncMixMapLoaded();
+            this.renderPipeLine(data.data, void 0, { pop: true });
+          });
       },
       /**@description 选择管道 */
       async handlePipeSelect(pipe) {
@@ -399,7 +399,7 @@
           people: populationWkt.length,
           place: specificWkt.length
         });
-        this.__levelLayer.move2Top();
+        this.__levelLayer && this.__levelLayer.move2Top();
       },
       /**@description 完成 */
       handleFinish() {

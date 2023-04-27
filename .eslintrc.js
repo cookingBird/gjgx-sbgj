@@ -1,4 +1,11 @@
 module.exports = {
+  eslintIntegration: true,
+  stylelintIntegration: true,
+  printWidth: 90,
+  singleQuote: true, //单引号
+  useEditorConfig: true,
+  tabWidth: 2,
+  useTabs: false, //不使用tab换行
   root: true,
   env: {
     node: true,

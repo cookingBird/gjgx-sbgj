@@ -180,10 +180,10 @@
       this.getTreeData();
       const mapRef = await this.syncMixMapLoaded();
       mapRef.setPopShow(true,
-        (e) => (e.layerId === "pipe-line" && e.infos),
+        (e) => (e.layerId === "section-level" && e.infos),
         (infos) => Misc.objMap(infos, (key, value) => value === 'null' ? '空' : value)
       );
-      console.log("object", mapRef);
+      
     },
 
     methods: {
@@ -201,7 +201,8 @@
         const mapRef = await this.syncMixMapLoaded()
         mapRef.pipeRadiusRemove();
         mapRef.pipeRender(data);
-        this.renderLevel(data, '', mapRef);
+        this.__levelLayer = this.renderLevel(data, '', mapRef);
+        this.__levelLayer.move2Top();
       },
       handleTreeSelect({ code }, init = false) {
         this.searchForm.orgCode = code;
@@ -226,7 +227,7 @@
         //易燃易爆场所
         flammableWkt.length && this.mapRef.renderMarkerByType(flammableWkt, 3);
         //管线详情窗口
-        this.mapRef.openPipeInfoPop(row);
+        // this.mapRef.openPipeInfoPop(row);
       },
       tableCommand(key, row) {
         switch (key) {

@@ -18,7 +18,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="right-content">
           <mix-table
-            v-if="pipeList.length"
+            v-if="pipeList[0].children.length"
             ref="table"
             :tableColumns="tableColumns"
             :config="tableConfig"
@@ -288,7 +288,6 @@
             this.handlePipeSelect(choosePipe);
             await this.syncMixMapLoaded();
             this.renderPipeLine(data.data);
-            this.__levelLayer.move2Top();
           })
       },
       /**@description 一键识别 */
@@ -416,7 +415,7 @@
           people: populationWkt.length,
           place: specificWkt.length
         })
-        this.__levelLayer.move2Top();
+        this.__levelLayer && this.__levelLayer.move2Top();
       },
 
       async onTableGetData (data) {

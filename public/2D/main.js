@@ -1146,7 +1146,7 @@ Map.prototype.addGeoLayerSelectEvent = function (callback) {
           [e.point.x + 4, e.point.y + 4],
         ];
         var features = map.queryRenderedFeatures(bbox, {});
-        if (this.Geoselectlayer) {
+        if (this.Geoselectlayer && map.getLayer(this.Geoselectlayer)) {
           map.setFilter(this.Geoselectlayer, ["in", "id", ""]);
           this.Geoselectlayer = null;
         }

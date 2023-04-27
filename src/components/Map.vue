@@ -39,7 +39,7 @@
   export default {
     components: { pipeInfoPop },
     mixins: [mapLifecycle(() => this.$refs['map'].map)],
-    props: ['pop', 'popInfoCallback', 'popFilter'],
+    props: ['pop', 'InfoCallback', 'popFilter'],
     data() {
       return {
         requestHeader: {
@@ -48,15 +48,16 @@
         appConfig: window.URL_CONFIG,
         mapLoaded: false,
         infoVisible: false,
-        showPop: this.pop,
-        popF: this.popFilter,
+        popShow: this.pop,
+        popFilterCb: this.popFilter,
+        popInfoCallback: this.InfoCallback,
       };
     },
     computed: {
       setPopShow() {
         return (val, filter, infoCb) => {
-          this.showPop = val;
-          this.popF = filter;
+          this.popShow = val;
+          this.popFilterCb = filter;
           this.popInfoCallback = infoCb
         }
       }
@@ -67,8 +68,9 @@
     methods: {
       handleMapClick(e) {
         const { map } = this.$refs['map'].map;
-        const { popF, popInfoCallback } = this;
-        if (this.showPop) {
+        const { popFilterCb, popInfoCallback } = this;
+        console.log('handleMapClick----------------', e)
+        if (this.popShow) {
           function handler(e, map) {
             const node = compilePop({
               info: (popInfoCallback && popInfoCallback(e.infos)) || e.infos,
@@ -90,7 +92,7 @@
             }
           };
           console.log('e----------------', e)
-          if (popF && popF(e)) {
+          if (popFilterCb && popFilterCb(e)) {
             handler(e, map)
           }
         }

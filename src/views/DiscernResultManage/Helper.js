@@ -1,7 +1,7 @@
 import request from '@/utils/request'
 
 /**@description 获取单个或多个任务某条管道的分析详情 */
-export function queryPipesDetail (taskIds,pipeSegmentCode, query = {}) {
+export function queryPipesDetail(taskIds, pipeSegmentCode, query = {}) {
   return request({
     url: '/result/resultListVo',
     method: 'post',
@@ -17,17 +17,17 @@ export function queryPipesDetail (taskIds,pipeSegmentCode, query = {}) {
       pipeSegmentCode: pipeSegmentCode
     }
   })
-  .then(res => {
-    if (res.code === 200) {
-      return res.data
-    } else {
-      return Promise.reject(res)
-    }
-  })
+    .then(res => {
+      if (res.code === 200) {
+        return res.data
+      } else {
+        return Promise.reject(res)
+      }
+    })
 }
 
 /**@description 获取单个或多个任务某条管道的分析详情 */
-export function queryPipeRegion (taskId, pipeSegmentCode) {
+export function queryPipeRegion(taskId, pipeSegmentCode) {
 
   return request({
     url: '/highconsarea/getPipeRegion',
@@ -37,11 +37,11 @@ export function queryPipeRegion (taskId, pipeSegmentCode) {
       code: pipeSegmentCode
     }
   })
-  .then(res => {
-    if (res.code === 200) {
-      return res.data
-    } else {
-      return Promise.reject(res)
-    }
-  })
+    .then(res => {
+      if (res.code === 200) {
+        return res.data
+      } else {
+        return Promise.reject(res)
+      }
+    })
 }

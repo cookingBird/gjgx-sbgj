@@ -26,7 +26,7 @@
       <div class="absolute inset-0 flex flex-col">
         <div class="right-content">
           <mix-table
-            v-if="pipeList.length"
+            v-if="pipeList[0].children.length"
             ref="table"
             :tableColumns="tableColumns"
             :config="tableConfig"
@@ -164,11 +164,10 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
-    data () {
+    mixins: [Refs.createMap('mixMap', 'ctx'), Refs.createTable('mixTable', 'ctx'), mapMix()],
+    data() {
 
       return {
-
         pipeList: [
           {
             pipeName: '全部管道',
@@ -247,46 +246,46 @@
       }
     },
     computed: {
-      taskId () {
+      taskId() {
         return this.$route.query.taskId
       },
-      taskName () {
+      taskName() {
         return this.$route.query.taskName
       },
-      mapRef () {
+      mapRef() {
         return this.$refs['table'].$refs['basemap'];
       },
-      selectedPipe () {
+      selectedPipe() {
         this.choosePipe = this.$route.query.choosePipe;
         return this.$route.query.choosePipe
       },
-      isEveryStep () {
+      isEveryStep() {
         return this.$route.query.step == "every"
       },
-      uniQuery () {
+      uniQuery() {
         return this.isEveryStep
           ? qs.parse(this.$route.fullPath.split('?')[1])
           : this.$route.query
       },
-      outerMsg () {
+      outerMsg() {
         return this.uniQuery.message;
       },
-      rules () {
-        const getValidator = (errorMsgs,otherJudge) => (rule,value,callback) => {
+      rules() {
+        const getValidator = (errorMsgs, otherJudge) => (rule, value, callback) => {
           if (!value && value !== 0) {
             callback(new Error(errorMsgs[0]));
           }
           if (Number(value) < 0) {
             callback(new Error(errorMsgs[1]));
           }
-          otherJudge && otherJudge(value,callback)
+          otherJudge && otherJudge(value, callback)
           callback()
         }
         return {
           beginMileage: [{
             validator: getValidator(
-              ['请输入起始里程','起始里程必须大于零'],
-              (value,callback) => {
+              ['请输入起始里程', '起始里程必须大于零'],
+              (value, callback) => {
                 if (value > this.formData.endMileage) {
                   callback(new Error('起始里程必须小于终止里程'))
                 }
@@ -295,8 +294,8 @@
           }],
           splitMileage: [{
             validator: getValidator(
-              ['请输入分割里程','分割里程必须大于零'],
-              (value,callback) => {
+              ['请输入分割里程', '分割里程必须大于零'],
+              (value, callback) => {
                 if (value > this.formData.endMileage || value < this.formData.beginMileage) {
                   callback(Error('分割里程必须大于起始里程，小于终止里程'))
                 }
@@ -305,8 +304,8 @@
           }],
           endMileage: [{
             validator: getValidator(
-              ['请输入终止里程','终止里程必须大于零'],
-              (value,callback) => {
+              ['请输入终止里程', '终止里程必须大于零'],
+              (value, callback) => {
                 if (value < this.formData.beginMileage) {
                   callback(new Error('终止里程必须大于起始里程'))
                 }
@@ -318,7 +317,7 @@
     },
     watch: {
       loading: {
-        handler (val) {
+        handler(val) {
           if (!this.loadingMask) {
             this.loadingMask = createLoading.call(this);
           }
@@ -337,14 +336,14 @@
                 text = ''
               }
             }
-            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
+            this.loadingMask.start({ text, progress: Boolean(text), customClass: 'gislife-loading' })
           } else {
             this.loadingMask.end();
           }
         }
       }
     },
-    async created () {
+    async created() {
       const loadingFuncs = [
         'getSelectedPipeList',
         'handleDiscern',
@@ -353,7 +352,7 @@
         'onMerge'
       ];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+        this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
           this.loadingType = key
         })
       })
@@ -372,12 +371,12 @@
       this.getSelectedPipeList();
     },
     methods: {
-      getSelectedPipeList () {
+      getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId
         })
           .then(async (data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })]
             const choosePipe = data.data
               .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0];
             this.handlePipeSelect(choosePipe)
@@ -386,7 +385,7 @@
           })
       },
       /**@description 上一步 */
-      onPrev () {
+      onPrev() {
         if (this.isEveryStep) {
           this.$connector.$send(this.uniQuery.message)
         } else {
@@ -397,7 +396,7 @@
         }
       },
       /**@description 一键识别 */
-      handleDiscern () {
+      handleDiscern() {
         return Helper.discernOneStep({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP
@@ -415,7 +414,7 @@
 
       },
       /**@description 下一步 */
-      handleNext () {
+      handleNext() {
         return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -432,11 +431,11 @@
                   choosePipe: this.choosePipe
                 }
               })
-            },300);
+            }, 300);
           })
       },
       /**@description 退出 */
-      onExit () {
+      onExit() {
         if (this.isEveryStep) {
           this.$connector.$send(this.uniQuery.message)
         } else {
@@ -444,7 +443,7 @@
         }
       },
       /**@description 单击打开编辑分段接口 */
-      onEditSegment (row) {
+      onEditSegment(row) {
         this.actionType = false;
         this.formData = {
           beginMileage: row.beginMileage,
@@ -454,11 +453,11 @@
         this.__edittingRow = row
       },
       /**@description 编辑分段submit */
-      async onSubmit () {
-        const { id,code,pipeSegmentCode } = this.__edittingRow;
+      async onSubmit() {
+        const { id, code, pipeSegmentCode } = this.__edittingRow;
         try {
           const res = await this.$refs['splitForm'].validate();
-          console.log("this.$refs['splitForm'].validate()",res);
+          console.log("this.$refs['splitForm'].validate()", res);
           return Helper.pipeSplitSegment({
             code,
             id,
@@ -478,11 +477,11 @@
               this.formData = null;
             })
         } catch (error) {
-          console.log('validate error----------------',error);
+          console.log('validate error----------------', error);
         }
       },
       /**@description 选择管道 */
-      async handlePipeSelect (pipe) {
+      async handlePipeSelect(pipe) {
         this.choosePipe = pipe
         this.pipeCode = pipe.pipeSegmentCode
         const mixTableRef = await this.syncMixTableMounted()
@@ -497,47 +496,47 @@
         this.renderFeatures(pipe);
         const populationWkt = pipe.regionDto.populationWkt;
         const specificWkt = pipe.regionDto.specificWkt;
-        Object.assign(this.pipeAroundTotal,{
+        Object.assign(this.pipeAroundTotal, {
           people: populationWkt.length,
           place: specificWkt.length
         })
       },
       /**@description 管段数据改变，重新渲染分段标识 */
-      async onTableGetData (data) {
+      async onTableGetData(data) {
         await this.syncMixMapLoaded();
         this.renderSegmentLabel(data);
       },
 
-      async handleTableRowClick (row) {
+      async handleTableRowClick(row) {
         const mixMapRef = await this.syncMixMapLoaded()
         mixMapRef.locationByLineString(row.wkt)
       },
 
-      togglePopulationVisible (val) {
+      togglePopulationVisible(val) {
         this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
 
-      togglePlaceVisible (val) {
+      togglePlaceVisible(val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
 
-      handleSelectionChange (val) {
+      handleSelectionChange(val) {
         this.selectPipeSegments = val;
       },
 
-      onMerge () {
+      onMerge() {
         return Helper.mergePipeSegments(this.selectPipeSegments)
           .then(_ => {
             this.$message.success('合并成功');
             this.$refs.table.$refs.table.refresh();
           })
       },
-      validateRest (filed,success,message,formRef = this.$refs.splitForm) {
-        console.log("validateRest-----------------------",filed,success,message);
+      validateRest(filed, success, message, formRef = this.$refs.splitForm) {
+        console.log("validateRest-----------------------", filed, success, message);
         if (success) {
           formRef.fields.forEach(formItem => {
             if (formItem.prop !== filed) {
-              formItem.validate(void 0,(errorMsg,filed) => {
+              formItem.validate(void 0, (errorMsg, filed) => {
                 if (!errorMsg) {
                   formItem.clearValidate()
                 }
