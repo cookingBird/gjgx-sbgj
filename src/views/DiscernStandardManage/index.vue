@@ -134,6 +134,7 @@
   import Upload from '@/components/Upload.vue';
   import createLoading from '@/utils/Loading/loading';
 
+
   export default {
     components: { ContentLayout, pdf, Upload },
     inject: ['appCtx'],

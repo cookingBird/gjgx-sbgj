@@ -1,64 +1,49 @@
 <template>
 <main class="relative">
   <div class="search-bar shadow-content">
-    <el-form
-      :model="searchForm"
-      :inline="true"
-    >
+    <el-form :model="searchForm"
+      :inline="true">
       <el-form-item>
-        <el-select
-          class="inline-block w-40"
+        <el-select class="inline-block w-40"
           v-model="searchForm.pipeCode"
           placeholder="请选择管线名称"
           clearable
-          filterable
-        >
-          <el-option
-            v-for="item in pipeList"
+          filterable>
+          <el-option v-for="item in pipeList"
             :key="item.id"
             :label="item.pipeSegmentName"
-            :value="item.pipeSegmentCode"
-          ></el-option>
+            :value="item.pipeSegmentCode"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-date-picker
-          v-model="pickedDate"
+        <el-date-picker v-model="pickedDate"
           type="daterange"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           range-separator="至"
           format="yyyy-MM-dd"
-          value-format="yyyy-MM-dd"
-        ></el-date-picker>
+          value-format="yyyy-MM-dd"></el-date-picker>
       </el-form-item>
       <el-form-item>
-        <el-button
-          type="primary"
-          @click="handleSearch"
-        >查询</el-button>
-        <el-button
-          type="primary"
-          @click="handleReset"
-        >重置</el-button>
+        <el-button type="primary"
+          @click="handleSearch">查询</el-button>
+        <el-button type="primary"
+          @click="handleReset">重置</el-button>
       </el-form-item>
     </el-form>
   </div>
   <div class="page-content">
     <div class="page-content-left shadow-content">
       <el-scrollbar>
-        <pipe-selector
-          :optionsKey="{ title: 'name', key: 'code', children: 'children' }"
+        <pipe-selector :optionsKey="{ title: 'name', key: 'code', children: 'children' }"
           :data="leftTreeData"
           :defaultOpen="true"
           @select="handleTreeSelect"
-          :defaultSelect="searchForm.orgCode"
-        ></pipe-selector>
+          :defaultSelect="searchForm.orgCode"></pipe-selector>
       </el-scrollbar>
     </div>
     <div class="max-w-full page-content-right shadow-content">
-      <MixTable
-        v-if="loaded"
+      <MixTable v-if="loaded"
         ref="mixTableRef"
         :url="tableReqUrl"
         :tableColumns="tableCols"
@@ -68,19 +53,16 @@
         @onData="onTableGetData"
         @handleCommand="tableCommand"
         @row-click="handleTableRowClick"
-        style="width: 100%"
-      >
+        style="width: 100%">
       </MixTable>
     </div>
 
   </div>
   <transition name="fade-scale">
-    <Detail
-      v-if="detailCode"
+    <Detail v-if="detailCode"
       class="bg-[#e3eaf3] absolute inset-0 z-10"
       :code="detailCode"
-      @back="detailCode = void 0"
-    />
+      @back="detailCode = void 0" />
   </transition>
 </main>
 </template>
@@ -183,7 +165,7 @@
         (e) => (e.layerId === "section-level" && e.infos),
         (infos) => Misc.objMap(infos, (key, value) => value === 'null' ? '空' : value)
       );
-      
+
     },
 
     methods: {
@@ -214,7 +196,7 @@
       },
       async handleTableRowClick(row) {
         const res = await pipeAround({ pipeCode: row.pipeSegmentCode });
-        await this.syncMixMapLoaded()
+        const mapRef = await this.syncMixMapLoaded()
         const { regionWkt, flammableWkt, specificWkt, populationWkt } = res;
         //影响半径
         regionWkt && this.mapRef.pipeRadiusRender({
@@ -226,8 +208,16 @@
         specificWkt.length && this.mapRef.renderMarkerByType(specificWkt, 2);
         //易燃易爆场所
         flammableWkt.length && this.mapRef.renderMarkerByType(flammableWkt, 3);
+        if (row.wkt) {
+          mapRef.locationByLineString(row.wkt, void 0, (center) => {
+            mapRef.openPop(Object.assign({}, { position: center, infos: row }),
+              (infos) => Misc.objMap(infos, (key, value) => !value ? '空' : value)
+            )
+            console.log('locationByLineString------------------', center, row)
+          })
+        }
         //管线详情窗口
-        // this.mapRef.openPipeInfoPop(row);
+        // mapRef.openPipeInfoPop(row);
       },
       tableCommand(key, row) {
         switch (key) {

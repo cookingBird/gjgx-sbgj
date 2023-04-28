@@ -100,6 +100,7 @@
         };
         return handler(e, popInfoCallback, map)
       },
+      /**@description 地图加载完成(所有图层服务) */
       handleMapLoad() {
         this.$emit('onLoad');
         this.setMapLoaded();
@@ -125,14 +126,18 @@
        * @description 线定位
        * @param {wkt}
        * **/
-      locationByLineString(wkt, options = {}) {
+      locationByLineString(wkt, options = {}, centerCb) {
         const { map } = this.$refs['map'].map;
         const geometry = window.Terraformer.WKT.parse(wkt);
+        console.log("locationByLineString---------", geometry);
         const bbox = turf.bbox(geometry);
         map.fitBounds(bbox, {
           duration: 1 * 1000,
           padding: Object.assign({ top: 10, bottom: 25, left: 15, right: 5 }, options.padding),
         });
+        if (centerCb) {
+          centerCb(geometry.coordinates[Math.floor(geometry.coordinates.length / 2)])
+        }
       },
       /**
        * @param {array} infoArray
@@ -198,7 +203,7 @@
           source = map.getSource(id);
         }
         //* 新增Geojson或更新Geojson
-        const data = this.createFeatureCollection(pipes)
+        const data = this.createFeatureCollection(points)
         source.setData(data);
         return source.id;
       },
@@ -487,18 +492,13 @@
        * @description 高后果区等级
        * @param {data} 高后果区数据集合
        * **/
-      sectionLevelRender(
-        data,
-        levelKey = 'regionLevel',
-        id = 'section-level',
-        colorMap = [
-          '0', '#00B725',
-          '1', '#F7A830',
-          '2', '#FE7E0E',
-          '3', '#EE5D4F',
-          'yellow'
-        ]
-      ) {
+      sectionLevelRender(data, levelKey = 'regionLevel', id = 'section-level', colorMap = [
+        '0', '#00B725',
+        '1', '#F7A830',
+        '2', '#FE7E0E',
+        '3', '#EE5D4F',
+        'yellow'
+      ]) {
         console.warn('sectionLevelRender-----------------', data, levelKey);
         const { map } = this.$refs['map'].map;
         const sourceId = this.createPipeSource(data, id);
