@@ -268,7 +268,6 @@
           }
         } catch (error) {
           console.error(error);
-          this.$message.error('获取表格信息失败');
         } finally {
           this.loading = false;
         }

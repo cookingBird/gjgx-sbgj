@@ -1,15 +1,13 @@
 <template>
 <div class="map-container">
-  <gislife-map
-    v-if="appConfig.baseUrl"
+  <gislife-map v-if="appConfig.baseUrl"
     v-on="$listeners"
     ref="map"
     :appcode="appConfig.appCode"
     :baseUrl="appConfig.baseUrl"
     :requestHeader="requestHeader"
     @onLoad="handleMapLoad"
-    @onMapClick="handleMapClick"
-  />
+    @onMapClick="handleMapClick" />
   <slot v-if="mapLoaded"></slot>
 </div>
 </template>
@@ -60,6 +58,9 @@
           this.popFilterCb = filter;
           this.popInfoCallback = infoCb
         }
+      },
+      mapboxInstance() {
+        return this.$refs['map']?.map?.map
       }
     },
     created() {
@@ -67,35 +68,37 @@
     },
     methods: {
       handleMapClick(e) {
-        const { map } = this.$refs['map'].map;
         const { popFilterCb, popInfoCallback } = this;
         console.log('handleMapClick----------------', e)
         if (this.popShow) {
-          function handler(e, map) {
-            const node = compilePop({
-              info: (popInfoCallback && popInfoCallback(e.infos)) || e.infos,
-              onClose: closeHandler
-            });
-            const pop = new mapboxgl.Popup({
-              closeButton: false,
-              closeOnClick: true,
-              closeOnMove: false,
-              anchor: 'bottom',
-              // offset: 120,
-              className: 'result-pop',
-              maxWidth: '530px',
-            });
-            console.log('click handler', e);
-            pop.setDOMContent(node).setLngLat(e.position).addTo(map)
-            function closeHandler() {
-              pop.remove()
-            }
-          };
-          console.log('e----------------', e)
           if (popFilterCb && popFilterCb(e)) {
-            handler(e, map)
+            this.openPop(e, popInfoCallback)
           }
         }
+      },
+      /**@description 打开气泡框 */
+      openPop(e, popInfoCallback, map = this.mapboxInstance) {
+        function handler(e, infoCb, map) {
+          const node = compilePop({
+            info: (infoCb && infoCb(e.infos)) || e.infos,
+            onClose: closeHandler
+          });
+          const pop = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: true,
+            closeOnMove: false,
+            anchor: 'bottom',
+            // offset: 120,
+            className: 'result-pop',
+            maxWidth: '530px',
+          });
+          pop.setDOMContent(node).setLngLat(e.position).addTo(map)
+          function closeHandler() {
+            pop.remove()
+          };
+          return closeHandler
+        };
+        return handler(e, popInfoCallback, map)
       },
       handleMapLoad() {
         this.$emit('onLoad');
@@ -120,7 +123,7 @@
       },
       /**
        * @description 线定位
-       * @param {wkt}  
+       * @param {wkt}
        * **/
       locationByLineString(wkt, options = {}) {
         const { map } = this.$refs['map'].map;
@@ -132,11 +135,33 @@
         });
       },
       /**
+       * @param {array} infoArray
+       * @param {function} geometryCb
+       * @returns {geojson} geojson
+       */
+      createFeatureCollection(infoArray, geometryCb = ({ wkt }) => Terraformer.WKT.parse(wkt)) {
+        const collection = {
+          type: 'FeatureCollection',
+          features: []
+        };
+        try {
+          collection.features = infoArray
+            .filter(info => info.wkt)
+            .map((info) => ({
+              type: 'Feature',
+              geometry: geometryCb(info),
+              properties: info
+            }))
+        } catch (error) {
+          console.error(error)
+        }
+        return collection;
+      },
+      /**
         * @description 生成管线source
         * @param {pipes} 管线集合
         * **/
       createPipeSource(pipes, id) {
-        console.warn("createPipeSource-----------------", pipes);
         const { map } = this.$refs['map'].map;
         let source = map.getSource(id);
         if (!source) {
@@ -149,38 +174,8 @@
           });
           source = map.getSource(id);
         }
-        let data = {
-          'type': 'FeatureCollection',
-          features: []
-        };
-        try {
-          pipes.forEach((pipe) => {
-            const { name, wkt } = pipe;
-            //线数据
-            if (wkt) {
-              const geometry = window.Terraformer.WKT.parse(wkt);
-              data.features.push({
-                type: 'Fetaure',
-                geometry,
-                properties: {
-                  ...pipe
-                }
-              });
-              //中心点数据
-              // const centerGeometry = turf.center(geometry);
-              // data.features.push({
-              //   type: 'Fetaure',
-              //   geometry: centerGeometry.geometry,
-              //   properties: {
-              //     name,
-              //   },
-              // })
-            }
-          });
-        } catch (error) {
-          this.$message.error(error);
-        }
-
+        //* 新增Geojson或更新Geojson
+        const data = this.createFeatureCollection(pipes)
         source.setData(data);
         return source.id;
       },
@@ -202,21 +197,8 @@
           });
           source = map.getSource(id);
         }
-        let data = {
-          'type': 'FeatureCollection',
-          'features': []
-        };
-        points.forEach(point => {
-          const { wkt } = point;
-          const geometry = window.Terraformer.WKT.parse(wkt);
-          data.features.push({
-            type: 'Fetaure',
-            geometry,
-            properties: {
-              ...point
-            },
-          });
-        });
+        //* 新增Geojson或更新Geojson
+        const data = this.createFeatureCollection(pipes)
         source.setData(data);
         return source.id;
       },
@@ -367,7 +349,7 @@
       },
       /**
        * @description 加载图片
-       * @param {img} 
+       * @param {img}
        * **/
       async loadImage(img) {
         await this.mapLifecycle.loaded.ready();

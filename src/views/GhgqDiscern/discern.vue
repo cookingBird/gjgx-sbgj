@@ -2,25 +2,21 @@
 <div class="discern-wrapper">
   <div class="discern-top shadow-content bg-fff"></div>
   <div class="discern-content">
-    <div class="flex-grow-0 flex-shrink-0 bg-white rounded discern-content-left shadow-content">
+    <div
+      class="flex-grow-0 flex-shrink-0 bg-white rounded discern-content-left shadow-content">
       <el-scrollbar>
-        <pipe-selector
-          :data="pipeList"
+        <pipe-selector :data="pipeList"
           :defaultOpen="true"
           :defaultSelect="selectedPipe?.id || pipeList[0].children[0]?.id"
           :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
-          @select="handlePipeSelect"
-        ></pipe-selector>
+          @select="handlePipeSelect"></pipe-selector>
       </el-scrollbar>
     </div>
-    <div
-      ref="loadingMask"
-      class="relative flex-grow discern-content-right"
-    >
+    <div ref="loadingMask"
+      class="relative flex-grow discern-content-right">
       <div class="absolute inset-0 flex flex-col">
         <div class="flex-grow right-content">
-          <mix-table
-            v-if="pipeList[0].children.length"
+          <mix-table v-if="pipeList[0].children.length"
             ref="table"
             class="!w-auto"
             :tableColumns="tableColumns"
@@ -31,8 +27,7 @@
             url="/highconsarea/nextOperate"
             :isPagination="false"
             :query="{ taskId:taskId,nodeId: 3,flag: '',pipeCode:pipeCode}"
-            :pageParams="{pageNo:1,pageSize:-1}"
-          >
+            :pageParams="{pageNo:1,pageSize:-1}">
             <!-- <template v-slot:action>
             <el-button
               type="text"
@@ -40,66 +35,50 @@
             >修改等级</el-button>
           </template> -->
             <div class="absolute map-layer-switcher-group">
-              <LayerSwitcher
-                v-model="populationShow"
+              <LayerSwitcher v-model="populationShow"
                 :number="pipeAroundTotal.people"
                 title="人居"
-                @change="togglePopulationVisible"
-              ></LayerSwitcher>
-              <LayerSwitcher
-                v-model="placeShow"
+                @change="togglePopulationVisible"></LayerSwitcher>
+              <LayerSwitcher v-model="placeShow"
                 :number="pipeAroundTotal.place"
                 title="特定场所"
-                @change="togglePlaceVisible"
-              ></LayerSwitcher>
+                @change="togglePlaceVisible"></LayerSwitcher>
             </div>
           </mix-table>
         </div>
         <div class="flex-grow-0 flex-shrink-0 mt-2 rounded right-footer shadow-content">
           <div>
-            <el-button
+            <el-button type="primary"
+              @click="onExit">退出</el-button>
+            <el-button v-if="!isOneStep"
               type="primary"
-              @click="onExit"
-            >退出</el-button>
-            <el-button
-              v-if="!isOneStep"
-              type="primary"
-              @click="onPrev"
-            >上一步</el-button>
-            <el-button
-              type="primary"
-              @click="handleFinish"
-            >完成</el-button>
+              @click="onPrev">上一步</el-button>
+            <el-button type="primary"
+              @click="handleFinish">完成</el-button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <el-dialog
-    v-if="edittingRow"
+  <el-dialog v-if="edittingRow"
     @close="onclose"
     title="修改高后果区等级"
     :visible="true"
-    width="30%"
-  >
+    width="30%">
     <div class="flex justify-around">
-      <el-button
-        v-for="btn in levelGroup"
+      <el-button v-for="btn in levelGroup"
         :key="btn.level"
         :class="{'selected':edittingRow.hcaLevel == btn.level}"
         class="el-button-level"
-        @click="onSelectLevel(btn)"
-      >
+        @click="onSelectLevel(btn)">
         {{ btn.label }}
       </el-button>
     </div>
     <div class="flex justify-center mt-7">
-      <el-button
-        v-for="aBtn in dialogAction"
+      <el-button v-for="aBtn in dialogAction"
         type="primary"
         :key="aBtn.code"
-        @click="onDialogAction(aBtn)"
-      >
+        @click="onDialogAction(aBtn)">
         {{ aBtn.label }}
       </el-button>
     </div>
@@ -320,12 +299,12 @@
           if (val) {
             let text = void 0;
             switch (this.loadingType) {
-              case 'handleDiscern': {
-                text = '一键识别中...';
-                break;
-              }
               case 'handleNext': {
                 text = '';
+                break;
+              }
+              case 'onStepDiscern': {
+                text = '一键识别中';
                 break;
               }
               default: {
@@ -344,7 +323,8 @@
       const loadingFuncs = [
         'getSelectedPipeList',
         'handleFinish',
-        'onDialogAction'
+        'onDialogAction',
+        'onStepDiscern'
       ];
       // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
@@ -353,15 +333,7 @@
         });
       });
       if (this.isOneStep) {
-        await Helper.pipeAddOrUpdate({
-          pipeLineVos: this.uniQuery.pipeLineVos,
-          taskId: this.taskId,
-          taskName: this.taskName,
-        });
-        await Helper.discernOneStep({
-          taskId: this.taskId,
-          nodeId: 1,
-        });
+        await this.onStepDiscern()
       }
       this.getSelectedPipeList();
     },
@@ -497,7 +469,7 @@
       },
       /**
        * @description 渲染高后果区等级
-       * @param {*} data 
+       * @param {*} data
        */
       async onTableGetData(data) {
         const mapRef = await this.syncMixMapLoaded();
@@ -506,7 +478,7 @@
       },
       /**
        * @description 行点击，定位
-       * @param {*} row 
+       * @param {*} row
        */
       async handleTableRowClick(row) {
         const mixMapRef = await this.syncMixMapLoaded();
@@ -520,7 +492,18 @@
       togglePlaceVisible(val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val);
       },
-
+      /**@description 一键识别 */
+      async onStepDiscern() {
+        await Helper.pipeAddOrUpdate({
+          pipeLineVos: this.uniQuery.pipeLineVos,
+          taskId: this.taskId,
+          taskName: this.taskName,
+        });
+        await Helper.discernOneStep({
+          taskId: this.taskId,
+          nodeId: 1,
+        });
+      }
     },
   };
 </script>
