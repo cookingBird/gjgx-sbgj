@@ -120,7 +120,6 @@
 
 <script>
   import request from '@/utils/request';
-  import { createXHR } from './MyXHR';
   import Column from './column';
   import pagination from './pagination.vue';
   import compLifecycleBlock from '@/mixins/compLifecycleBlock';

@@ -2,56 +2,88 @@
 <ContentLayout v-loading="loading">
   <template v-slot:header>
     <div class="relative px-2 py-2 action-header-ctx">
-      <el-input class="inline-block w-[192px]"
+      <el-input
+        class="inline-block w-[192px]"
         placeholder="请输入标准名称"
-        v-model="queryString"></el-input>
-      <el-button type="primary"
-        @click="getData()">查询</el-button>
-      <el-button type="primary"
-        @click="reset">重置</el-button>
-      <el-button class="absolute inline-block right-2"
+        v-model="queryString"
+      ></el-input>
+      <el-button
         type="primary"
-        @click="onAdd">
-        新增
-      </el-button>
+        @click="getData()"
+      >查询</el-button>
+      <el-button
+        type="primary"
+        @click="reset"
+      >重置</el-button>
+      <Auth :funCode="'DiscernStandardManage_add'">
+        <el-button
+          class="absolute inline-block right-2"
+          type="primary"
+          @click="onAdd"
+        >
+          新增
+        </el-button>
+      </Auth>
     </div>
   </template>
   <template v-slot:main>
     <div class="w-full h-full p-2">
-      <el-table class="my-el-table-ctx"
+      <el-table
+        class="my-el-table-ctx"
         :data="data"
         height="100%"
-        border>
-        <el-table-column type="index"
+        border
+      >
+        <el-table-column
+          type="index"
           width="90"
           :index="calcIndex"
           label="序号"
-          align="center">
+          align="center"
+        >
         </el-table-column>
-        <el-table-column prop="name"
+        <el-table-column
+          prop="name"
           label="标准名称"
-          align="center"></el-table-column>
-        <el-table-column prop="scope"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="scope"
           label="适用范围"
-          align="center"></el-table-column>
-        <el-table-column prop="action"
+          align="center"
+        ></el-table-column>
+        <el-table-column
+          prop="action"
           label="操作"
-          align="center">
+          align="center"
+        >
           <template slot-scope="scope">
-            <el-button type="text"
-              @click="onEdit(scope.row)">
-              编辑
-            </el-button>
-            <el-button type="text"
-              @click="() => onDelete(scope)">
-              删除
-            </el-button>
-            <el-button type="text"
-              @click="() => onPreview(scope)">
+            <Auth :funCode="'DiscernStandardManage_edit'">
+              <el-button
+                type="text"
+                @click="onEdit(scope.row)"
+              >
+                编辑
+              </el-button>
+            </Auth>
+            <Auth :funCode="'DiscernStandardManage_delete'">
+              <el-button
+                type="text"
+                @click="() => onDelete(scope)"
+              >
+                删除
+              </el-button>
+            </Auth>
+            <el-button
+              type="text"
+              @click="() => onPreview(scope)"
+            >
               预览
             </el-button>
-            <el-button type="text"
-              @click="() => onDownload(scope)">
+            <el-button
+              type="text"
+              @click="() => onDownload(scope)"
+            >
               下载
             </el-button>
           </template>
@@ -61,7 +93,8 @@
   </template>
   <template v-slot:footer>
     <div class="flex items-center justify-center px-2 py-2">
-      <el-pagination layout="total,sizes, prev, pager, next, jumper"
+      <el-pagination
+        layout="total,sizes, prev, pager, next, jumper"
         :total="total"
         :current-page.sync="pageState.pageNo"
         :page-size.sync="pageState.pageSize"
@@ -70,58 +103,83 @@
         @prev-click="() => getData()"
         @next-click="() => getData()"
         class="my-el-pagination-ctx"
-        background></el-pagination>
+        background
+      ></el-pagination>
     </div>
   </template>
-  <el-dialog v-if="formData"
+  <el-dialog
+    v-if="formData"
     :title="dialogTitle"
     :visible="true"
     @close="formData = null"
     width="30%"
-    :close-on-click-modal="false">
-    <el-form :model="formData"
+    :close-on-click-modal="false"
+  >
+    <el-form
+      :model="formData"
       ref="addForm"
       label-width="110px"
-      :rules="rules">
-      <el-form-item label="标准名称："
-        prop="name">
-        <el-input placeholder="请输入"
-          v-model="formData.name"></el-input>
+      :rules="rules"
+    >
+      <el-form-item
+        label="标准名称："
+        prop="name"
+      >
+        <el-input
+          placeholder="请输入"
+          v-model="formData.name"
+        ></el-input>
       </el-form-item>
-      <el-form-item label="适用范围："
-        prop="scope">
-        <el-input type="textarea"
+      <el-form-item
+        label="适用范围："
+        prop="scope"
+      >
+        <el-input
+          type="textarea"
           placeholder="请输入"
           :autosize="{ minRows: 3, maxRows: 5 }"
           class="h-20"
-          v-model="formData.scope"></el-input>
+          v-model="formData.scope"
+        ></el-input>
       </el-form-item>
-      <el-form-item label="选择标准："
-        prop="file">
-        <Upload ref="upload"
+      <el-form-item
+        label="选择标准："
+        prop="file"
+      >
+        <Upload
+          ref="upload"
           :fileName="formData.fileName"
-          @input="handleFileSelect" />
+          @input="handleFileSelect"
+        />
       </el-form-item>
       <div class="flex justify-center">
-        <el-button type="primary"
+        <el-button
+          type="primary"
           :loading="submitLoading"
-          @click="onSubmit">确定</el-button>
-        <el-button type="primary"
-          @click="formData = null">取消</el-button>
+          @click="onSubmit"
+        >确定</el-button>
+        <el-button
+          type="primary"
+          @click="formData = null"
+        >取消</el-button>
 
       </div>
     </el-form>
   </el-dialog>
-  <el-dialog title="标准预览"
+  <el-dialog
+    title="标准预览"
     v-if="pdf"
     :visible="true"
     class="dialog-preview"
     @close="pdf = null"
-    :close-on-click-modal="false">
-    <pdf v-for="i in pdfPages"
+    :close-on-click-modal="false"
+  >
+    <pdf
+      v-for="i in pdfPages"
       :key="i"
       :page="i"
-      :src="pdf" />
+      :src="pdf"
+    />
   </el-dialog>
 </ContentLayout>
 </template>

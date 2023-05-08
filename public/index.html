@@ -2,50 +2,47 @@
 <html lang="">
   <head>
     <meta charset="utf-8" />
-    <meta
-      http-equiv="X-UA-Compatible"
-      content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1.0" />
-    <link
-      rel="icon"
-      href="<%= BASE_URL %>logo.png" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="icon" href="<%= BASE_URL %>logo.png" />
     <title><%= htmlWebpackPlugin.options.title %></title>
     <!-- 使用 CDN 的 CSS 文件 start -->
-    <% for (var i in htmlWebpackPlugin.options.CDN && htmlWebpackPlugin.options.CDN.css) {
-    %>
+    <% for (var i in htmlWebpackPlugin.options.CDN &&
+    htmlWebpackPlugin.options.CDN.css) { %>
     <link
       href="<%= htmlWebpackPlugin.options.CDN.css[i] %>"
       rel="preload"
-      as="style" />
+      as="style"
+    />
     <% } %>
     <!-- 使用 CDN 的 CSS 文件 end -->
 
     <!-- 使用 CDN 的 JS 文件 -->
-    <% for (var i in htmlWebpackPlugin.options.CDN && htmlWebpackPlugin.options.CDN.js) {
-    %>
+    <% for (var i in htmlWebpackPlugin.options.CDN &&
+    htmlWebpackPlugin.options.CDN.js) { %>
     <link
       href="<%= htmlWebpackPlugin.options.CDN.js[i] %>"
       crossorigin="anonymous"
       rel="preload"
-      as="script" />
+      as="script"
+    />
     <% } %>
     <!-- 使用 CDN 的 JS 文件 end -->
-    <% for (var i in htmlWebpackPlugin.options.CDN && htmlWebpackPlugin.options.CDN.js) {
-    %>
+    <% for (var i in htmlWebpackPlugin.options.CDN &&
+    htmlWebpackPlugin.options.CDN.js) { %>
     <script
       src="<%= htmlWebpackPlugin.options.CDN.js[i] %>"
-      crossorigin="anonymous"></script>
+      crossorigin="anonymous"
+    ></script>
     <% } %>
   </head>
 
   <body>
     <noscript>
-      <strong
-        >We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly
-        without JavaScript enabled. Please enable it to continue.</strong
-      >
+      <strong>
+        We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work
+        properly without JavaScript enabled. Please enable it to continue.
+      </strong>
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->

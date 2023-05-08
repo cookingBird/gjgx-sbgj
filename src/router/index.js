@@ -15,9 +15,7 @@ const router = new VueRouter({
     {
       path: '/DiscernStandardManage',
       component: () =>
-        import(
-          /* webpackChunkName: "DiscernStandardManage" */ '@/views/DiscernStandardManage'
-        )
+        import(/* webpackChunkName: "DiscernStandardManage" */ '@/views/DiscernStandardManage')
     },
     {
       path: '/GhgqDiscern',
@@ -127,7 +125,7 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-router.createRouter = function (menuList) {
+router.createRouter = function(menuList) {
   const route = {
     path: '/',
     name: 'root',

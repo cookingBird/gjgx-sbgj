@@ -6,18 +6,23 @@ export default {
   install
 }
 
-function isAuthed (funcCode, state) {
-  return !!state.mainBtnAuthed.find(n => n.funCode === funcCode)
+function isAuthed(funcCode, state) {
+  return connector.isMain()
+    ? state.funCode.find(code => code == funcCode)
+    : state.mainBtnAuthed.find(btn => btn.funCode == funcCode)
 }
 
-function getButtonInfo (funcCode, state) {
-  return state.mainBtnAuthed.find(n => n.funCode === funcCode)
+function getButtonInfo(funcCode, state) {
+  return connector.isMain()
+    ? state.btnInfo.find(btn => btn.funCode == funcCode)
+    : state.mainBtnAuthed.find(btn => btn.funCode == funcCode)
 }
 
-function install (vue, options = {}) {
+function install(vue, options = {}) {
   vue.directive(options.name || 'auth', {
-    inserted (el, binding) {
-      const code = binding.value
+    async inserted(el, binding) {
+      const code = binding.value;
+      await new Promise((resolve) => { setTimeout(resolve, 500) });
       if (!isAuthed(code, store.state.auth)) {
         el.parentNode && el.parentNode.removeChild(el)
       } else {
@@ -83,7 +88,7 @@ function install (vue, options = {}) {
     let value = bind.value
     let height =
       value === 0 || value
-        ? `calc(${bind.arg || '100%'} - ${value}px)`
+        ? `calc(${ bind.arg || '100%' } - ${ value }px)`
         : bind.arg
     el.style.height = height
   })
@@ -91,7 +96,7 @@ function install (vue, options = {}) {
     let value = bind.value
     let width =
       value === 0 || value
-        ? `calc(${bind.arg || '100%'} - ${value}px)`
+        ? `calc(${ bind.arg || '100%' } - ${ value }px)`
         : bind.arg
     el.style.width = width
   })

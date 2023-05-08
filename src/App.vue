@@ -18,16 +18,15 @@
         appCtx: this,
       }
     },
-    created() {
+    async created() {
       //获取登录用户信息
       if (isMain()) {
-        this.$store.dispatch("auth/getPermission");
-      } else {
-        getToken().then(_ => {
-          this.$store.dispatch("auth/getPermission");
-        })
+        await this.$store.dispatch("auth/getPermission");
       }
-      // sessionStorage.setItem('token', "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpcCI6IjE5Mi4xNjguMS4yMzYiLCJleHAiOjE2ODA5Mzg0OTUsInVzZXJJZCI6MSwidXNlcm5hbWUiOiJhZG1pbiJ9.QeNwtz9w-gJr0jiJmpVNIPxzHxnemsirVKdvDRLDUq4")
+      else {
+        await getToken();
+        await this.$store.dispatch("auth/getPermission");
+      }
     },
     methods: {
       makeUrl(path) {

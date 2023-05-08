@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import components from './components'
 import router from './router'
 import store from './store'
 import scroll from 'vue-seamless-scroll'
@@ -27,6 +28,7 @@ Vue.use(Message)
 Vue.use(gislife)
 Directives.install(Vue)
 Vue.use(ElementUI)
+Vue.use(components)
 Vue.component('common-table', Table)
 
 Vue.prototype.$Map = Map

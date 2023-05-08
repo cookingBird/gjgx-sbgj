@@ -43,13 +43,13 @@ setTimeout(() => {
     connector.$on(null, 'routeReplace', ({ data, responser }) => {
       //获取后台配置路由信息
       const travel = getTreeTraveler({
-        every (node) {
+        every(node) {
           if (node.route === data.path) {
             if (node.reqPath) {
               if (node.reqPath.includes('?')) {
                 throw Error(`
-                node.reqPath should not has search query;\n 
-                node.reqPath is ${node.reqPath}`)
+                node.reqPath should not has search query;\n
+                node.reqPath is ${ node.reqPath }`)
               }
               if (data.query) {
                 responser(node.reqPath + '?' + qs.stringify(data.query))
@@ -57,9 +57,9 @@ setTimeout(() => {
                 responser(node.reqPath)
               }
             } else {
-              throw Error(`on routeReplace error;\n 
-              data.path is ${data.path}; \n
-              node.reqPath is ${node.reqPath};`)
+              throw Error(`on routeReplace error;\n
+              data.path is ${ data.path }; \n
+              node.reqPath is ${ node.reqPath };`)
             }
           }
         }
@@ -116,16 +116,14 @@ setTimeout(() => {
   })
 })
 
-export function getMainPath () {
-  return connector
+export async function getMainPath() {
+  const pathInfo = await connector
     .$send({
       target: 'main',
       type: 'getPath'
     })
-    .then(data => {
-      localStorage.setItem('mainPath', JSON.stringify(data))
-      return data
-    })
+  localStorage.setItem('mainPath', JSON.stringify(pathInfo))
+  return pathInfo;
 }
 
 /**
@@ -133,21 +131,21 @@ export function getMainPath () {
  * @param {*} target
  * @returns traveler
  */
-export function treeTravels (target) {
+export function treeTravels(target) {
   return visitor => {
     const travel = getTreeTraveler(visitor)
     travel(target)
   }
 }
 
-export function getPermission () {
+export function getPermission() {
   return connector.$send({
     target: 'main',
     type: 'getPermission'
   })
 }
 
-export function getToken () {
+export function getToken() {
   return connector
     .$send({
       target: 'main',
@@ -159,11 +157,11 @@ export function getToken () {
     })
 }
 
-export function isMain () {
+export function isMain() {
   return connector.isMain()
 }
 
-function getFiledValue (origin, ...fileds) {
+function getFiledValue(origin, ...fileds) {
   const result = {}
   fileds = fileds.flat()
   for (const key of fileds) {
@@ -172,10 +170,10 @@ function getFiledValue (origin, ...fileds) {
   return result
 }
 
-export function getTreeTraveler (visitor, childrenKey = 'children') {
+export function getTreeTraveler(visitor, childrenKey = 'children') {
   const { firstEnter, every } = visitor || {}
   return target => {
-    function travel (tar, isFirst = true) {
+    function travel(tar, isFirst = true) {
       if (isFirst) {
         firstEnter && firstEnter(tar)
       }
