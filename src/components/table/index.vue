@@ -151,7 +151,7 @@
       },
       // 高度
       height: {
-        type: [String,Number],
+        type: [String, Number],
       },
       // 是否分页
       isPagination: {
@@ -185,7 +185,7 @@
       // 查询参数
       query: {
         Type: Object,
-        default () {
+        default() {
           return {};
         },
       },
@@ -197,10 +197,10 @@
       // 解析表格数据
       parseTableData: {
         Type: Function,
-        default () {
-          return ({ data,code }) => {
+        default() {
+          return ({ data, code }) => {
             if (code == 200) {
-              return { data: data.data,total: data.totalCount };
+              return { data: data.data, total: data.totalCount };
             }
             return {};
           };
@@ -216,7 +216,7 @@
       },
       fetch: Function
     },
-    data () {
+    data() {
       return {
         total: 30,
         loading: false,
@@ -226,7 +226,7 @@
       };
     },
     computed: {
-      initCom () {
+      initCom() {
         const config = this.config ?? {};
         return {
           border: config.border ?? true,
@@ -235,35 +235,37 @@
         };
       },
       queryData: {
-        get () {
-          return { ...this.query,...this.pageState };
+        get() {
+          return { ...this.query, ...this.pageState };
         },
-        set (val) {
-          this.$emit('changeQuery',val);
+        set(val) {
+          this.$emit('changeQuery', val);
         },
       },
     },
 
-    created () {
+    created() {
       this.refresh();
     },
-
+    mounted() {
+      console.log("initCom---------------", this.initCom);
+    },
     methods: {
       // 按钮组操作
-      handleCommand (key,row) {
-        this.$emit('handleCommand',key,row);
+      handleCommand(key, row) {
+        this.$emit('handleCommand', key, row);
       },
       // 刷新数据
-      async refresh (paras) {
-        let params = Object.assign({},this.queryData,paras);
+      async refresh(paras) {
+        let params = Object.assign({}, this.queryData, paras);
         this.loading = true;
         try {
           let dataS = await this.getData(params);
           if (dataS) {
-            let { data,total } = this.parseTableData(dataS);
+            let { data, total } = this.parseTableData(dataS);
             this.tableData = data;
             this.total = total;
-            this.$emit('onData',data);
+            this.$emit('onData', data);
           }
         } catch (error) {
           console.error(error);
@@ -272,7 +274,7 @@
         }
       },
       // 获取数据
-      async getData (query) {
+      async getData(query) {
         if (!this.url && !this.fetch) {
           return;
         }
@@ -294,17 +296,17 @@
         // }).then(res => res.data)
       },
 
-      calcIndex (index,pgCfg = 'pageState') {
+      calcIndex(index, pgCfg = 'pageState') {
         if (this.isPagination) {
-          const { pageNo,pageSize } = this[pgCfg]
+          const { pageNo, pageSize } = this[pgCfg]
           return index + (pageNo - 1) * pageSize + 1
         } else {
           return index + 1
         }
       },
 
-      onSizeChange (val) {
-        console.log('sizeChange',val);
+      onSizeChange(val) {
+        console.log('sizeChange', val);
         this.refresh()
       }
     },

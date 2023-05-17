@@ -1,6 +1,6 @@
 /** @type {import('@vue/cli-service').ProjectOptions} */
 const path = require('path')
-const { ElementUiResolver } = require('unplugin-vue-components/resolvers')
+// const { ElementUiResolver } = require('unplugin-vue-components/resolvers')
 const CDN = require('./config/cdn')('')
 const transform = require('./config/dataTransform')
 module.exports = {

@@ -285,7 +285,6 @@
       },
       onSubmit() {
         return this.$refs.addForm.validate().then((res) => {
-          console.log("this.$refs.addForm.validate()", res);
           this.$refs.upload.start();
           return Helper.addOrUpdate(this.formData)
             .then((_) => {

@@ -235,12 +235,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/deep/ .el-input__inner {
+::v-deep .el-input__inner {
   width: 150px;
   color: #fff !important;
   background: $--main-color1;
 }
-/deep/ .el-input-group__append {
+::v-deep .el-input-group__append {
   background: $--main-color1;
 }
 .gdxx {

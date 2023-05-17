@@ -339,7 +339,7 @@
 </script>
 
 <style lang="scss" scoped>
-  /deep/.zjtk {
+  ::v-deep .zjtk {
     border-radius: 4px;
     overflow: hidden;
 

@@ -62,7 +62,7 @@
   box-sizing: border-box;
   padding: 0 20px;
 
-  /deep/.el-pagination {
+  ::v-deep .el-pagination {
     .el-pagination__total,
     .el-input__inner,
     .el-pagination__jump {
@@ -70,7 +70,7 @@
     }
   }
 
-  /deep/ .el-pagination.is-background .el-pager li:not(.disabled).active {
+  ::v-deep .el-pagination.is-background .el-pager li:not(.disabled).active {
     background-color: $--cas-color1;
   }
 }

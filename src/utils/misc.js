@@ -255,7 +255,7 @@ export function statisticArray(array, sFiled = 'id') {
 /**@description debounce函数 */
 export function debounce(fn, timeGutter = 300, immediate = false) {
   let timer;
-  return function (...params) {
+  return function(...params) {
     if (!timer) {
       timer = setTimeout(() => {
         fn(...params);
@@ -289,7 +289,7 @@ export function createTableSpanMethods(mergeFiled, statisticKey) {
   statisticKey = statisticKey || mergeFiled;
   const isA = Array.isArray(mergeFiled);
   if (!isA) {
-    return function (scope, tableData) {
+    return function(scope, tableData) {
       const { row, column } = scope;
       //判断字段是否已被合并
       if (!mergeRecord) {
@@ -327,7 +327,7 @@ export function createTableSpanMethods(mergeFiled, statisticKey) {
     };
   }
   else {
-    return function (scope, tableData) {
+    return function(scope, tableData) {
       const { row, column } = scope;
       //判断字段是否已被合并
       if (!mergeRecord) {
@@ -386,7 +386,7 @@ export function createFiledRecordCtx(fallback, filedKey) {
     }
   }
 
-  return function (filedKeyOrItem, isGetCtx = false) {
+  return function(filedKeyOrItem, isGetCtx = false) {
     if (isGetCtx) {
       return ctx;
     }
@@ -527,4 +527,23 @@ export function once(id, callback) {
   const _id = Math.random();
   callback && callback();
   return _id;
+}
+
+
+export function encode(str) {
+  // 对字符串进行编码
+  // const encode = encodeURI(encodeURIComponent(str));
+  const encode = encodeURI((str));
+  // 对编码的字符串转化base64
+  const base64 = btoa(encode);
+  return base64;
+}
+
+export function decode(base64) {
+  // 对base64转编码
+  const decode = atob(base64);
+  // 编码转字符串
+  // const str = decodeURIComponent(decodeURI(decode));
+  const str = (decodeURI(decode));
+  return str;
 }

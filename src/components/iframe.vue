@@ -40,7 +40,7 @@ export default {
 .iframe-container {
   width: 100%;
   height: 100%;
-  /deep/iframe {
+  ::v-deep iframe {
     width: 100%;
     height: 100%;
   }

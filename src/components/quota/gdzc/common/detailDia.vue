@@ -38,16 +38,16 @@
 </script>
 
 <style lang="scss" scoped>
-  /deep/ .el-dialog__title {
+  ::v-deep .el-dialog__title {
     color: #fff !important;
   }
 
-  /deep/ .el-dialog__body {
+  ::v-deep .el-dialog__body {
     color: #fff !important;
     background-color: $--bg-color;
   }
 
-  /deep/ .el-dialog__header {
+  ::v-deep .el-dialog__header {
     color: #fff !important;
     background-color: $--bg-color;
     border-bottom: 1px solid #1e8cf2;

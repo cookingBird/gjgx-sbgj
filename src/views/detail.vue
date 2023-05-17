@@ -38,15 +38,19 @@
             info.diameter
           }}
         </el-descriptions-item>
-        <el-descriptions-item label="壁厚（mm）">{{ info.pipeThick || null }}</el-descriptions-item>
+        <el-descriptions-item
+          label="壁厚（mm）">{{ info.pipeThick || null }}</el-descriptions-item>
         <el-descriptions-item label="钢级">
           {{
             info.carbonSteelClass
           }}
         </el-descriptions-item>
-        <el-descriptions-item label="制管方式">{{ info.pipeMade || null}}</el-descriptions-item>
-        <el-descriptions-item label="防腐材料">{{ info.pipeMaterial || null}}</el-descriptions-item>
-        <el-descriptions-item label="投运日期">{{ info.pipeUseDate || null}}</el-descriptions-item>
+        <el-descriptions-item
+          label="制管方式">{{ info.pipeMade || null}}</el-descriptions-item>
+        <el-descriptions-item
+          label="防腐材料">{{ info.pipeMaterial || null}}</el-descriptions-item>
+        <el-descriptions-item
+          label="投运日期">{{ info.pipeUseDate || null}}</el-descriptions-item>
         <el-descriptions-item label="设计压力（MPa）">
           {{
             info.desgnPressure
@@ -68,27 +72,30 @@
           }}
         </el-descriptions-item>
         <el-descriptions-item label="运行状态">{{ info.status }}</el-descriptions-item>
-        <el-descriptions-item label="四川境内长度（km）">{{ info.pipeLengthInSC || null}}</el-descriptions-item>
-        <el-descriptions-item label="重庆境内长度（km）">{{ info.pipeLengthInCQ || null }}</el-descriptions-item>
-        <el-descriptions-item label="途径市、州">{{ info.pipePath || null}}</el-descriptions-item>
+        <el-descriptions-item
+          label="四川境内长度（km）">{{ info.pipeLengthInSC || null}}</el-descriptions-item>
+        <el-descriptions-item
+          label="重庆境内长度（km）">{{ info.pipeLengthInCQ || null }}</el-descriptions-item>
+        <el-descriptions-item
+          label="途径市、州">{{ info.pipePath || null}}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ info.Note || null}}</el-descriptions-item>
       </el-descriptions>
     </section>
     <section class="px-1">
       <div class="content-title">潜在影响范围</div>
-      <div class="descriptions-wrapper">
-        <el-descriptions
-          border
-          :column="3"
-        >
-          <el-descriptions-item label="影响半径">{{
-              info.impactRadius
-            }}</el-descriptions-item>
-          <el-descriptions-item label="暴露半径">{{
-              info.exposureRadius
-            }}</el-descriptions-item>
-        </el-descriptions>
-      </div>
+      <!-- <div class="descriptions-wrapper"> -->
+      <el-descriptions
+        border
+        :column="3"
+      >
+        <el-descriptions-item label="影响半径">
+          {{ info.impactRadius }}
+        </el-descriptions-item>
+        <el-descriptions-item label="暴露半径">
+          {{ info.exposureRadius }}
+        </el-descriptions-item>
+      </el-descriptions>
+      <!-- </div> -->
     </section>
   </div>
 </main>
@@ -104,17 +111,17 @@
         required: true,
       },
     },
-    data () {
+    data() {
       return {
         info: {},
       };
     },
-    created () {
+    created() {
       this.getData();
     },
     methods: {
-      async getData () {
-        const { code,data } = await analyseListAPI({
+      async getData() {
+        const { code, data } = await analyseListAPI({
           pageSize: 1,
           pageNo: 1,
           code: this.code,
@@ -147,7 +154,7 @@
         }
 
         .el-descriptions-item__content {
-          width: 440px;
+          max-width: 440px;
         }
 
         .el-descriptions-item__cell {

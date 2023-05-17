@@ -55,7 +55,7 @@ export default {
   height: 40px;
   background-color: #fff;
 
-  /deep/.el-tabs {
+  ::v-deep .el-tabs {
     .el-tabs__header {
       position: relative;
       top: -1px;

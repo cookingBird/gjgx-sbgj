@@ -96,7 +96,7 @@ export default {
     }
   }
 
-  /deep/.el-menu {
+  ::v-deep .el-menu {
     height: calc(100% - 50px);
     background-color: #ffffff;
 

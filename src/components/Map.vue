@@ -4,7 +4,7 @@
     v-on="$listeners"
     ref="map"
     :appcode="appConfig.appCode"
-    :baseUrl="appConfig.baseUrl"
+    :baseUrl="appConfig.mapServiceUrl"
     :requestHeader="requestHeader"
     @onLoad="handleMapLoad"
     @onMapClick="handleMapClick" />
@@ -69,7 +69,6 @@
     methods: {
       handleMapClick(e) {
         const { popFilterCb, popInfoCallback } = this;
-        console.log('handleMapClick----------------', e)
         if (this.popShow) {
           if (popFilterCb && popFilterCb(e)) {
             this.openPop(e, popInfoCallback)

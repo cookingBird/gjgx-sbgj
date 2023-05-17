@@ -162,7 +162,7 @@ export default {
     }
   }
 
-  /deep/.el-menu {
+  ::v-deep .el-menu {
     margin-right: 20px;
 
     .el-menu-item {

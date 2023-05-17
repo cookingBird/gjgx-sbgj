@@ -137,7 +137,7 @@ export default {
     background-color: #fff;
     margin-bottom: 10px;
 
-    /deep/.el-form-item {
+    ::v-deep .el-form-item {
       margin: 0;
       margin-right: 20px;
     }
@@ -176,7 +176,7 @@ export default {
       width: 384px;
       margin-left: 10px;
 
-      /deep/.el-scrollbar {
+      ::v-deep .el-scrollbar {
         height: 720px;
 
         .el-scrollbar__wrap {

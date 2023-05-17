@@ -49,13 +49,12 @@
 
 <script>
   import Map from '@/components/Map';
-  import { requestDom } from '@/utils/misc';
 
   export default {
     components: {
       BaseMap: Map,
     },
-    inject: ['setRef','getRef'],
+    inject: ['setRef', 'getRef'],
     props: {
       mapRefName: {
         type: String,
@@ -64,32 +63,38 @@
       tableRefName: {
         type: String,
         default: 'mixTable'
+      },
+      mixConfig: {
+        type: Object,
+        default() {
+          return {
+            switcher: true,
+            map: true,
+            table: true,
+          }
+        }
       }
     },
-    data () {
+    data() {
       return {
         mapload: false,
         type: '混合',
-        defaultConfig: {
-          switcher: true,
-          map: true,
-          table: true,
-        },
+        config: this.mixConfig,
       };
     },
     computed: {
-      configs () {
-        return { ...this.defaultConfig,...this.config };
+      configs() {
+        return this.config;
       },
     },
     watch: {
-      type (val) {
+      type(val) {
         this.$nextTick(() => {
           this.$refs['basemap'].resize();
           this.$refs.table.$refs.table.doLayout();
         });
       },
-      mapload (val) {
+      mapload(val) {
         if (val) {
           this.$nextTick(() => {
             this.$refs['basemap'].resize();
@@ -97,24 +102,10 @@
         }
       },
     },
-    mounted () {
-      requestDom(() => this.$refs.table).then((el) => {
-        // el.$slots = this.$slots
-        el.$scopedSlots = this.$scopedSlots;
-        el.$nextTick(() => {
-          el.$forceUpdate();
-          // console.log('this',this)
-          // console.log('$refs.table',el)
-        });
-      });
-    },
     methods: {
-      handleRowClick (row) {
-        this.$emit('row-click',row);
+      handleRowClick(row) {
+        this.$emit('row-click', row);
         row.wkt && this.$refs['basemap'].locationByLineString(row.wkt);
-      },
-      switchView (to) {
-        this.type = to;
       },
     },
   };

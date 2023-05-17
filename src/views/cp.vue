@@ -177,7 +177,7 @@ export default {
     background-color: #fff;
     margin-bottom: 10px;
 
-    /deep/.el-form-item {
+    ::v-deep .el-form-item {
       margin: 0;
       margin-right: 20px;
     }
