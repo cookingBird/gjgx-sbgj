@@ -4,7 +4,6 @@
     props: {
       funCode: {
         type: String,
-        required: true
       }
     },
     computed: {
@@ -12,7 +11,7 @@
         const connector = this.$connector;
         const authState = this.$store.state.auth;
         return (funCode) =>
-          (this.funCode === '*' || this.funCode === '')
+          (this.funCode === '*' || this.funCode === '' || this.funCode === void 0)
             ? true
             : connector?.isMain()
               ? authState.funCode.find(code => code == funCode)
@@ -32,8 +31,8 @@
         handler(val, oldVal) {
           if (val && val !== oldVal) {
             const connector = this.$connector;
-            setTimeout(() => {
-              const el = this.$children[0].$el;
+            const el = this.$children[0]?.$el || this.$children[0];
+            if (el) {
               const { funType, openMode, route, reqPath } = this.buttonInfo
               if (funType === 1 && openMode !== 'iframe' && openMode !== 'black') {
                 //btn
@@ -78,7 +77,7 @@
                   }
                 })
               }
-            }, 300);
+            }
           }
         }
       }

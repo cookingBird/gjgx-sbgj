@@ -42,21 +42,25 @@
     </div>
     <div>
       <label>壁厚(mm)：</label>
-      <span>{{ info.pipeThick }}</span>
+      <span>{{ info.wallthick }}</span>
     </div>
     <div>
       <label>投运时间：</label>
-      <span>{{ info.pipeUseDate }}</span>
+      <span>{{ info.prodDate ? matchTime(info.prodDate) : '空' }}</span>
     </div>
   </div>
 </div>
 </template>
 
 <script>
+  import { matchTime } from '@/utils/misc';
   export default {
     props: {
       info: Object,
       onClose: Function
     },
+    methods: {
+      matchTime
+    }
   };
 </script>

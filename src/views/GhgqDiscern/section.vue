@@ -1,6 +1,8 @@
 <template>
 <div class="space-y-2 section-wrapper">
-  <div class="bg-white rounded section-top shadow-content flex justify-end items-center min-h-[50px]">
+  <div
+    class="bg-white rounded section-top shadow-content flex justify-end items-center min-h-[50px]"
+  >
     <el-button
       type="primary"
       class="mr-56"
@@ -11,7 +13,9 @@
     </el-button>
   </div>
   <div class="section-content">
-    <div class="flex-grow-0 flex-shrink-0 bg-white rounded section-content-left shadow-content">
+    <div
+      class="flex-grow-0 flex-shrink-0 bg-white rounded section-content-left shadow-content"
+    >
       <el-scrollbar>
         <pipe-selector
           :data="pipeList"
@@ -262,13 +266,16 @@
       isEveryStep() {
         return this.$route.query.step == "every"
       },
+      isOneStep() {
+        return this.$route.query.step == "one"
+      },
+      isFromOuter() {
+        return Boolean(this.uniQuery.message) || Boolean(this.uniQuery.backHref);
+      },
       uniQuery() {
         return this.isEveryStep
           ? qs.parse(this.$route.fullPath.split('?')[1])
           : this.$route.query
-      },
-      outerMsg() {
-        return this.uniQuery.message;
       },
       rules() {
         const getValidator = (errorMsgs, otherJudge) => (rule, value, callback) => {
@@ -345,7 +352,7 @@
     },
     async created() {
       const loadingFuncs = [
-        'getSelectedPipeList',
+        'queryAllSelected',
         'handleDiscern',
         'handleNext',
         'onSubmit',
@@ -371,6 +378,7 @@
       this.getSelectedPipeList();
     },
     methods: {
+      queryAllSelected: Helper.queryAllSelected,
       getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId
@@ -386,8 +394,13 @@
       },
       /**@description 上一步 */
       onPrev() {
-        if (this.isEveryStep) {
-          this.$connector.$send(this.uniQuery.message)
+        if (this.isFromOuter) {
+          if (this.uniQuery.backHref) {
+            location.href = this.uniQuery.backHref;
+          } else {
+            //deprecated
+            this.$connector.$send(this.uniQuery.message);
+          }
         } else {
           this.$router.push({
             path: '/DiscernSteps/choose',
@@ -421,23 +434,26 @@
           flag: 'next'
         })
           .then(() => {
-            setTimeout(() => {
-              this.$router.push({
-                path: '/DiscernSteps/level',
-                query: {
-                  message: this.outerMsg,
-                  taskId: this.taskId,
-                  taskName: this.taskName,
-                  choosePipe: this.choosePipe
-                }
-              })
-            }, 300);
+            this.$router.push({
+              path: '/DiscernSteps/level',
+              query: {
+                ...this.uniQuery,
+                taskId: this.taskId,
+                taskName: this.taskName,
+                choosePipe: this.choosePipe
+              }
+            })
           })
       },
       /**@description 退出 */
       onExit() {
-        if (this.isEveryStep) {
-          this.$connector.$send(this.uniQuery.message)
+        if (this.isFromOuter) {
+          if (this.uniQuery.backHref) {
+            location.href = this.uniQuery.backHref;
+          } else {
+            //deprecated
+            this.$connector.$send(this.uniQuery.message);
+          }
         } else {
           this.$router.push('/GhgqDiscern')
         }
@@ -457,7 +473,6 @@
         const { id, code, pipeSegmentCode } = this.__edittingRow;
         try {
           const res = await this.$refs['splitForm'].validate();
-          console.log("this.$refs['splitForm'].validate()", res);
           return Helper.pipeSplitSegment({
             code,
             id,

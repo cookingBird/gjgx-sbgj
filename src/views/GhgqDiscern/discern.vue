@@ -3,20 +3,26 @@
   <div class="discern-top shadow-content bg-fff"></div>
   <div class="discern-content">
     <div
-      class="flex-grow-0 flex-shrink-0 bg-white rounded discern-content-left shadow-content">
+      class="flex-grow-0 flex-shrink-0 bg-white rounded discern-content-left shadow-content"
+    >
       <el-scrollbar>
-        <pipe-selector :data="pipeList"
+        <pipe-selector
+          :data="pipeList"
           :defaultOpen="true"
           :defaultSelect="selectedPipe?.id || pipeList[0].children[0]?.id"
           :optionsKey="{ title: 'pipeName', key: 'id', children: 'children' }"
-          @select="handlePipeSelect"></pipe-selector>
+          @select="handlePipeSelect"
+        ></pipe-selector>
       </el-scrollbar>
     </div>
-    <div ref="loadingMask"
-      class="relative flex-grow discern-content-right">
+    <div
+      ref="loadingMask"
+      class="relative flex-grow discern-content-right"
+    >
       <div class="absolute inset-0 flex flex-col">
         <div class="flex-grow right-content">
-          <mix-table v-if="pipeList[0].children.length"
+          <mix-table
+            v-if="pipeList[0].children.length"
             ref="table"
             class="!w-auto"
             :tableColumns="tableColumns"
@@ -27,7 +33,8 @@
             url="/highconsarea/nextOperate"
             :isPagination="false"
             :query="{ taskId:taskId,nodeId: 3,flag: '',pipeCode:pipeCode}"
-            :pageParams="{pageNo:1,pageSize:-1}">
+            :pageParams="{pageNo:1,pageSize:-1}"
+          >
             <!-- <template v-slot:action>
             <el-button
               type="text"
@@ -35,50 +42,65 @@
             >修改等级</el-button>
           </template> -->
             <div class="absolute map-layer-switcher-group">
-              <LayerSwitcher v-model="populationShow"
+              <LayerSwitcher
+                v-model="populationShow"
                 :number="pipeAroundTotal.people"
                 title="人居"
-                @change="togglePopulationVisible"></LayerSwitcher>
-              <LayerSwitcher v-model="placeShow"
+                @change="togglePopulationVisible"
+              ></LayerSwitcher>
+              <LayerSwitcher
+                v-model="placeShow"
                 :number="pipeAroundTotal.place"
                 title="特定场所"
-                @change="togglePlaceVisible"></LayerSwitcher>
+                @change="togglePlaceVisible"
+              ></LayerSwitcher>
             </div>
           </mix-table>
         </div>
         <div class="flex-grow-0 flex-shrink-0 mt-2 rounded right-footer shadow-content">
           <div>
-            <el-button type="primary"
-              @click="onExit">退出</el-button>
-            <el-button v-if="!isOneStep"
+            <el-button
               type="primary"
-              @click="onPrev">上一步</el-button>
-            <el-button type="primary"
-              @click="handleFinish">完成</el-button>
+              @click="onExit"
+            >退出</el-button>
+            <el-button
+              type="primary"
+              @click="onPrev"
+            >上一步</el-button>
+            <el-button
+              type="primary"
+              @click="onFinish"
+            >完成</el-button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <el-dialog v-if="edittingRow"
+  <el-dialog
+    v-if="edittingRow"
     @close="onclose"
     title="修改高后果区等级"
     :visible="true"
-    width="30%">
+    width="30%"
+  >
     <div class="flex justify-around">
-      <el-button v-for="btn in levelGroup"
+      <el-button
+        v-for="btn in levelGroup"
         :key="btn.level"
         :class="{'selected':edittingRow.hcaLevel == btn.level}"
         class="el-button-level"
-        @click="onSelectLevel(btn)">
+        @click="onSelectLevel(btn)"
+      >
         {{ btn.label }}
       </el-button>
     </div>
     <div class="flex justify-center mt-7">
-      <el-button v-for="aBtn in dialogAction"
+      <el-button
+        v-for="aBtn in dialogAction"
         type="primary"
         :key="aBtn.code"
-        @click="onDialogAction(aBtn)">
+        @click="onDialogAction(aBtn)"
+      >
         {{ aBtn.label }}
       </el-button>
     </div>
@@ -157,7 +179,7 @@
             label: "高后果区等级",
             prop: "hcaLevel",
             width: 120,
-            format: function (val) {
+            format: function(val) {
               if (val == 0) {
                 return '非高后果区';
               } else if (val == 1) {
@@ -187,7 +209,7 @@
             label: "地区等级",
             prop: "regionLevel",
             width: 120,
-            format: function (val) {
+            format: function(val) {
               if (val == 0) {
                 return '-';
               } else if (val == 1) {
@@ -287,7 +309,7 @@
           : this.$route.query;
       },
       isFromOuter() {
-        return Boolean(this.uniQuery.message);
+        return Boolean(this.uniQuery.message) || Boolean(this.uniQuery.backHref);
       },
     },
     watch: {
@@ -321,8 +343,8 @@
     async created() {
       console.log('discern created-----------------', this.$route);
       const loadingFuncs = [
-        'getSelectedPipeList',
-        'handleFinish',
+        'queryAllSelected',
+        'onFinish',
         'onDialogAction',
         'onStepDiscern'
       ];
@@ -337,7 +359,11 @@
       }
       this.getSelectedPipeList();
     },
+    mounted() {
+      console.log('discern uniQuery---------------', this.uniQuery);
+    },
     methods: {
+      queryAllSelected: Helper.queryAllSelected,
       getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId
@@ -374,7 +400,7 @@
         this.__levelLayer && this.__levelLayer.move2Top();
       },
       /**@description 完成 */
-      handleFinish() {
+      onFinish() {
         return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -382,7 +408,12 @@
         })
           .then(() => {
             if (this.isFromOuter) {
-              this.$connector.$send(this.uniQuery.message);
+              if (this.uniQuery.backHref) {
+                location.href = this.uniQuery.backHref;
+              } else {
+                //deprecated
+                this.$connector.$send(this.uniQuery.message);
+              }
             } else {
               this.$router.push({
                 path: '/GhgqDiscern',
@@ -397,6 +428,7 @@
             path: '/DiscernSteps/level',
             query: {
               ...this.$route.query,
+              ...this.uniQuery,
               choosePipe: Misc.pickFileds(
                 this.choosePipe,
                 'id',
@@ -407,16 +439,17 @@
             }
           });
         };
-        if (this.isOneStep) {
-          this.$connector.$send(this.uniQuery.message);
-        } else {
-          back();
-        }
+        back();
       },
       /**@description 退出 */
       onExit() {
         if (this.isFromOuter) {
-          this.$connector.$send(this.uniQuery.message);
+          if (this.uniQuery.backHref) {
+            location.href = this.uniQuery.backHref;
+          } else {
+            //deprecated
+            this.$connector.$send(this.uniQuery.message);
+          }
         } else {
           this.$router.push('/GhgqDiscern');
         }

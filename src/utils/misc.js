@@ -157,27 +157,18 @@ export function bindLoading(loadingFiled, loadingFn, beforeExec, afterExec) {
     throw Error('bindLoading error, callback is null');
   }
   const setValue = getCtxValueSetter(this, loadingFiled);
-  return (...params) => {
+  return async (...params) => {
     beforeExec && beforeExec(...params);
     setValue(true);
-    const result = loadingFn.call(this, ...params);
     try {
-      return result.then(
-        res => {
-          afterExec && afterExec(res);
-          setValue(false);
-          return res;
-        },
-        err => {
-          afterExec && afterExec(err);
-          setValue(false);
-          return Promise.reject(err);
-        }
-      );
-    } catch (error) {
-      afterExec && afterExec(result);
+      const result = await loadingFn.call(this, ...params);
       setValue(false);
-      return result;
+      afterExec && afterExec(result);
+      return result
+    } catch (error) {
+      afterExec && afterExec(error);
+      setValue(false);
+      return error;
     }
   };
 }
@@ -546,4 +537,13 @@ export function decode(base64) {
   // const str = decodeURIComponent(decodeURI(decode));
   const str = (decodeURI(decode));
   return str;
+}
+
+
+/**
+ *
+ * @param {string} dateString
+ */
+export function matchTime(date) {
+  return date?.match(/^\d{4}([/:-_\S])(1[0-2]|0?[1-9])([/:-_\S])(0?[1-9]|[1-2]\d|30|31)/)[0]
 }

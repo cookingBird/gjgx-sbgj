@@ -1,13 +1,15 @@
 <template>
 <div class="map-container">
-  <gislife-map v-if="appConfig.baseUrl"
+  <gislife-map
+    v-if="appConfig.baseUrl"
     v-on="$listeners"
     ref="map"
-    :appcode="appConfig.appCode"
-    :baseUrl="appConfig.mapServiceUrl"
+    :appcode="appConfig.mapConfig.appCode"
+    :baseUrl="appConfig.mapConfig.baseUrl"
     :requestHeader="requestHeader"
     @onLoad="handleMapLoad"
-    @onMapClick="handleMapClick" />
+    @onMapClick="handleMapClick"
+  />
   <slot v-if="mapLoaded"></slot>
 </div>
 </template>
@@ -70,13 +72,14 @@
       handleMapClick(e) {
         const { popFilterCb, popInfoCallback } = this;
         if (this.popShow) {
-          if (popFilterCb && popFilterCb(e)) {
-            this.openPop(e, popInfoCallback)
+          if (popFilterCb?.(e)) {
+            this.__popClose?.()
+            this.__popClose = this.openPop(e, popInfoCallback)
           }
         }
       },
       /**@description 打开气泡框 */
-      openPop(e, popInfoCallback, map = this.mapboxInstance) {
+      openPop(e, popInfoCallback, cancelCb, map = this.mapboxInstance) {
         function handler(e, infoCb, map) {
           const node = compilePop({
             info: (infoCb && infoCb(e.infos)) || e.infos,
@@ -93,7 +96,8 @@
           });
           pop.setDOMContent(node).setLngLat(e.position).addTo(map)
           function closeHandler() {
-            pop.remove()
+            pop.remove();
+            cancelCb?.()
           };
           return closeHandler
         };

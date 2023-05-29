@@ -150,7 +150,7 @@
 	}
 
 	.gislife-table-pagination__table {
-		@apply flex-grow px-1;
+		@apply flex-grow px-1 max-h-full;
 	}
 
 	.gislife-table-pagination__pagination {

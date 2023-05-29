@@ -4,6 +4,7 @@ import ViewRouter from '@/views/viewRouter'
 import Iframe from '@/views/iframe'
 import Layout from '@/views/index'
 import Main from '@/views/main'
+import stringify from './stringify'
 
 Vue.use(VueRouter)
 
@@ -111,8 +112,10 @@ const router = new VueRouter({
     }
   ]
 })
+stringify.install(router);
 
 router.beforeEach((to, from, next) => {
+  console.log('beforeEach----------------', to);
   if (to.query.token) {
     sessionStorage.token = to.query.token
     delete to.query.token
@@ -124,6 +127,8 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+
+
 
 router.createRouter = function(menuList) {
   const route = {

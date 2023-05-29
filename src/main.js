@@ -33,6 +33,7 @@ Vue.component('common-table', Table)
 Vue.prototype.$Map = Map
 Vue.config.productionTip = false
 
+
 new Vue({
   store,
   router,

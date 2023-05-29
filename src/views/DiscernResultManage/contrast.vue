@@ -1,53 +1,73 @@
 <template>
 <div class="flex flex-col w-full h-full space-y-2">
   <div
-    class="flex items-center justify-between flex-grow-0 flex-shrink-0 w-auto h-12 p-1 bg-white rounded shadow-content">
+    class="flex items-center justify-between flex-grow-0 flex-shrink-0 w-auto h-12 p-1 bg-white rounded shadow-content"
+  >
     <span class="px-2 text-2xl font-bold text-black">{{ pipeSegmentName }} 对比分析</span>
-    <el-button class="absolute right-0 mr-56"
-      @click="$router.push('/DiscernResultManage')">
+    <el-button
+      class="absolute right-0 mr-56"
+      @click="$router.push('/DiscernResultManage')"
+    >
       返回
     </el-button>
     <div class="!relative mix-table__action">
-      <el-button v-for="item in ['混合', '表格', '地图']"
+      <el-button
+        v-for="item in ['混合', '表格', '地图']"
         :class="{'selected': type === item }"
         :key="item"
         @click="type = item"
-        class="mix-table__action-item">
+        class="mix-table__action-item"
+      >
         {{ item }}
       </el-button>
     </div>
   </div>
   <div class="relative flex-grow rounded">
     <BaseMap ref="map">
-      <div class="absolute map-layer-switcher-group"
-        v-show="type !== '表格'">
-        <LayerSwitcher v-model="visible.populationShow"
+      <div
+        class="absolute map-layer-switcher-group"
+        v-show="type !== '表格'"
+      >
+        <LayerSwitcher
+          v-model="visible.populationShow"
           :number="pipeAroundTotal.people"
           title="人居"
-          @change="(val)=>toggleVisible(val,'people')"></LayerSwitcher>
-        <LayerSwitcher v-model="visible.placeShow"
+          @change="(val)=>toggleVisible(val,'people')"
+        ></LayerSwitcher>
+        <LayerSwitcher
+          v-model="visible.placeShow"
           :number="pipeAroundTotal.place"
           title="特定场所"
-          @change="(val)=>toggleVisible(val,'place')"></LayerSwitcher>
+          @change="(val)=>toggleVisible(val,'place')"
+        ></LayerSwitcher>
       </div>
     </BaseMap>
-    <section v-show="(type == '表格' || type == '混合') && pipeSegmentList.length"
+    <section
+      v-show="(type == '表格' || type == '混合') && pipeSegmentList.length"
       class="absolute flex-col p-2 m-2 rounded-lg table-wrapper"
-      :class="[ type == '表格' ? 'inset-0 z-10' : 'top-0 bottom-0 left-0 w-[675px]']">
+      :class="[ type == '表格' ? 'inset-0 z-10' : 'top-0 bottom-0 left-0 w-[680px]']"
+    >
       <div class="flex justify-between flex-grow-0 flex-shrink-0 w-auto py-2">
         <span class="text-2xl font-bold text-white"> 对比分析</span>
-        <i class="text-2xl text-white cursor-pointer el-icon-close"
-          @click="type='地图'"></i>
+        <i
+          class="text-2xl text-white cursor-pointer el-icon-close"
+          @click="type='地图'"
+        ></i>
       </div>
       <div class="relative flex-grow">
-        <MyTable ref="table"
-          height="100%"
-          :data="pipeSegmentList"
-          :columns="tableCols"
-          :span-method="objectSpanMethod"
-          @row-click="handleRowClick"
-          @selection-change="handleSelectionChange">
-        </MyTable>
+        <div class="absolute inset-0">
+          <MyTable
+            ref="table"
+            height="100%"
+            row-key="id"
+            :data="pipeSegmentList"
+            :columns="tableCols"
+            :span-method="objectSpanMethod"
+            @row-click="handleRowClick"
+            @selection-change="handleSelectionChange"
+          >
+          </MyTable>
+        </div>
       </div>
     </section>
   </div>
@@ -88,7 +108,7 @@
             dataAttrs: ['colorHex'],
             slotProps({ row }) {
               return {
-                class: 'h-7 w-7',
+                class: 'h-7 w-7 mx-auto',
                 style: {
                   backgroundColor: row.colorHex
                 }
@@ -99,17 +119,17 @@
           { minWidth: 120, prop: 'code', align: 'center', label: '高后果区编号' },
           {
             minWidth: 70, prop: 'hcaLevel', align: 'center', label: '等级',
-            formatter: function (val) {
+            formatter: function(val) {
               if (val == 0) {
                 return '非高后果区'
               } else if (val == 1) {
-                return '一级'
+                return 'Ⅰ级'
               } else if (val == 2) {
-                return '二级'
+                return 'Ⅱ级'
               } else if (val == 3) {
-                return '三级'
+                return 'Ⅲ级'
               } else if (val == 4) {
-                return '四级'
+                return 'Ⅳ级'
               } else {
                 return val
               }

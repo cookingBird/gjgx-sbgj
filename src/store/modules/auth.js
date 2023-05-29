@@ -1,7 +1,7 @@
 import { getPermission } from '@/api/base'
 import router from '@/router'
 import cloneDeep from 'lodash/cloneDeep'
-import { getMainPath, treeTravels, isMain } from '@/message'
+import { getMainPath, treeTravels, isMain, getPermission as getMainAuthState } from '@/message'
 
 export default {
   namespaced: true,
@@ -15,7 +15,8 @@ export default {
     viewPageId: null,
     navActiveCode: null,
     mainLocation: {},
-    mainBtnAuthed: []
+    mainBtnAuthed: [],
+    mainUserinfo: {},
   },
   mutations: {
     SET_PERMISSION(state, data) {
@@ -52,6 +53,20 @@ export default {
     },
     SET_MAIN_LOCATION(state, data) {
       Object.assign(state.mainLocation, data)
+    },
+    PATCH_MAIN_AUTH(state, node) {
+      const indexOf = state.mainBtnAuthed.findIndex(
+        n => n.funCode === node.funCode
+      )
+      if (indexOf > -1) {
+        state.mainBtnAuthed.splice(indexOf, 1, node)
+      }
+      else {
+        state.mainBtnAuthed.push(node)
+      }
+    },
+    SET_MAIN_USERINFO(state, data) {
+      state.mainUserinfo = data;
     }
   },
   actions: {
@@ -64,7 +79,10 @@ export default {
         const pathInfo = await getMainPath();
         commit('SET_MAIN_LOCATION', pathInfo);
         //todo 查找当前应用的权限配置
-        const travel = treeTravels(state.menuData)
+        const { userinfo } = await getMainAuthState();
+        commit('SET_MAIN_USERINFO', userinfo);
+        const { menuData, funCode } = userinfo;
+        const travel = treeTravels(menuData)
         const { pathname } = state.mainLocation
         travel({
           every(node) {
@@ -72,31 +90,19 @@ export default {
             if (node.funType === 1) {
               if (node.route) {
                 if (node.route === pathname) {
-                  const indexOf = state.mainBtnAuthed.findIndex(
-                    n => n.funCode === node.funCode
-                  )
-                  if (indexOf > -1) {
-                    state.mainBtnAuthed.splice(indexOf, 1, node)
-                  } else {
-                    state.mainBtnAuthed.push(node)
-                  }
+                  commit('PATCH_MAIN_AUTH', node)
                 }
               }
               else {
-                const indexOf = state.mainBtnAuthed.findIndex(
-                  n => n.funCode === node.funCode
-                )
-                if (indexOf > -1) {
-                  state.mainBtnAuthed.splice(indexOf, 1, node)
-                }
-                else {
-                  state.mainBtnAuthed.push(node)
-                }
+                commit('PATCH_MAIN_AUTH', node)
               }
             }
           }
         })
-
+        const nodes = funCode.map(fc => ({ funCode: fc }))
+        nodes.forEach((node) => {
+          commit('PATCH_MAIN_AUTH', node)
+        })
       }
       return state.menuData
     }

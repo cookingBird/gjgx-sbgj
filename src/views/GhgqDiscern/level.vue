@@ -3,7 +3,9 @@
   <div class="min-h-[50px] bg-white rounded shadow-content">
   </div>
   <div class="level-content">
-    <div class="flex-grow-0 flex-shrink-0 bg-white rounded level-content-left shadow-content">
+    <div
+      class="flex-grow-0 flex-shrink-0 bg-white rounded level-content-left shadow-content"
+    >
       <el-scrollbar>
         <pipe-selector
           :data="pipeList"
@@ -118,8 +120,8 @@
       PipeSelector,
       LayerSwitcher
     },
-    mixins: [Refs.createMap('mixMap','ctx'),Refs.createTable('mixTable','ctx'),mapMix()],
-    data () {
+    mixins: [Refs.createMap('mixMap', 'ctx'), Refs.createTable('mixTable', 'ctx'), mapMix()],
+    data() {
       return {
         pipeList: [{
           pipeName: '全部管道',
@@ -153,7 +155,7 @@
           {
             label: "地区等级",
             prop: "regionLevel",
-            format: function (val) {
+            format: function(val) {
               if (val == 0) {
                 return '-'
               } else if (val == 1) {
@@ -196,14 +198,14 @@
         ],
         dialogVisible: false,
         levelGroup: [
-          { label: '一级',level: 1 },
-          { label: '二级',level: 2 },
-          { label: '三级',level: 3 },
-          { label: '四级',level: 4 },
+          { label: '一级', level: 1 },
+          { label: '二级', level: 2 },
+          { label: '三级', level: 3 },
+          { label: '四级', level: 4 },
         ],
         dialogAction: [
-          { label: '取消',code: 'cancel' },
-          { label: '确定',code: 'submit' },
+          { label: '取消', code: 'cancel' },
+          { label: '确定', code: 'submit' },
         ],
         selectRowLevel: 1,
         pipeCode: '',
@@ -217,24 +219,24 @@
       }
     },
     computed: {
-      taskId () {
+      taskId() {
         return this.$route.query.taskId
       },
-      taskName () {
+      taskName() {
         return this.$route.query.taskName
       },
-      selectedPipe () {
+      selectedPipe() {
         this.choosePipe = this.$route.query.choosePipe;
         return this.$route.query.choosePipe
       },
-      isFromOuter () {
-        return this.$route.query.message
+      isFromOuter() {
+        return Boolean(this.$route.query.backHref) || Boolean(this.$route.query.message);
       },
     },
     watch: {
       loading: {
         immediate: true,
-        handler (val) {
+        handler(val) {
           if (!this.loadingMask) {
             this.loadingMask = createLoading.call(this);
           }
@@ -253,36 +255,37 @@
                 text = ''
               }
             }
-            this.loadingMask.start({ text,progress: Boolean(text),customClass: 'gislife-loading' })
+            this.loadingMask.start({ text, progress: Boolean(text), customClass: 'gislife-loading' })
           } else {
             this.loadingMask.end();
           }
         }
       }
     },
-    created () {
-      console.log('level--------------',this.$route);
+    created() {
+      console.log('level--------------', this.$route);
       const loadingFuncs = [
-        'getSelectedPipeList',
+        'queryAllSelected',
         'handleDiscern',
         'handleNext',
         'onDialogAction'
       ];
       // const loadingFuncs = [];
       loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+        this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
           this.loadingType = key
         })
       })
       this.getSelectedPipeList();
     },
     methods: {
-      getSelectedPipeList () {
-        return Helper.queryAllSelected({
+      queryAllSelected: Helper.queryAllSelected,
+      getSelectedPipeList() {
+        return this.queryAllSelected({
           taskId: this.taskId
         })
           .then(async (data) => {
-            this.pipeList = [Object.assign(this.pipeList[0],{ children: data.data })]
+            this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })]
             const choosePipe = data.data
               .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
             this.handlePipeSelect(choosePipe);
@@ -291,7 +294,7 @@
           })
       },
       /**@description 一键识别 */
-      handleDiscern () {
+      handleDiscern() {
         return Helper.discernOneStep({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP
@@ -308,7 +311,7 @@
           })
       },
       /**@description 下一步 */
-      handleNext () {
+      handleNext() {
         return Helper.nextStepOpr({
           taskId: this.taskId,
           nodeId: CURRENT_NODE_STEP,
@@ -333,38 +336,52 @@
           })
       },
       /**@description 上一步 */
-      onPrev () {
-        this.$router.push({
-          path: '/DiscernSteps/section',
-          query: {
-            ...this.$route.query,
-            choosePipe: this.choosePipe
-          }
-        })
+      onPrev() {
+        const back = () => {
+          this.$router.push({
+            path: '/DiscernSteps/section',
+            query: {
+              ...this.$route.query,
+              choosePipe: Misc.pickFileds(
+                this.choosePipe,
+                'id',
+                'pipeCode',
+                'pipeSegmentCode',
+                'pipeName'
+              )
+            }
+          });
+        };
+        back();
       },
       /**@description 退出 */
-      onExit () {
+      onExit() {
         if (this.isFromOuter) {
-          this.$connector.$send(this.$route.query.message)
+          if (this.$route.query.backHref) {
+            location.href = this.$route.query.backHref;
+          } else {
+            //deprecated
+            this.$connector.$send(this.$route.query.message);
+          }
         } else {
           this.$router.push('/GhgqDiscern')
         }
       },
-      onEdit (row) {
+      onEdit(row) {
         this.dialogVisible = true;
         this.__edittingRow = row;
         this.selectRowLevel = row.regionLevel;
       },
-      onclose () {
+      onclose() {
         this.dialogVisible = false;
         this.__edittingRow = null
       },
-      onSelectLevel (btn) {
+      onSelectLevel(btn) {
         this.__selectBtn = btn;
         this.selectRowLevel = btn.level
       },
-      onDialogAction (aBtn) {
-        const { code,id,pipeSegmentCode } = this.__edittingRow;
+      onDialogAction(aBtn) {
+        const { code, id, pipeSegmentCode } = this.__edittingRow;
         switch (aBtn.code) {
           case 'cancel': {
             this.dialogVisible = false;
@@ -372,7 +389,7 @@
             return Promise.resolve()
           }
           case 'submit': {
-            const { label,level } = this.__selectBtn;
+            const { label, level } = this.__selectBtn;
             return Helper.pipeLevelMutation({
               code,
               id,
@@ -390,13 +407,13 @@
               })
           }
           default: {
-            throw Error(`unCapture action type ${aBtn.code}`)
+            throw Error(`unCapture action type ${ aBtn.code }`)
           }
         }
       },
 
       /**@description 选择管道 */
-      async handlePipeSelect (pipe) {
+      async handlePipeSelect(pipe) {
         this.choosePipe = pipe
         this.pipeCode = pipe.pipeSegmentCode
         const mixTableRef = await this.syncMixTableMounted()
@@ -411,28 +428,29 @@
         this.renderFeatures(pipe)
         const populationWkt = pipe.regionDto.populationWkt;
         const specificWkt = pipe.regionDto.specificWkt;
-        Object.assign(this.pipeAroundTotal,{
+        Object.assign(this.pipeAroundTotal, {
           people: populationWkt.length,
           place: specificWkt.length
         })
         this.__levelLayer && this.__levelLayer.move2Top();
       },
 
-      async onTableGetData (data) {
+      async onTableGetData(data) {
         const mapRef = await this.syncMixMapLoaded();
-        this.renderSegmentLabel(data,mapRef);
-        this.__levelLayer = this.renderLevel(data,'regionLevel',mapRef);
+        this.renderSegmentLabel(data, mapRef);
+        this.__levelLayer = this.renderLevel(data, 'regionLevel', mapRef);
       },
 
-      async handleTableRowClick (row) {
+      async handleTableRowClick(row) {
         const mixMapRef = await this.syncMixMapLoaded()
         mixMapRef.locationByLineString(row.wkt)
       },
 
-      togglePopulationVisible (val) {
+      togglePopulationVisible(val) {
         this.__populationLayer && this.__populationLayer.toggleVisibility(val)
       },
-      togglePlaceVisible (val) {
+
+      togglePlaceVisible(val) {
         this.__placeLayer && this.__placeLayer.toggleVisibility(val)
       },
     }
