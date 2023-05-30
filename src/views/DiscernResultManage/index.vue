@@ -46,7 +46,7 @@
 		</el-form>
 	</div>
 	<div class="page-content">
-		<div class="page-content-left shadow-content">
+		<div class="bg-white page-content-left shadow-content">
 			<el-scrollbar>
 				<pipe-selector
 					:optionsKey="{ title: 'name', key: 'code', children: 'children' }"

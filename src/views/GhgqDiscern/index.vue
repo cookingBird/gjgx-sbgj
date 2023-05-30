@@ -345,7 +345,7 @@
               this.$message.success('删除成功');
             },
             (_) => {
-              this.$message.error('删除失败');
+              this.$message.error('取消失败');
             }
           )
       },

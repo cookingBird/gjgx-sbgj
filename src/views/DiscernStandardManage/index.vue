@@ -316,7 +316,7 @@
               this.$message.success('删除成功');
             },
             (_) => {
-              this.$message.success('删除失败');
+              this.$message.success('取消删除');
               return Promise.reject()
             }
           )

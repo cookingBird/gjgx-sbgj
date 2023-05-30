@@ -1,7 +1,6 @@
 <template>
 <div class="map-container">
   <gislife-map
-    v-if="appConfig.baseUrl"
     v-on="$listeners"
     ref="map"
     :appcode="appConfig.mapConfig.appCode"

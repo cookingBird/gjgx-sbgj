@@ -127,6 +127,7 @@
 
   .mix-table-wrapper>.mix-table__map {
     border-radius: var(--border-radius, 4px);
+    background-color: #fff;
   }
 
   .mix-table-wrapper> :not(.absolute) {

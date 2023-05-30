@@ -45,17 +45,19 @@
     </el-form>
   </div>
   <div class="page-content">
-    <div class="page-content-left shadow-content">
-      <el-scrollbar>
-        <pipe-selector
-          :optionsKey="{ title: 'name', key: 'code', children: 'children' }"
-          :data="leftTreeData"
-          :defaultOpen="true"
-          @select="handleTreeSelect"
-          :defaultSelect="searchForm.orgCode"
-        ></pipe-selector>
-      </el-scrollbar>
-    </div>
+    <Auth funCode="potential_orgCascadeTree">
+      <div class="bg-white page-content-left shadow-content">
+        <el-scrollbar>
+          <pipe-selector
+            :optionsKey="{ title: 'name', key: 'code', children: 'children' }"
+            :data="leftTreeData"
+            :defaultOpen="true"
+            @select="handleTreeSelect"
+            :defaultSelect="searchForm.orgCode"
+          ></pipe-selector>
+        </el-scrollbar>
+      </div>
+    </Auth>
     <div class="max-w-full page-content-right shadow-content">
       <MixTable
         v-if="loaded"
@@ -173,17 +175,17 @@
         return this.$refs['mixTableRef'].$refs['basemap'];
       },
       tableRef() {
-        return this.$refs['mixTableRef'].$refs['table'];
+        return () => this.$refs['mixTableRef'].$refs['table'];
       },
     },
     async created() {
       this.getTreeData();
       const mapRef = await this.syncMixMapLoaded();
-      mapRef.setPopShow(true,
+      mapRef.setPopShow(
+        true,
         (e) => (e.layerId === "section-level" && e.infos),
-        (infos) => Misc.objMap(infos, (key, value) => value === 'null' ? '空' : value)
+        (infos) => Misc.objMap(infos, (key, value) => (value === 'null' || !value) ? '空' : value)
       );
-
     },
 
     methods: {
@@ -211,27 +213,26 @@
           this.loaded = true;
           return;
         }
-        this.tableRef.refresh();
+        this.tableRef().refresh();
       },
       async handleTableRowClick(row) {
         const res = await pipeAround({ pipeCode: row.pipeSegmentCode });
         const mapRef = await this.syncMixMapLoaded()
         const { regionWkt, flammableWkt, specificWkt, populationWkt } = res;
         //影响半径
-        regionWkt && this.mapRef.pipeRadiusRender({
+        regionWkt && mapRef.pipeRadiusRender({
           wkt: regionWkt
         });
         //人居
-        populationWkt.length && this.mapRef.renderMarkerByType(populationWkt, 1);
+        populationWkt.length && mapRef.renderMarkerByType(populationWkt, 1);
         //特定场所
-        specificWkt.length && this.mapRef.renderMarkerByType(specificWkt, 2);
+        specificWkt.length && mapRef.renderMarkerByType(specificWkt, 2);
         //易燃易爆场所
-        flammableWkt.length && this.mapRef.renderMarkerByType(flammableWkt, 3);
+        flammableWkt.length && mapRef.renderMarkerByType(flammableWkt, 3);
         if (row.wkt) {
           mapRef.locationByLineString(row.wkt, void 0, (center) => {
             if (this.__history !== row.id) {
               this.__history = row.id;
-              console.log('row click', this.__history);
               this.__popClose?.();
               this.__popClose = mapRef.openPop(
                 Object.assign({}, { position: center, infos: row }),
@@ -267,12 +268,12 @@
         }
       },
       handleSearch() {
-        this.tableRef.refresh();
+        this.tableRef().refresh();
       },
       handleReset() {
         this.searchForm.pipeCode = '';
         this.pickedDate = [];
-        setTimeout(this.tableRef.refresh);
+        setTimeout(this.tableRef().refresh);
       },
       onMapLoad() { },
       handleMapClick() { },

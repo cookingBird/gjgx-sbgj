@@ -153,7 +153,7 @@
 
   export default {
     components: { MyTable },
-    data () {
+    data() {
       return {
         pipeList: [],
         selectedPipeList: [],
@@ -166,14 +166,14 @@
           pageSize: 10,
         },
         rightCols: [
-          { width: 55,type: 'selection',align: 'center' },
-          { width: 55,type: 'index',align: 'center',label: '序号' },
-          { width: 150,align: 'center',prop: 'pipeName',label: '管线' },
-          { width: 120,align: 'center',prop: 'transferMaterial',label: '传输介质' },
+          { width: 55, type: 'selection', align: 'center' },
+          { width: 55, type: 'index', align: 'center', label: '序号' },
+          { width: 150, align: 'center', prop: 'pipeName', label: '管线' },
+          { width: 120, align: 'center', prop: 'transferMaterial', label: '传输介质' },
           {
-            width: 120,align: 'center',prop: 'hydrogenSulfideConcentration',label: '硫化氢浓度',
+            width: 120, align: 'center', prop: 'hydrogenSulfideConcentration', label: '硫化氢浓度',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -187,7 +187,7 @@
             prop: 'hydrogenSulfideMolPercent',
             label: '硫化氢(mol)百分比',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -196,9 +196,9 @@
             }
           },
           {
-            width: 136,align: 'center',prop: 'mediumMolecularMass',label: '介质相对分子质量',
+            width: 136, align: 'center', prop: 'mediumMolecularMass', label: '介质相对分子质量',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -207,9 +207,9 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'operatingPressure',label: '介质运行压力',
+            width: 120, align: 'center', prop: 'operatingPressure', label: '介质运行压力',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -218,9 +218,9 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'mediumMolecularMass',label: '介质运行温度',
+            width: 120, align: 'center', prop: 'mediumMolecularMass', label: '介质运行温度',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -229,9 +229,9 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'leakPipeCapacity',label: '泄露管段管容',
+            width: 120, align: 'center', prop: 'leakPipeCapacity', label: '泄露管段管容',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -240,9 +240,9 @@
             }
           },
           {
-            width: 120,align: 'center',prop: 'leakEstimate',label: '泄露时间估算',
+            width: 120, align: 'center', prop: 'leakEstimate', label: '泄露时间估算',
             slotIs: 'input',
-            slotProps ({ row }) {
+            slotProps({ row }) {
               return {
                 // class: 'el-input:border-0 el-input:hover:bg-transparent'
                 class: 'el-input:border-0 el-input:bg-transparent',
@@ -256,13 +256,13 @@
       };
     },
     computed: {
-      taskId () {
+      taskId() {
         return this.$route.query.taskId;
       },
-      taskName () {
+      taskName() {
         return this.$route.query.taskName;
       },
-      selectedListFiltered () {
+      selectedListFiltered() {
         const filterKey = 'pipeName'
         return this.selectedPipeList
           .filter((node) => node[filterKey] && node[filterKey].includes(this.rightKeyword));
@@ -270,7 +270,7 @@
     },
     watch: {
       loading: {
-        handler (val,oldVal) {
+        handler(val, oldVal) {
           if (!this.loadingMask) {
             this.loadingMask = createLoading.call(
               this,
@@ -296,14 +296,14 @@
                 break;
               }
             }
-            this.loadingMask.start({ text,progress: Boolean(text) })
+            this.loadingMask.start({ text, progress: Boolean(text) })
           } else {
             this.loadingMask.end();
           }
         }
       },
     },
-    created () {
+    created() {
       const loadingFuncs = [
         'bootstrap',
         'handleDiscern',
@@ -315,17 +315,17 @@
         //   this.loadingType = key
         // })
         //！ OK
-        this[key] = Misc.bindLoading.call(this,'loading',this[key],() => {
+        this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
           this.loadingType = key
         })
       });
     },
-    mounted () {
+    mounted() {
       this.bootstrap();
     },
     methods: {
-      queryPipeList () {
-        const { pageNo,pageSize } = this.leftPageCfg;
+      queryPipeList() {
+        const { pageNo, pageSize } = this.leftPageCfg;
         return Helper.queryAll({
           keyWords: this.leftKeyword,
           pageNo: pageNo,
@@ -347,27 +347,27 @@
             this.patchPipeStatusAndSelected()
           });
       },
-      getSelectedPipeList () {
+      getSelectedPipeList() {
         return Helper.queryAllSelected({
           taskId: this.taskId,
         }).then((res) => {
           this.selectedPipeList = res.data;
         })
       },
-      async bootstrap () {
+      async bootstrap() {
         await this.getSelectedPipeList();
         await this.queryPipeList();
       },
       /**@description 每次请求数据初始化每一行的状态 */
-      patchPipeStatusAndSelected () {
+      patchPipeStatusAndSelected() {
         setTimeout(() => {
           //同步表格状态
-          Misc.rawForEach(this.pipeList,this.selectedPipeList,(item) => {
-            console.log('rawForEach----------',item);
+          Misc.rawForEach(this.pipeList, this.selectedPipeList, (item) => {
+            console.log('rawForEach----------', item);
             if (item) {
-              this.$refs['leftTableRef'].toggleRowSelection(item,true);
+              this.$refs['leftTableRef'].toggleRowSelection(item, true);
             }
-          },uniqueKey);
+          }, uniqueKey);
           // 同步每条选中数据的页码信息；
           this.selectedPipeList = Misc.rawMap(
             this.selectedPipeList,
@@ -376,21 +376,21 @@
         })
       },
       /**@description 左侧切换全选和取消全选状态 */
-      handleSelectAll () {
+      handleSelectAll() {
         this.$refs['leftTableRef'].toggleAllSelection();
       },
       /**@description 取消左侧选择 */
-      handleSelectClear () {
-        Misc.rawForEach(this.pipeList,this.selectChooseList,(item) => {
-          this.$refs['leftTableRef'].toggleRowSelection(item,false);
-        },uniqueKey)
+      handleSelectClear() {
+        Misc.rawForEach(this.pipeList, this.selectChooseList, (item) => {
+          this.$refs['leftTableRef'].toggleRowSelection(item, false);
+        }, uniqueKey)
         this.selectedPipeList = Misc.arrayOmit(
           this.selectedPipeList,
           this.selectChooseList,
           uniqueKey)
       },
       /**@description 用户选择点击checkbox事件 */
-      onHandSelect (rows,type) {
+      onHandSelect(rows, type) {
         if (type === 'left') {
           /**Patch selected rows*/
           this.selectedPipeList =
@@ -406,8 +406,8 @@
         }
       },
       /**@description 全选 */
-      onSelectAll (rows) {
-        console.log("handleSelectAll----------",rows);
+      onSelectAll(rows) {
+        console.log("handleSelectAll----------", rows);
         this.selectedPipeList =
           Misc.replaceFiledItems(
             this.selectedPipeList,
@@ -416,12 +416,13 @@
             rows,
           );
       },
-      handleBack () {
+      handleBack() {
         this.$router.push('/GhgqDiscern');
       },
       /**@description 下一步 */
-      handleNext () {
-        console.log("selectedPipeList---------------",this.selectedPipeList);
+      handleNext() {
+        console.log("selectedPipeList---------------", this.selectedPipeList);
+        if (!this.selectedPipeList?.length) return this.$message.error('请先选择管道');
         return Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
@@ -445,7 +446,8 @@
           })
       },
       /**@description 一键识别 */
-      handleDiscern () {
+      handleDiscern() {
+        if (!this.selectedPipeList?.length) return this.$message.error('请先选择管道');
         return Helper.pipeAddOrUpdate({
           pipeLineVos: this.selectedPipeList,
           taskId: this.taskId,
@@ -467,17 +469,17 @@
             });
           })
       },
-      onTableMaxHeight (value,tar = 'left') {
+      onTableMaxHeight(value, tar = 'left') {
         this.leftMaxHeight = value;
       },
-      calcIndex (index,pgCfg = 'leftPageCfg') {
-        const { pageNo,pageSize } = this[pgCfg]
+      calcIndex(index, pgCfg = 'leftPageCfg') {
+        const { pageNo, pageSize } = this[pgCfg]
         return index + (pageNo - 1) * pageSize + 1
       },
-      mapListeners (listeners,cb) {
+      mapListeners(listeners, cb) {
         const res = {}
         for (const key in listeners) {
-          if (Object.hasOwnProperty.call(listeners,key)) {
+          if (Object.hasOwnProperty.call(listeners, key)) {
             const element = object[key];
             res[key] = (cb && cb(element)) || element
           }
