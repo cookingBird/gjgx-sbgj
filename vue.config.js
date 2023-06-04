@@ -18,9 +18,10 @@ module.exports = {
     //全局使用
     loaderOptions: {
       scss: {
-        prependData: `@import "~@/assets/style/baseColor.scss";`
-      }
-    }
+        //全局使用
+        additionalData: `@import "~@/assets/style/baseColor.scss";`,
+      },
+    },
   },
   configureWebpack: {
     plugins: [

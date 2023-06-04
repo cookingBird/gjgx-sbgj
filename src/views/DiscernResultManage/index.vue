@@ -46,6 +46,7 @@
 		</el-form>
 	</div>
 	<div class="page-content">
+    <Auth funCode="discernResult_orgCascadeTree">
 		<div class="bg-white page-content-left shadow-content">
 			<el-scrollbar>
 				<pipe-selector
@@ -57,6 +58,7 @@
 				></pipe-selector>
 			</el-scrollbar>
 		</div>
+    </Auth>
 		<div class="page-content-right shadow-content">
 			<MixTable
 				v-if="loaded"

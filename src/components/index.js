@@ -1,6 +1,7 @@
 import AuthVue from "./Auth.vue";
+import FolderBlock from './FolderBlock.vue';
 
-const components = [AuthVue];
+const components = [AuthVue,FolderBlock];
 
 
 export default {

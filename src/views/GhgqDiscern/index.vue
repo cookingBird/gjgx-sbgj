@@ -1,5 +1,5 @@
 <template>
-<main class="flex flex-col">
+<main class="flex flex-col space-y-2">
   <div class="flex-grow-0 flex-shrink-0 rounded search-bar shadow-content">
     <el-form
       class="relative"
@@ -56,7 +56,7 @@
       >新增</el-button>
     </el-form>
   </div>
-  <div class="flex-grow overflow-hidden rounded page-content">
+  <div class="flex-grow overflow-hidden rounded">
     <common-table
       ref="table"
       :tableColumns="tableColumns"
@@ -168,7 +168,7 @@
         searchForm: {
           status: void 0,
           keyWords: '',
-          time: ['', ''],
+          time: [],
         },
         tableColumns: [
           {
@@ -260,10 +260,11 @@
             }
             return res;
           }
+
           const res = {
             ...this.searchForm,
-            startTime: this.searchForm.time[0],
-            endTime: this.searchForm.time[1],
+            startTime: this.searchForm.time?.[0],
+            endTime: this.searchForm.time?.[1],
             taskId: '',
           };
           delete res.time;
@@ -305,6 +306,12 @@
           }
         }
       },
+      searchForm: {
+        deep: true,
+        handler(val) {
+          console.log('searchForm', val);
+        }
+      }
     },
     created() {
       const loadingFuncs = ['onPreview', 'onDelete', 'onSubmit', 'onSync', 'onContinue'];

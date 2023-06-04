@@ -1,28 +1,35 @@
 <template>
-<main class="flex flex-col">
-  <div class="flex-grow-0 flex-shrink-0 rounded step-wrapper shadow-content">
-    <el-steps
-      :active="stepActive"
-      align-center
-    >
-      <el-step
-        title="管道选择"
-        description
-      ></el-step>
-      <el-step
-        title="管道分段"
-        description
-      ></el-step>
-      <el-step
-        title="地区等级划分"
-        description
-      ></el-step>
-      <el-step
-        title="高后果区识别"
-        description
-      ></el-step>
-    </el-steps>
-  </div>
+<main class="flex flex-col space-y-2">
+  <folder-block class="flex-grow-0 flex-shrink-0">
+    <template v-slot:default={show}>
+      <div
+        v-show="show"
+        class="rounded step-wrapper shadow-content"
+      >
+        <el-steps
+          :active="stepActive"
+          align-center
+        >
+          <el-step
+            title="管道选择"
+            description
+          ></el-step>
+          <el-step
+            title="管道分段"
+            description
+          ></el-step>
+          <el-step
+            title="地区等级划分"
+            description
+          ></el-step>
+          <el-step
+            title="高后果区识别"
+            description
+          ></el-step>
+        </el-steps>
+      </div>
+    </template>
+  </folder-block>
   <div class="flex-grow overflow-hidden rounded page-content">
     <router-view ref="view"></router-view>
   </div>
@@ -100,10 +107,6 @@
   main {
     width: 100%;
     height: 100%;
-
-    .page-content {
-      width: 100%;
-    }
   }
 
   ::v-deep .step-wrapper {

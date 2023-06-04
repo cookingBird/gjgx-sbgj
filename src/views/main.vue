@@ -19,7 +19,7 @@ export default {
   },
   data() {
     return {
-      systemName: "共建共享指标配置系统",
+      systemName: "共建共享高后果区识别系统",
     };
   },
 };
