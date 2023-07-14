@@ -1,3 +1,4 @@
+<!-- 第三步 -->
 <template>
 <div class="h-full space-y-2 level-wrapper">
   <div class="min-h-[50px] bg-white rounded shadow-content">
@@ -104,244 +105,226 @@
 </template>
 
 <script>
-  import MixTable from '@/components/mixTable';
-  import PipeSelector from '@/components/pipeSelector';
-  import * as Helper from './Helper'
-  import * as Refs from '@/mixins/Refs';
-  import LayerSwitcher from '@/components/LayerSwitcher.vue';
-  import createLoading from '@/utils/Loading/loading';
-  import * as Misc from '@/utils/misc';
-  import mapMix from './mapMix';
-  const CURRENT_NODE_STEP = 3;
+import MixTable from '@/components/mixTable';
+import PipeSelector from '@/components/pipeSelector';
+import * as Helper from './Helper'
+import * as Refs from '@/mixins/Refs';
+import LayerSwitcher from '@/components/LayerSwitcher.vue';
+import createLoading from '@/utils/Loading/loading';
+import * as Misc from '@/utils/misc';
+import mapMix from './mapMix';
+const CURRENT_NODE_STEP = 3;
 
-  export default {
-    components: {
-      MixTable,
-      PipeSelector,
-      LayerSwitcher
-    },
-    mixins: [Refs.createMap('mixMap', 'ctx'), Refs.createTable('mixTable', 'ctx'), mapMix()],
-    data() {
-      return {
-        pipeList: [{
-          pipeName: '全部管道',
-          id: 1,
-          pipeCode: 1,
-          children: []
-        }],
-        tableConfig: {
-          isPagination: false,
-          buttons: {
-            fixed: 'right',
-            list: [
-              {
-                size: 'normal',
-                label: '修改等级',
-                click: this.onEdit
-              }
-            ],
-            width: '100px'
+export default {
+  components: {
+    MixTable,
+    PipeSelector,
+    LayerSwitcher
+  },
+  mixins: [Refs.createMap('mixMap', 'ctx'), Refs.createTable('mixTable', 'ctx'), mapMix()],
+  data() {
+    return {
+      pipeList: [{
+        pipeName: '全部管道',
+        id: 1,
+        pipeCode: 1,
+        children: []
+      }],
+      tableConfig: {
+        isPagination: false,
+        buttons: {
+          fixed: 'right',
+          list: [
+            {
+              size: 'normal',
+              label: '修改等级',
+              click: this.onEdit
+            }
+          ],
+          width: '100px'
+        }
+      },
+      tableColumns: [
+        {
+          label: "所属管线",
+          prop: "pipeSegmentName"
+        },
+        {
+          label: "分段编号",
+          prop: "code"
+        },
+        {
+          label: "地区等级",
+          prop: "regionLevel",
+          format: function(val) {
+            if (val == 0) {
+              return '-'
+            } else if (val == 1) {
+              return '一级'
+            } else if (val == 2) {
+              return '二级'
+            } else if (val == 3) {
+              return '三级'
+            } else if (val == 4) {
+              return '四级'
+            } else {
+              return val
+            }
           }
         },
-        tableColumns: [
-          {
-            label: "所属管线",
-            prop: "pipeSegmentName"
-          },
-          {
-            label: "分段编号",
-            prop: "code"
-          },
-          {
-            label: "地区等级",
-            prop: "regionLevel",
-            format: function(val) {
-              if (val == 0) {
-                return '-'
-              } else if (val == 1) {
-                return '一级'
-              } else if (val == 2) {
-                return '二级'
-              } else if (val == 3) {
-                return '三级'
-              } else if (val == 4) {
-                return '四级'
-              } else {
-                return val
-              }
-            }
-          },
-          {
-            label: "分段长度（m）",
-            prop: "segmentLength"
-          },
-          {
-            label: "起始里程（m）",
-            prop: "beginMileage"
-          },
-          {
-            label: "终止里程（m）",
-            prop: "endMileage"
-          },
-          {
-            label: "人居（户）",
-            prop: "population"
-          },
-          {
-            label: "特定场所（个）",
-            prop: "specificProduction",
-          },
-          {
-            label: "易燃易爆场所（个）",
-            prop: "flammableExplosivePlace"
-          },
-        ],
-        dialogVisible: false,
-        levelGroup: [
-          { label: '一级', level: 1 },
-          { label: '二级', level: 2 },
-          { label: '三级', level: 3 },
-          { label: '四级', level: 4 },
-        ],
-        dialogAction: [
-          { label: '取消', code: 'cancel' },
-          { label: '确定', code: 'submit' },
-        ],
-        selectRowLevel: 1,
-        pipeCode: '',
-        populationShow: true,
-        placeShow: true,
-        pipeAroundTotal: {
-          people: 300,
-          place: 200
+        {
+          label: "分段长度（m）",
+          prop: "segmentLength"
         },
-        loading: false,
-      }
+        {
+          label: "起始里程（m）",
+          prop: "beginMileage"
+        },
+        {
+          label: "终止里程（m）",
+          prop: "endMileage"
+        },
+        {
+          label: "人居（户）",
+          prop: "population"
+        },
+        {
+          label: "特定场所（个）",
+          prop: "specificProduction",
+        },
+        {
+          label: "易燃易爆场所（个）",
+          prop: "flammableExplosivePlace"
+        },
+      ],
+      dialogVisible: false,
+      levelGroup: [
+        { label: '一级', level: 1 },
+        { label: '二级', level: 2 },
+        { label: '三级', level: 3 },
+        { label: '四级', level: 4 },
+      ],
+      dialogAction: [
+        { label: '取消', code: 'cancel' },
+        { label: '确定', code: 'submit' },
+      ],
+      selectRowLevel: 1,
+      pipeCode: '',
+      populationShow: true,
+      placeShow: true,
+      pipeAroundTotal: {
+        people: 300,
+        place: 200
+      },
+      loading: false,
+    }
+  },
+  computed: {
+    taskId() {
+      return this.$route.query.taskId
     },
-    computed: {
-      taskId() {
-        return this.$route.query.taskId
-      },
-      taskName() {
-        return this.$route.query.taskName
-      },
-      selectedPipe() {
-        this.choosePipe = this.$route.query.choosePipe;
-        return this.$route.query.choosePipe
-      },
-      isFromOuter() {
-        return Boolean(this.$route.query.backHref) || Boolean(this.$route.query.message);
-      },
+    taskName() {
+      return this.$route.query.taskName
     },
-    watch: {
-      loading: {
-        immediate: true,
-        handler(val) {
-          if (!this.loadingMask) {
-            this.loadingMask = createLoading.call(this);
-          }
-          if (val) {
-            let text = void 0;
-            switch (this.loadingType) {
-              case 'handleDiscern': {
-                text = '一键识别中...';
-                break;
-              }
-              case 'handleNext': {
-                text = '高后果区等级识别中...';
-                break;
-              }
-              default: {
-                text = ''
-              }
+    selectedPipe() {
+      this.choosePipe = this.$route.query.choosePipe;
+      return this.$route.query.choosePipe
+    },
+    isFromOuter() {
+      return Boolean(this.$route.query.backHref) || Boolean(this.$route.query.message);
+    },
+  },
+  watch: {
+    loading: {
+      immediate: true,
+      handler(val) {
+        if (!this.loadingMask) {
+          this.loadingMask = createLoading.call(this);
+        }
+        if (val) {
+          let text = void 0;
+          switch (this.loadingType) {
+            case 'handleDiscern': {
+              text = '一键识别中...';
+              break;
             }
-            this.loadingMask.start({ text, progress: Boolean(text), customClass: 'gislife-loading' })
-          } else {
-            this.loadingMask.end();
+            case 'handleNext': {
+              text = '高后果区等级识别中...';
+              break;
+            }
+            default: {
+              text = ''
+            }
           }
+          this.loadingMask.start({ text, progress: Boolean(text), customClass: 'gislife-loading' })
+        } else {
+          this.loadingMask.end();
         }
       }
-    },
-    created() {
-      console.log('level--------------', this.$route);
-      const loadingFuncs = [
-        'queryAllSelected',
-        'handleDiscern',
-        'handleNext',
-        'onDialogAction'
-      ];
-      // const loadingFuncs = [];
-      loadingFuncs.forEach((key) => {
-        this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
-          this.loadingType = key
-        })
+    }
+  },
+  created() {
+    console.log('level--------------', this.$route);
+    const loadingFuncs = [
+      'queryAllSelected',
+      'handleDiscern',
+      'handleNext',
+      'onDialogAction'
+    ];
+    // const loadingFuncs = [];
+    loadingFuncs.forEach((key) => {
+      this[key] = Misc.bindLoading.call(this, 'loading', this[key], () => {
+        this.loadingType = key
       })
-      this.getSelectedPipeList();
+    })
+    this.getSelectedPipeList();
+  },
+  methods: {
+    queryAllSelected: Helper.queryAllSelected,
+    getSelectedPipeList() {
+      return this.queryAllSelected({
+        taskId: this.taskId
+      })
+        .then(async (data) => {
+          this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })]
+          const choosePipe = data.data
+            .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
+          this.handlePipeSelect(choosePipe);
+          await this.syncMixMapLoaded();
+          this.renderPipeLine(data.data);
+        })
     },
-    methods: {
-      queryAllSelected: Helper.queryAllSelected,
-      getSelectedPipeList() {
-        return this.queryAllSelected({
-          taskId: this.taskId
-        })
-          .then(async (data) => {
-            this.pipeList = [Object.assign(this.pipeList[0], { children: data.data })]
-            const choosePipe = data.data
-              .find(pipe => pipe.id == this.selectedPipe?.id) || data.data[0]
-            this.handlePipeSelect(choosePipe);
-            await this.syncMixMapLoaded();
-            this.renderPipeLine(data.data);
-          })
-      },
-      /**@description 一键识别 */
-      handleDiscern() {
-        return Helper.discernOneStep({
-          taskId: this.taskId,
-          nodeId: CURRENT_NODE_STEP
-        })
-          .then((res) => {
-            this.$router.push({
-              path: '/DiscernSteps/discern',
-              query: {
-                ...this.$route.query,
-                taskId: this.taskId,
-                taskName: this.taskName
-              }
-            })
-          })
-      },
-      /**@description 下一步 */
-      handleNext() {
-        return Helper.nextStepOpr({
-          taskId: this.taskId,
-          nodeId: CURRENT_NODE_STEP,
-          flag: 'next'
-        })
-          .then(() => {
-            this.$router.push({
-              path: '/DiscernSteps/discern',
-              query: {
-                ...this.$route.query,
-                taskId: this.taskId,
-                taskName: this.taskName,
-                choosePipe: Misc.pickFileds(
-                  this.choosePipe,
-                  'id',
-                  'pipeCode',
-                  'pipeSegmentCode',
-                  'pipeName'
-                )
-              }
-            })
-          })
-      },
-      /**@description 上一步 */
-      onPrev() {
-        const back = () => {
+    /**@description 一键识别 */
+    handleDiscern() {
+      return Helper.discernOneStep({
+        taskId: this.taskId,
+        nodeId: CURRENT_NODE_STEP
+      })
+        .then((res) => {
           this.$router.push({
-            path: '/DiscernSteps/section',
+            path: '/DiscernSteps/discern',
             query: {
               ...this.$route.query,
+              taskId: this.taskId,
+              taskName: this.taskName
+            }
+          })
+        })
+    },
+    /**@description 下一步 */
+    handleNext() {
+      return Helper.nextStepOpr({
+        taskId: this.taskId,
+        nodeId: CURRENT_NODE_STEP,
+        flag: 'next'
+      })
+        .then(() => {
+          this.$router.push({
+            path: '/DiscernSteps/discern',
+            query: {
+              ...this.$route.query,
+              taskId: this.taskId,
+              taskName: this.taskName,
               choosePipe: Misc.pickFileds(
                 this.choosePipe,
                 'id',
@@ -350,111 +333,129 @@
                 'pipeName'
               )
             }
-          });
-        };
-        back();
-      },
-      /**@description 退出 */
-      onExit() {
-        if (this.isFromOuter) {
-          if (this.$route.query.backHref) {
-            location.href = this.$route.query.backHref;
-          } else {
-            //deprecated
-            this.$connector.$send(this.$route.query.message);
-          }
-        } else {
-          this.$router.push('/GhgqDiscern')
-        }
-      },
-      onEdit(row) {
-        this.dialogVisible = true;
-        this.__edittingRow = row;
-        this.selectRowLevel = row.regionLevel;
-      },
-      onclose() {
-        this.dialogVisible = false;
-        this.__edittingRow = null
-      },
-      onSelectLevel(btn) {
-        this.__selectBtn = btn;
-        this.selectRowLevel = btn.level
-      },
-      onDialogAction(aBtn) {
-        const { code, id, pipeSegmentCode } = this.__edittingRow;
-        switch (aBtn.code) {
-          case 'cancel': {
-            this.dialogVisible = false;
-            this.__edittingRow = null;
-            return Promise.resolve()
-          }
-          case 'submit': {
-            const { label, level } = this.__selectBtn;
-            return Helper.pipeLevelMutation({
-              code,
-              id,
-              levelName: label,
-              levelNo: level,
-              node: CURRENT_NODE_STEP,
-              pipeSegmentCode,
-              taskId: this.taskId
-            })
-              .then(() => {
-                this.$message.success('修改成功');
-                this.$refs.table.$refs.table.refresh();
-                this.dialogVisible = false;
-                this.__edittingRow = null;
-              })
-          }
-          default: {
-            throw Error(`unCapture action type ${ aBtn.code }`)
-          }
-        }
-      },
-
-      /**@description 选择管道 */
-      async handlePipeSelect(pipe) {
-        this.choosePipe = pipe
-        this.pipeCode = pipe.pipeSegmentCode
-        const mixTableRef = await this.syncMixTableMounted()
-        mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
-        const mixMapRef = await this.syncMixMapLoaded()
-        if (pipe.wkt) {
-          mixMapRef.locationByLineString(pipe.wkt)
-        } else {
-          this.$message.error('管线wkt为null')
-        }
-        this.renderRadius(pipe)
-        this.renderFeatures(pipe)
-        const populationWkt = pipe.regionDto.populationWkt;
-        const specificWkt = pipe.regionDto.specificWkt;
-        Object.assign(this.pipeAroundTotal, {
-          people: populationWkt.length,
-          place: specificWkt.length
+          })
         })
-        this.__levelLayer && this.__levelLayer.move2Top();
-      },
+    },
+    /**@description 上一步 */
+    onPrev() {
+      const back = () => {
+        this.$router.push({
+          path: '/DiscernSteps/section',
+          query: {
+            ...this.$route.query,
+            choosePipe: Misc.pickFileds(
+              this.choosePipe,
+              'id',
+              'pipeCode',
+              'pipeSegmentCode',
+              'pipeName'
+            )
+          }
+        });
+      };
+      back();
+    },
+    /**@description 退出 */
+    onExit() {
+      if (this.isFromOuter) {
+        if (this.$route.query.backHref) {
+          location.href = this.$route.query.backHref;
+        } else {
+          //deprecated
+          this.$connector.$send(this.$route.query.message);
+        }
+      } else {
+        this.$router.push('/GhgqDiscern')
+      }
+    },
+    onEdit(row) {
+      this.dialogVisible = true;
+      this.__edittingRow = row;
+      this.selectRowLevel = row.regionLevel;
+    },
+    onclose() {
+      this.dialogVisible = false;
+      this.__edittingRow = null
+    },
+    onSelectLevel(btn) {
+      this.__selectBtn = btn;
+      this.selectRowLevel = btn.level
+    },
+    onDialogAction(aBtn) {
+      const { code, id, pipeSegmentCode } = this.__edittingRow;
+      switch (aBtn.code) {
+        case 'cancel': {
+          this.dialogVisible = false;
+          this.__edittingRow = null;
+          return Promise.resolve()
+        }
+        case 'submit': {
+          const { label, level } = this.__selectBtn;
+          return Helper.pipeLevelMutation({
+            code,
+            id,
+            levelName: label,
+            levelNo: level,
+            node: CURRENT_NODE_STEP,
+            pipeSegmentCode,
+            taskId: this.taskId
+          })
+            .then(() => {
+              this.$message.success('修改成功');
+              this.$refs.table.$refs.table.refresh();
+              this.dialogVisible = false;
+              this.__edittingRow = null;
+            })
+        }
+        default: {
+          throw Error(`unCapture action type ${ aBtn.code }`)
+        }
+      }
+    },
 
-      async onTableGetData(data) {
-        const mapRef = await this.syncMixMapLoaded();
-        this.renderSegmentLabel(data, mapRef);
-        this.__levelLayer = this.renderLevel(data, 'regionLevel', mapRef);
-      },
+    /**@description 选择管道 */
+    async handlePipeSelect(pipe) {
+      this.choosePipe = pipe
+      this.pipeCode = pipe.pipeSegmentCode
+      const mixTableRef = await this.syncMixTableMounted()
+      mixTableRef.refresh({ pipeCode: pipe.pipeSegmentCode })
+      const mixMapRef = await this.syncMixMapLoaded()
+      if (pipe.wkt) {
+        mixMapRef.locationByLineString(pipe.wkt)
+      } else {
+        this.$message.error('管线wkt为null')
+      }
+      this.renderRadius(pipe)
+      this.renderFeatures(pipe)
+      const populationWkt = pipe.regionDto.populationWkt;
+      const specificWkt = pipe.regionDto.specificWkt;
+      Object.assign(this.pipeAroundTotal, {
+        people: populationWkt.length,
+        place: specificWkt.length
+      })
+      this.__levelLayer && this.__levelLayer.move2Top();
+    },
 
-      async handleTableRowClick(row) {
-        const mixMapRef = await this.syncMixMapLoaded()
-        mixMapRef.locationByLineString(row.wkt)
-      },
+    async onTableGetData(data) {
+      const mapRef = await this.syncMixMapLoaded();
+      this.renderSegmentLabel(data, mapRef);
+      this.__levelLayer = this.renderLevel(data, 'regionLevel', mapRef);
+    },
 
-      togglePopulationVisible(val) {
-        this.__populationLayer && this.__populationLayer.toggleVisibility(val)
-      },
+    async handleTableRowClick(row) {
+      const mixMapRef = await this.syncMixMapLoaded()
+      mixMapRef.locationByLineString(row.wkt)
+    },
 
-      togglePlaceVisible(val) {
-        this.__placeLayer && this.__placeLayer.toggleVisibility(val)
-      },
-    }
+    togglePopulationVisible(val) {
+      this.__populationLayer && this.__populationLayer.toggleVisibility(val)
+    },
+
+    togglePlaceVisible(val) {
+      this.__placeLayer && this.__placeLayer.toggleVisibility(val)
+    },
   }
+}
 </script>
 
 <style lang="scss" scoped>

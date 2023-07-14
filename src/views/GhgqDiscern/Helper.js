@@ -5,10 +5,10 @@ import Request from '@/utils/request'
  * @description 任务管理
  */
 
-export function remove (id) {
+export function remove(id) {
   return Request.request({
     method: 'delete',
-    url: `/task/delete/${id}`
+    url: `/task/delete/${ id }`
   }).then(res => {
     if (res.code === 200) {
       return Promise.resolve()
@@ -18,7 +18,7 @@ export function remove (id) {
   })
 }
 
-export function syncData (data) {
+export function syncData(data) {
   return Request.request({
     method: 'post',
     url: '/result/hgcResultSync',
@@ -32,7 +32,7 @@ export function syncData (data) {
   })
 }
 
-export function syncPrompt (data) {
+export function syncPrompt(data) {
   return Request.request({
     method: 'post',
     url: '/result/hgcResultSyncPrompt',
@@ -46,7 +46,7 @@ export function syncPrompt (data) {
   })
 }
 
-export function addOrUpdateTask (data) {
+export function addOrUpdateTask(data) {
   const { taskName, taskDescription, id } = data
   return Request.request({
     method: 'post',
@@ -65,10 +65,10 @@ export function addOrUpdateTask (data) {
   })
 }
 
-export function taskDetail (id) {
+export function taskDetail(id) {
   return Request.request({
     method: 'get',
-    url: `/task/detail/${id}`
+    url: `/task/detail/${ id }`
   }).then(res => {
     if (res.code === 200) {
       return Promise.resolve(res.data)
@@ -81,7 +81,7 @@ export function taskDetail (id) {
  * @description 过程管理
  */
 
-export function queryAll ({ keyWords, pageNo, pageSize }) {
+export function queryAll({ keyWords, pageNo, pageSize }) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/queryPipeLine',
@@ -99,7 +99,7 @@ export function queryAll ({ keyWords, pageNo, pageSize }) {
   })
 }
 
-export function queryAllSelected (options = {}) {
+export function queryAllSelected(options = {}) {
   return Request.request({
     method: 'post',
     url: '/highconsarea/existList',
@@ -121,7 +121,7 @@ export function queryAllSelected (options = {}) {
   })
 }
 
-export function discernOneStep ({ taskId, nodeId }) {
+export function discernOneStep({ taskId, nodeId }) {
   return Request.request({
     url: '/highconsarea/autRecognition',
     method: 'get',
@@ -138,7 +138,7 @@ export function discernOneStep ({ taskId, nodeId }) {
   })
 }
 
-export function pipeLevelMutation ({
+export function pipeLevelMutation({
   code,
   id,
   levelName,
@@ -168,7 +168,7 @@ export function pipeLevelMutation ({
   })
 }
 
-export function nextStepOpr ({
+export function nextStepOpr({
   taskId,
   nodeId = 0,
   flag = 'next',
@@ -182,8 +182,8 @@ export function nextStepOpr ({
       nodeId,
       flag,
       pipeCode,
-      pageNo: -1,
-      pageSize: 1
+      pageNo: 1,
+      pageSize: -1
     }
   }).then(res => {
     if (res.code === 200) {
@@ -194,7 +194,7 @@ export function nextStepOpr ({
   })
 }
 
-export function pipeAddOrUpdate ({ pipeLineVos, taskId, taskName }) {
+export function pipeAddOrUpdate({ pipeLineVos, taskId, taskName }) {
   /**
    * pipeLineVos: [
         {
@@ -224,7 +224,7 @@ export function pipeAddOrUpdate ({ pipeLineVos, taskId, taskName }) {
   })
 }
 
-export function pipeSplitSegment ({
+export function pipeSplitSegment({
   code,
   id,
   pipeSegmentCode,
@@ -254,7 +254,7 @@ export function pipeSplitSegment ({
   })
 }
 
-export function mergePipeSegments (segments, filedKey = 'id') {
+export function mergePipeSegments(segments, filedKey = 'id') {
   return Request.request({
     url: '/highconsarea/segmentMerge',
     methods: 'get',

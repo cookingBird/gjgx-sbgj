@@ -325,7 +325,6 @@
           });
       },
       onPreview({ row }) {
-        console.log('onPreview', row);
         this.loadPdf(row.pdfPath);
         // Helper.renderPdf(row.pdfPath,"discern-standard-preview")
       },

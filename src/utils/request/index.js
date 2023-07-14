@@ -26,7 +26,6 @@ service.interceptors.request.use(
 //响应拦截器
 service.interceptors.response.use(
   response => {
-    console.log('interceptor response', response);
     //重新设置token避免过期
     if (response.headers.token) {
       sessionStorage.token = response.headers.token
