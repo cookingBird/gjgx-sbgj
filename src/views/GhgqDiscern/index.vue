@@ -2,6 +2,7 @@
 <main class="flex flex-col space-y-2">
   <div class="flex-grow-0 flex-shrink-0 rounded search-bar shadow-content">
     <el-form
+      ref="form"
       class="relative"
       :model="searchForm"
       :inline="true"
@@ -322,6 +323,7 @@
     },
     mounted() {
       this.loading = false;
+      console.log("form", this.$refs.form);
     },
     methods: {
       /**

@@ -48,6 +48,7 @@ function install(vue, options = {}) {
               }
             }
           } else {
+            console.log("click",info);
             //子应用
             switch (info.openMode) {
               case 'self': {

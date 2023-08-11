@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@gislife/micro-message": "^3.6.9",
+    "@gislife/micro-message": "3.6.9",
     "@jiaminghi/data-view": "^2.10.0",
     "@turf/turf": "6.5.0",
     "axios": "^0.27.2",
@@ -17,7 +17,7 @@
     "echarts": "^5.4.1",
     "element-ui": "2.15.13",
     "fake-progress": "^1.0.4",
-    "gislife-library": "^1.1.6",
+    "gislife-library": "1.1.6",
     "html2canvas": "^1.4.1",
     "js-stack-utility": "^1.0.0",
     "lodash": "^4.17.21",
